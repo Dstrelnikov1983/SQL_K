@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 0 — Введение в курс «Углублённый SQL»</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 0</div>
+  <h1>Введение в курс:<br>аналитики для «Питание +»</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">Data-driven management: найти, где компания теряет деньги, — с помощью SQL</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · вводное занятие 2 ак. ч. + лабораторная «Схема данных и бизнес-процессы»</div>
+  <aside class="notes">Представиться, коротко рассказать о своём опыте. Сразу задать тон: курс — не про синтаксис ради синтаксиса, а про поиск денег в данных. Попросить слушателей открыть ноутбуки: через 30 минут будем подключаться к БД.</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели занятия и план</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">После занятия вы:</p>
+      <ul style="font-size:.78em">
+        <li>знаете цели, программу и формат курса, систему оценивания</li>
+        <li>понимаете легенду «Питание +» и роль своей команды</li>
+        <li>подключились к учебной БД в Yandex Cloud по SSL</li>
+        <li>ориентируетесь в схеме <code>pitanie</code>: 23 таблицы, связи, объёмы</li>
+        <li>сформулировали первые гипотезы потерь</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>мин</th></tr>
+        <tr><td>Знакомство, опрос по опыту</td><td>10</td></tr>
+        <tr><td>Легенда «Питание +», команды, кейс</td><td>15</td></tr>
+        <tr><td>Программа, формат, оценивание</td><td>10</td></tr>
+        <tr><td>Подключение к БД (практика)</td><td>20</td></tr>
+        <tr><td>Обзор учебной БД</td><td>10</td></tr>
+        <tr><td>Связанные с SQL темы</td><td>10</td></tr>
+        <tr><td>Группы: гипотезы потерь, итоги</td><td>15</td></tr>
+        <tr><td class="hl">Итого</td><td class="hl">90</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box info"><b>После занятия</b>Лабораторная «Схема данных и бизнес-процессы» (60 мин, в командах) и стартовый квиз <code>quizzes/start_quiz.html</code>.</div>
+</section>
+
+<!-- ===================== 3. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: ваш опыт с SQL</h2>
+  <p style="font-size:.8em">Где вы уже писали SQL-запросы? Поднимите руку — преподаватель отмечает голоса (клик +1, Shift+клик −1).</p>
+  <ul class="poll">
+    <li><span style="width:15em">Только учебные задачи в вузе</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Курсовые / дипломные проекты</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Стажировка или работа</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Пет-проекты, Kaggle, хакатоны</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Почти не писал(а)</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <p class="small">Второй вопрос устно: какие СУБД вы встречали — PostgreSQL, MS SQL Server, Oracle, MySQL, ClickHouse, SQLite?</p>
+  <aside class="notes">Цель — понять уровень группы и распределить «сильных» участников равномерно по командам А и Б. Если много «почти не писал» — рекомендовать обязательно пройти стартовый квиз и повторить базу к модулю 1.</aside>
+</section>
+
+<!-- ===================== 4. ЦЕЛИ КУРСА ===================== -->
+<section>
+  <h2>Зачем этот курс</h2>
+  <p style="font-size:.8em">Базовый <code>SELECT</code> вы знаете. Курс превращает его в <span class="orange">инструмент аналитика</span>, который сам находит ответ на бизнес-вопрос.</p>
+  <div class="three-col">
+    <div class="card"><h4>Анализ</h4>Фильтрация, функции, соединения, группировки с итогами, подзапросы, операции над наборами, <b>оконные функции</b></div>
+    <div class="card orange-top"><h4>Структурирование</h4>CTE, представления, табличные функции — запросы, которые можно читать, переиспользовать и проверять</div>
+    <div class="card green-top"><h4>Программирование</h4>Изменение данных, MERGE, PL/pgSQL, обработка ошибок, транзакции и изоляция, хранимые процедуры</div>
+  </div>
+  <div class="box ok"><b>Результат курса</b>Каждая команда защищает перед «руководством» набор находок: где «Питание +» теряет деньги, сколько, как это доказано SQL-запросом и что делать.</div>
+</section>
+
+<!-- ===================== 5. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Легенда: компания «Питание +»</h2>
+  <p>Сквозной пример всех модулей курса</p>
+</section>
+
+<!-- ===================== 6. КОМПАНИЯ ===================== -->
+<section>
+  <h2>«Питание +» в цифрах</h2>
+  <div class="two-col">
+    <div style="font-size:.8em">
+      <p>Производитель продуктов питания: <b>молочная продукция</b>, <b>кондитерские изделия</b>, <b>бакалея</b>.</p>
+      <p>Продаёт федеральным и региональным сетям, дистрибьюторам, HoReCa, рознице и через маркетплейсы.</p>
+      <p>Данные учётной системы за <b>2024–2025 гг.</b> выгружены в PostgreSQL — схема <code>pitanie</code>.</p>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Показатель</th><th>Значение</th></tr>
+        <tr><td>Выручка 2024 → 2025</td><td class="hl">384,0 → 445,1 млн руб.</td></tr>
+        <tr><td>Продукция</td><td>35 SKU в 7 подкатегориях</td></tr>
+        <tr><td>Клиенты</td><td>73 (6 типов, 12 регионов)</td></tr>
+        <tr><td>Заказы / позиции</td><td>4 458 / 17 576</td></tr>
+        <tr><td>Производство</td><td>5 линий, 6 062 партии</td></tr>
+        <tr><td>Выпуск 2025</td><td>4,06 млн ед., брак 2,64 %</td></tr>
+        <tr><td>Закупки</td><td>12 поставщиков, 24 вида сырья</td></tr>
+        <tr><td>Сотрудники</td><td>35 в 5 подразделениях</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="small">Все цифры получены запросами к учебной БД — вы повторите их на практике.</p>
+</section>
+
+<!-- ===================== 7. DATA-DRIVEN ===================== -->
+<section>
+  <h2>Data-driven management</h2>
+  <p style="font-size:.8em">Руководство решает не «по ощущениям», а на основе <span class="blue">проверяемых данных</span>. Чтобы убедить совет директоров, аналитики должны показать <span class="orange">конкретные деньги</span>.</p>
+  <div class="three-col" style="font-size:.95em">
+    <div class="card"><h4>1. Вопрос</h4>Где мы теряем деньги? Почему план не выполнен?</div>
+    <div class="card"><h4>2. Данные</h4>Какие таблицы и поля отвечают на вопрос? Можно ли им верить?</div>
+    <div class="card orange-top"><h4>3. Анализ</h4>SQL-запрос: метрика, разрез, сравнение с нормой</div>
+  </div>
+  <div class="three-col" style="font-size:.95em;margin-top:.5em">
+    <div class="card orange-top"><h4>4. Находка</h4>«Сколько рублей и почему» — с доказательством</div>
+    <div class="card green-top"><h4>5. Решение</h4>Изменить политику, процесс, поставщика, режим</div>
+    <div class="card green-top"><h4>6. Контроль</h4>Повторяемый запрос / представление / процедура для мониторинга</div>
+  </div>
+  <aside class="notes">Подчеркнуть пункт 6: в модулях 9–12 мы превратим разовые запросы в представления, функции и процедуры — это и есть внедрение практики, а не разовый отчёт.</aside>
+</section>
+
+<!-- ===================== 8. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Где обычно теряет деньги производственная компания?</h2>
+  <p style="font-size:.85em">Назовите как можно больше «утечек». Для каждой подумайте: <b>в каких данных она видна?</b></p>
+  <div class="two-col" style="font-size:.8em">
+    <div><p class="blue">Продажи и финансы</p><p>скидки? клиенты? оплаты? возвраты? расходы? цены?</p></div>
+    <div><p class="green">Производство и закупки</p><p>брак? простои? сырьё? поставщики? склад?</p></div>
+  </div>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Выписывать ответы на доску в две колонки. Ожидаемые ответы: неконтролируемые скидки; продажа ниже себестоимости (рост цен сырья не отражён в прайсе); дебиторская задолженность и клиенты сверх кредитного лимита; возвраты (сроки годности, логистика); неэффективный маркетинг; невыполнение плана продаж; брак и его концентрация по сменам/линиям; простои старого оборудования; перерасход сырья против норм; переплата поставщикам, «любимые» поставщики; опоздания и недопоставки; списания из-за избыточных закупок; дубли в справочниках, искажающие аналитику. Не подтверждать, что именно есть в данных, — пусть найдут сами. Список сохранить: вернёмся к нему на защите.</aside>
+</section>
+
+<!-- ===================== 9. КОМАНДЫ ===================== -->
+<section>
+  <h2>Две команды аналитиков</h2>
+  <div class="two-col">
+    <div class="card">
+      <h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <p>Выручка, скидки и ценовая политика, клиенты и их долги, возвраты, расходы, выполнение плана продаж.</p>
+      <p class="small"><code>customers</code> <code>orders</code> <code>order_items</code> <code>invoices</code> <code>payments</code> <code>returns</code> <code>sales_plan</code> <code>expenses</code> <code>price_history</code></p>
+    </div>
+    <div class="card green-top">
+      <h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <p>Выпуск и выполнение плана, брак, простои линий, расход сырья против норм, поставщики и цены закупок, списания.</p>
+      <p class="small"><code>production_lines</code> <code>production_batches</code> <code>material_consumption</code> <code>recipes</code> <code>equipment_downtime</code> <code>suppliers</code> <code>raw_materials</code> <code>purchase_orders</code> <code>purchase_order_items</code> <code>material_writeoffs</code></p>
+    </div>
+  </div>
+  <div class="box warn"><b>Общие справочники и общие находки</b><code>regions</code>, <code>employees</code>, <code>product_categories</code>, <code>products</code>. Проблемы одной команды часто объясняются данными другой — ищите межкомандные связи.</div>
+  <aside class="notes">Распределить слушателей по командам (3–5 человек), учитывая опрос. Если групп больше двух — делаем А1/А2 и Б1/Б2 с одинаковыми вариантами, на защите сравниваем находки. В каждой команде выбрать «тимлида» и «докладчика».</aside>
+</section>
+
+<!-- ===================== 10. КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «Выручка растёт — всё хорошо?»</h2>
+  <p style="font-size:.8em">На совещании коммерческий директор показывает слайд: <b>выручка +15,9 %</b>. Финансовый директор отвечает: «А прибыль не выросла». Факты из БД:</p>
+  <table class="t">
+    <tr><th>Показатель</th><th>2024</th><th>2025</th><th>Изменение</th></tr>
+    <tr><td>Выручка (без отменённых заказов), млн руб.</td><td>384,0</td><td>445,1</td><td class="hl">+15,9 %</td></tr>
+    <tr><td>Выпуск, тыс. ед.</td><td>3 757</td><td>4 062</td><td>+8,1 %</td></tr>
+    <tr><td>Доля брака</td><td>2,39 %</td><td>2,64 %</td><td class="hl">+0,25 п. п.</td></tr>
+    <tr><td>Операционные расходы (8 статей), млн руб.</td><td>115,8</td><td>148,4</td><td class="hl">+28,2 %</td></tr>
+  </table>
+  <p style="font-size:.75em"><span class="badge team-a">А</span> Какие вопросы задать о выручке и расходах? &nbsp; <span class="badge team-b">Б</span> Что может стоять за ростом брака? &nbsp; <b>Обе:</b> каких данных не хватает?</p>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Цифры — реальные (examples.sql, разделы 5.1–5.2, lab_solutions А.10). Расходы растут почти вдвое быстрее выручки — повод разложить их по статьям и кварталам (маркетинг ×2,2, комиссия маркетплейса, ремонт оборудования). Брак: смотреть по линиям, сменам, операторам. Не хватает: себестоимости по периодам, маржи, плана, сроков оплаты. Подвести к мысли: «агрегат по году скрывает проблему — нужны разрезы» (модули 4, 8).</aside>
+</section>
+
+<!-- ===================== 11. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Программа и формат курса</h2>
+  <p>12 модулей · 28 академических часов</p>
+</section>
+
+<!-- ===================== 12. ПРОГРАММА ===================== -->
+<section>
+  <h2>Программа курса</h2>
+  <table class="t" style="font-size:.58em">
+    <tr><th>№</th><th>Модуль</th><th>ч</th><th>Что даёт для поиска потерь</th></tr>
+    <tr><td>1</td><td>Сортировка и фильтрация (IN, BETWEEN, LIKE, NULL, LIMIT / FETCH)</td><td>2</td><td>отбор «подозрительных» строк, топ-N</td></tr>
+    <tr><td>2</td><td>Типы данных и встроенные функции</td><td>3</td><td>деньги, даты, сроки, очистка строк</td></tr>
+    <tr><td>3</td><td>Извлечение данных из нескольких таблиц (JOIN)</td><td>2</td><td>связать заказ — клиента — продукт — себестоимость</td></tr>
+    <tr><td>4</td><td>Группирование и агрегирование (HAVING, ROLLUP, CUBE)</td><td>3</td><td>метрики в разрезах, итоги и подытоги</td></tr>
+    <tr><td>5</td><td>Вложенные запросы, EXISTS</td><td>3</td><td>сравнение с «нормой» и средним</td></tr>
+    <tr><td>6</td><td>Объединение наборов (UNION, EXCEPT, INTERSECT, LATERAL)</td><td>2</td><td>сверки: закуплено vs израсходовано</td></tr>
+    <tr><td>7</td><td>Модификация данных (INSERT, UPDATE, DELETE, MERGE)</td><td>2</td><td>очистка дублей, загрузка корректировок</td></tr>
+    <tr><td>8</td><td>Оконные функции</td><td>2</td><td>динамика, рейтинги, доли, отклонения</td></tr>
+    <tr><td>9</td><td>Производные таблицы, CTE, представления, табличные функции</td><td>2</td><td>повторяемые отчёты и витрины</td></tr>
+    <tr><td>10</td><td>Программные элементы (PL/pgSQL)</td><td>3</td><td>алгоритмы проверок, обработка ошибок</td></tr>
+    <tr><td>11</td><td>Транзакции</td><td>2</td><td>безопасные изменения, блокировки</td></tr>
+    <tr><td>12</td><td>Хранимые процедуры + <b>итоговая защита</b></td><td>2</td><td>автоматизация контроля</td></tr>
+    <tr><td></td><td class="hl">Итого</td><td class="hl">28</td><td></td></tr>
+  </table>
+  <p class="small">Программа местами использует термины T-SQL (TOP, CROSS APPLY, TRY/CATCH) — в курсе даём эквиваленты PostgreSQL.</p>
+</section>
+
+<!-- ===================== 13. ФОРМАТ ===================== -->
+<section>
+  <h2>Как устроено каждое занятие</h2>
+  <div class="three-col">
+    <div class="card"><h4>1. Лекция ≈ 30 %</h4>Понятия и синтаксис на примерах «Питание +». Вопросы для обсуждения, квизы, опросы прямо по ходу.<br><span class="small">presentation.html</span></div>
+    <div class="card orange-top"><h4>2. Практика ≈ 30 %</h4>Преподаватель показывает запросы, вы повторяете по пошаговой инструкции и сверяете цифры.<br><span class="small">practice.md · examples.sql</span></div>
+    <div class="card green-top"><h4>3. Лабораторная ≈ 40 %</h4>Самостоятельно или в команде: вариант А или Б, задания нарастающей сложности, «вывод для руководства».<br><span class="small">lab.md</span></div>
+  </div>
+  <div class="box info"><b>Интерактив на слайдах</b>💬 обсуждение (оранжевый фон, таймер) · ✅ квиз и опрос (зелёный) · 👥 работа в группах (голубой) · 🔍 кейс для анализа (серый)</div>
+</section>
+
+<!-- ===================== 14. ОЦЕНИВАНИЕ ===================== -->
+<section>
+  <h2>Система оценивания</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Компонент</th><th>Вес</th></tr>
+        <tr><td>Стартовый квиз</td><td>0 % (диагностика)</td></tr>
+        <tr><td>Лабораторные работы модулей 1–12</td><td>50 %</td></tr>
+        <tr><td>Активность: обсуждения, квизы, кейсы</td><td>10 %</td></tr>
+        <tr><td>Финальный квиз</td><td>15 %</td></tr>
+        <tr><td>Итоговая защита находок (командная)</td><td class="hl">25 %</td></tr>
+      </table>
+    </div>
+    <div style="font-size:.75em">
+      <p><b>Лабораторная</b> — 10 баллов: правильность запросов, совпадение с проверочными цифрами, «вывод для руководства». Задание ★ — бонус.</p>
+      <p><b>Зачёт</b> — от 60 %. <span class="green">Отлично</span> — от 85 %.</p>
+      <p><b>Командная работа:</b> в каждой лабораторной фиксируйте, кто какой запрос написал, — в защите каждый отвечает за свою часть.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 15. ЗАЩИТА ===================== -->
+<section>
+  <h2>Итоговая защита: «Совет директоров»</h2>
+  <div class="two-col">
+    <div style="font-size:.75em">
+      <p class="blue">Формат (модуль 12)</p>
+      <ul>
+        <li>10 мин доклад команды + 5 мин вопросы</li>
+        <li>«Руководство»: преподаватель и другая команда в ролях генерального, финансового и производственного директоров</li>
+        <li>3–5 находок: <b>факт → сумма потерь, руб. → SQL-доказательство → рекомендация</b></li>
+        <li>Минимум одна межкомандная находка (связь продаж и производства)</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Критерий</th><th>Баллы</th></tr>
+        <tr><td>Обоснованность находок данными</td><td>25</td></tr>
+        <tr><td>Денежная оценка потерь</td><td>20</td></tr>
+        <tr><td>Качество и читаемость SQL</td><td>20</td></tr>
+        <tr><td>Практичность рекомендаций</td><td>15</td></tr>
+        <tr><td>Межкомандные связи</td><td>10</td></tr>
+        <tr><td>Подача и ответы на вопросы</td><td>10</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box ok"><b>Копите находки с первого модуля</b>Заведите в команде «журнал находок»: дата, запрос, цифра, гипотеза. К защите останется только выбрать лучшее.</div>
+</section>
+
+<!-- ===================== 16. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Что делает аналитическую находку убедительной?</h2>
+  <p style="font-size:.85em">Вы приходите к генеральному директору с фразой: «У нас проблемы со скидками». Что он спросит? Что должно быть в вашей находке, чтобы он принял решение <b>сегодня</b>?</p>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: конкретная сумма в рублях и период; сравнение с нормой/политикой/бенчмарком (у остальных — X); кто/что/где (разрез: менеджер, клиент, линия); воспроизводимость — запрос можно перепроверить; качество данных (не артефакт ли это дублей/NULL); причина, а не только симптом; конкретное действие и ожидаемый эффект; как будем контролировать. Сформулировать шаблон: «Факт — масштаб — причина — действие — контроль».</aside>
+</section>
+
+<!-- ===================== 17. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Требования и подготовка рабочего места</h2>
+  <p>Знания · программное обеспечение · подключение к Yandex Cloud</p>
+</section>
+
+<!-- ===================== 18. ТРЕБОВАНИЯ ===================== -->
+<section>
+  <h2>Что нужно знать на входе</h2>
+  <div class="two-col">
+    <div style="font-size:.78em">
+      <p class="blue">Входные знания</p>
+      <ul>
+        <li>Реляционная модель: таблица, строка, первичный и внешний ключ, связь 1:N</li>
+        <li><code>SELECT … FROM … WHERE … ORDER BY</code></li>
+        <li>Агрегаты <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>GROUP BY</code></li>
+        <li><code>INNER JOIN</code> / <code>LEFT JOIN</code> на уровне «понимаю идею»</li>
+        <li>Основы DDL/DML: <code>CREATE TABLE</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code></li>
+      </ul>
+    </div>
+    <div style="font-size:.78em">
+      <p class="orange">Стартовый квиз</p>
+      <p>27 вопросов, 20 минут: <code>quizzes/start_quiz.html</code>. Сразу показывает результат по темам и что повторить.</p>
+      <p class="green">Будет плюсом</p>
+      <ul>
+        <li>Excel / сводные таблицы — понимание метрик и разрезов</li>
+        <li>Любой язык программирования — для модулей 10–12</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box warn"><b>Результат квиза ниже 50 %?</b>Это не приговор — повторите отмеченные темы до модуля 1 и сядьте в команде рядом с более опытным коллегой.</div>
+</section>
+
+<!-- ===================== 19. ПО ===================== -->
+<section>
+  <h2>Рабочее место</h2>
+  <table class="t">
+    <tr><th>Что</th><th>Рекомендация</th><th>Зачем</th></tr>
+    <tr><td><b>DBeaver Community</b></td><td>основной клиент, версия 24.x+</td><td>редактор SQL, ER-диаграммы, экспорт результатов</td></tr>
+    <tr><td>pgAdmin 4</td><td>альтернатива</td><td>«родной» клиент PostgreSQL, отладчик PL/pgSQL</td></tr>
+    <tr><td>psql 16</td><td>консоль, входит в дистрибутив PostgreSQL</td><td>быстрые проверки, метакоманды <code>\d</code>, <code>\conninfo</code></td></tr>
+    <tr><td>VS Code + SQLTools</td><td>по желанию</td><td>SQL рядом с кодом и Git</td></tr>
+    <tr><td><b>root.crt</b></td><td>в корне репозитория курса</td><td>корневой сертификат Yandex Cloud для SSL</td></tr>
+    <tr><td>Git</td><td>клон репозитория курса</td><td>материалы модулей, данные, свои решения</td></tr>
+  </table>
+  <p class="small">Сертификат положите в постоянное место: Windows — <code>%APPDATA%\postgresql\root.crt</code>, Linux/macOS — <code>~/.postgresql/root.crt</code>.</p>
+</section>
+
+<!-- ===================== 20. ПОДКЛЮЧЕНИЕ ===================== -->
+<section>
+  <h2>Подключение к Yandex Managed Service for PostgreSQL</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Параметр</th><th>Значение</th></tr>
+        <tr><td>Хост</td><td><code>rc1a-3fapmhnjrbfd3ve5.mdb.yandexcloud.net</code></td></tr>
+        <tr><td>Порт</td><td><code>6432</code> (пулер Odyssey)</td></tr>
+        <tr><td>База</td><td><code>db1</code></td></tr>
+        <tr><td>Логин / пароль</td><td>выдаёт преподаватель</td></tr>
+        <tr><td>SSL</td><td><code>verify-full</code> + <code>root.crt</code></td></tr>
+      </table>
+      <p class="small">DBeaver: Новое соединение → PostgreSQL → вкладка SSL → «Использовать SSL», CA = root.crt, режим verify-full.</p>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-bash" data-trim>
+psql "host=rc1a-3fapmhnjrbfd3ve5.mdb.yandexcloud.net \
+      port=6432 dbname=db1 user=&lt;логин&gt; \
+      sslmode=verify-full \
+      sslrootcert=$HOME/.postgresql/root.crt"
+</code></pre>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- первая команда каждой сессии
+SET search_path TO pitanie, public;
+
+SELECT current_database() AS db,
+       current_user       AS usr,
+       version()          AS server_version;
+</code></pre>
+    </div>
+  </div>
+  <aside class="notes">Практика 20 минут по module_00/practice.md, шаги 1–3. Типичные проблемы: порт 5432 вместо 6432; IP вместо FQDN при verify-full; неверный путь к сертификату; корпоративный прокси/Wi-Fi блокирует порт. Пароль выдать на бумаге/в чате курса, не на слайде.</aside>
+</section>
+
+<!-- ===================== 21. ПРАВИЛА ===================== -->
+<section>
+  <h2>Правила работы с общей БД</h2>
+  <div class="two-col">
+    <div class="box warn" style="font-size:.75em"><b>Схема <code>pitanie</code> — только чтение</b>Она общая для всех групп. Никаких <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>CREATE</code> в ней. Ошибка <code>permission denied</code> — это защита, а не баг.</div>
+    <div class="box ok" style="font-size:.75em"><b>Личная схема <code>stud_&lt;фамилия&gt;</code></b>С модуля 7 вы создаёте свою схему и копии нужных таблиц. В ней можно изменять данные, создавать представления, функции, процедуры.</div>
+  </div>
+  <ul style="font-size:.75em">
+    <li>Не трогайте чужие схемы и объекты — БД общая.</li>
+    <li>Тяжёлые запросы проверяйте с <code>LIMIT</code>; зависший запрос — кнопка «Отмена» в DBeaver или <code>pg_cancel_backend()</code>.</li>
+    <li>Не оставляйте открытые транзакции: в DBeaver по умолчанию включён Auto-Commit — не выключайте его без необходимости (модуль 11).</li>
+    <li>Пароль — личный: не коммитьте его в Git и не публикуйте в чатах.</li>
+  </ul>
+</section>
+
+<!-- ===================== 22. КВИЗ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: защищённое подключение</h2>
+  <p style="font-size:.85em">Какой режим <code>sslmode</code> одновременно шифрует трафик <b>и</b> проверяет, что вы подключились именно к серверу <code>rc1a-…mdb.yandexcloud.net</code>?</p>
+  <ul class="quiz">
+    <li><code>prefer</code></li>
+    <li><code>require</code></li>
+    <li><code>verify-ca</code></li>
+    <li data-correct><code>verify-full</code></li>
+  </ul>
+  <p class="explain"><code>require</code> шифрует, но не проверяет сертификат; <code>verify-ca</code> проверяет подпись центра сертификации, но не имя хоста; <code>verify-full</code> проверяет и подпись (по <code>root.crt</code>), и соответствие имени хоста — защита от подмены сервера.</p>
+</section>
+
+<!-- ===================== 23. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Учебная база данных</h2>
+  <p>Схема <code style="background:rgba(255,255,255,.2);color:#fff">pitanie</code>: 23 таблицы, 30 связей, данные 01.01.2024 – 31.12.2025</p>
+</section>
+
+<!-- ===================== 24. ER-СХЕМА ===================== -->
+<section>
+  <h2>ER-схема (упрощённо)</h2>
+  <svg viewBox="0 0 1180 500" width="100%" style="max-height:560px" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Tahoma, sans-serif">
+    <style>
+      .ta rect{fill:#eaf0fb;stroke:#4472C4;stroke-width:2}
+      .tb rect{fill:#edf7e8;stroke:#70AD47;stroke-width:2}
+      .tc rect{fill:#fff3e8;stroke:#ED7D31;stroke-width:2}
+      .tx{font-size:15px;fill:#2c3e50;text-anchor:middle;dominant-baseline:central;font-family:Consolas,monospace}
+      .ln{fill:none;stroke:#8a96a8;stroke-width:1.6}
+      .hd{font-size:15px;font-weight:700;text-anchor:middle}
+    </style>
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8a96a8"/></marker></defs>
+    <!-- заголовки групп -->
+    <text class="hd" x="250" y="22" fill="#4472C4">Команда А — финансы и продажи</text>
+    <text class="hd" x="590" y="22" fill="#ED7D31">Общие справочники</text>
+    <text class="hd" x="930" y="22" fill="#70AD47">Команда Б — производство и закупки</text>
+    <!-- связи (стрелка указывает на родительскую таблицу) -->
+    <g class="ln" marker-end="url(#ar)">
+      <!-- А -->
+      <path d="M320,66 H520"/>               <!-- customers -> regions -->
+      <path d="M250,150 V82"/>               <!-- orders -> customers -->
+      <path d="M320,166 H520"/>              <!-- orders -> employees -->
+      <path d="M150,166 H180"/>              <!-- invoices -> orders -->
+      <path d="M80,82 V150"/>                <!-- payments -> invoices -->
+      <path d="M250,250 V182"/>              <!-- order_items -> orders -->
+      <path d="M320,266 H520"/>              <!-- order_items -> products -->
+      <path d="M350,216 H300 V182"/>         <!-- returns -> orders -->
+      <path d="M490,216 H560 V250"/>         <!-- returns -> products -->
+      <path d="M490,366 H505 V276 H520"/>    <!-- price_history -> products -->
+      <path d="M490,466 H590 V382"/>         <!-- sales_plan -> product_categories -->
+      <!-- общие -->
+      <path d="M590,282 V350"/>              <!-- products -> product_categories -->
+      <path d="M620,382 V400 H645 V382"/>    <!-- product_categories -> self -->
+      <path d="M570,150 V134 H600 V150"/>    <!-- employees -> self -->
+      <!-- Б -->
+      <path d="M690,66 H660"/>               <!-- suppliers -> regions -->
+      <path d="M860,66 H830"/>               <!-- purchase_orders -> suppliers -->
+      <path d="M1030,66 H1000"/>             <!-- purchase_order_items -> purchase_orders -->
+      <path d="M1100,82 V350"/>              <!-- purchase_order_items -> raw_materials -->
+      <path d="M690,166 H660"/>              <!-- production_lines -> employees -->
+      <path d="M860,166 H830"/>              <!-- production_batches -> production_lines -->
+      <path d="M900,182 V216 H600 V250"/>    <!-- production_batches -> products -->
+      <path d="M760,250 V182"/>              <!-- equipment_downtime -> production_lines -->
+      <path d="M960,250 V182"/>              <!-- material_consumption -> production_batches -->
+      <path d="M1000,266 H1015 V366 H1030"/> <!-- material_consumption -> raw_materials -->
+      <path d="M1000,466 H1015 V366 H1030"/> <!-- recipes -> raw_materials -->
+      <path d="M860,466 H675 V266 H660"/>    <!-- recipes -> products -->
+      <path d="M1100,450 V382"/>             <!-- material_writeoffs -> raw_materials -->
+    </g>
+    <!-- таблицы команды А -->
+    <g class="ta">
+      <rect x="10"  y="50"  width="140" height="32" rx="6"/><text class="tx" x="80"  y="66">payments</text>
+      <rect x="10"  y="150" width="140" height="32" rx="6"/><text class="tx" x="80"  y="166">invoices</text>
+      <rect x="10"  y="450" width="140" height="32" rx="6"/><text class="tx" x="80"  y="466">expenses</text>
+      <rect x="180" y="50"  width="140" height="32" rx="6"/><text class="tx" x="250" y="66">customers</text>
+      <rect x="180" y="150" width="140" height="32" rx="6"/><text class="tx" x="250" y="166">orders</text>
+      <rect x="180" y="250" width="140" height="32" rx="6"/><text class="tx" x="250" y="266">order_items</text>
+      <rect x="350" y="200" width="140" height="32" rx="6"/><text class="tx" x="420" y="216">returns</text>
+      <rect x="350" y="350" width="140" height="32" rx="6"/><text class="tx" x="420" y="366">price_history</text>
+      <rect x="350" y="450" width="140" height="32" rx="6"/><text class="tx" x="420" y="466">sales_plan</text>
+    </g>
+    <!-- общие справочники -->
+    <g class="tc">
+      <rect x="520" y="50"  width="140" height="32" rx="6"/><text class="tx" x="590" y="66">regions</text>
+      <rect x="520" y="150" width="140" height="32" rx="6"/><text class="tx" x="590" y="166">employees</text>
+      <rect x="520" y="250" width="140" height="32" rx="6"/><text class="tx" x="590" y="266">products</text>
+      <rect x="520" y="350" width="140" height="32" rx="6"/><text class="tx" x="590" y="366" style="font-size:13px">product_categories</text>
+    </g>
+    <!-- таблицы команды Б -->
+    <g class="tb">
+      <rect x="690"  y="50"  width="140" height="32" rx="6"/><text class="tx" x="760"  y="66">suppliers</text>
+      <rect x="690"  y="150" width="140" height="32" rx="6"/><text class="tx" x="760"  y="166" style="font-size:14px">production_lines</text>
+      <rect x="690"  y="250" width="140" height="32" rx="6"/><text class="tx" x="760"  y="266" style="font-size:13px">equipment_downtime</text>
+      <rect x="860"  y="50"  width="140" height="32" rx="6"/><text class="tx" x="930"  y="66" style="font-size:14px">purchase_orders</text>
+      <rect x="860"  y="150" width="140" height="32" rx="6"/><text class="tx" x="930"  y="166" style="font-size:13px">production_batches</text>
+      <rect x="860"  y="250" width="140" height="32" rx="6"/><text class="tx" x="930"  y="266" style="font-size:12px">material_consumption</text>
+      <rect x="860"  y="450" width="140" height="32" rx="6"/><text class="tx" x="930"  y="466">recipes</text>
+      <rect x="1030" y="50"  width="140" height="32" rx="6"/><text class="tx" x="1100" y="66" style="font-size:12px">purchase_order_items</text>
+      <rect x="1030" y="350" width="140" height="32" rx="6"/><text class="tx" x="1100" y="366">raw_materials</text>
+      <rect x="1030" y="450" width="140" height="32" rx="6"/><text class="tx" x="1100" y="466" style="font-size:12px">material_writeoffs</text>
+    </g>
+  </svg>
+  <p class="small">Стрелка — от дочерней таблицы к родительской (внешний ключ). Не показаны связи с <code>employees</code>: менеджер клиента, оператор партии, закупщик. Полный список — запрос к <code>pg_constraint</code> (30 связей).</p>
+</section>
+
+<!-- ===================== 25. КЛЮЧЕВЫЕ ТАБЛИЦЫ ===================== -->
+<section>
+  <h2>Ключевые таблицы команд</h2>
+  <div class="two-col">
+    <div>
+      <p><span class="badge team-a">Команда А</span></p>
+      <table class="t" style="font-size:.5em">
+        <tr><th>Таблица</th><th>Строк</th><th>Важные поля</th></tr>
+        <tr><td><code>orders</code></td><td>4 458</td><td>status, channel, employee_id, shipped_date</td></tr>
+        <tr><td><code>order_items</code></td><td>17 576</td><td>quantity, unit_price, <b>discount_pct</b></td></tr>
+        <tr><td><code>customers</code></td><td>73</td><td>customer_type, inn, <b>credit_limit</b>, payment_terms_days</td></tr>
+        <tr><td><code>invoices</code> / <code>payments</code></td><td style="white-space:nowrap">4 242 / 4 519</td><td>due_date, amount</td></tr>
+        <tr><td><code>returns</code></td><td>308</td><td>reason, quantity</td></tr>
+        <tr><td><code>expenses</code></td><td>257</td><td>expense_category, sales_channel</td></tr>
+        <tr><td><code>sales_plan</code></td><td>72</td><td>plan_year, plan_month, plan_amount</td></tr>
+      </table>
+      <p class="small">Выручка строки: <code>quantity * unit_price * (1 - discount_pct / 100)</code>. Политика: скидка ≤ 10 %.</p>
+    </div>
+    <div>
+      <p><span class="badge team-b">Команда Б</span></p>
+      <table class="t" style="font-size:.5em">
+        <tr><th>Таблица</th><th>Строк</th><th>Важные поля</th></tr>
+        <tr><td><code>production_batches</code></td><td>6 062</td><td>line_id, shift, planned_qty, produced_qty, <b>defect_qty</b></td></tr>
+        <tr><td><code>material_consumption</code></td><td>24 275</td><td>batch_id, material_id, quantity</td></tr>
+        <tr><td><code>recipes</code></td><td>146</td><td><b>qty_per_unit</b> — норма на ед.</td></tr>
+        <tr><td><code>equipment_downtime</code></td><td>282</td><td>start_time, end_time, downtime_category</td></tr>
+        <tr><td><code>purchase_order_items</code></td><td>2 328</td><td>unit_price, received_qty, quality_status</td></tr>
+        <tr><td><code>purchase_orders</code></td><td>955</td><td>supplier_id, expected_date</td></tr>
+        <tr><td><code>material_writeoffs</code></td><td>149</td><td>reason, amount</td></tr>
+      </table>
+      <p class="small">Брак партии: <code>100.0 * defect_qty / NULLIF(produced_qty, 0)</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 26. КОД: КАТАЛОГ ===================== -->
+<section>
+  <h2>Разведка через системный каталог</h2>
+  <div class="two-col">
+    <div>
+<pre><code class="language-sql" data-trim>
+-- Какие таблицы есть и что в них
+SELECT t.table_name,
+       obj_description(
+         format('%I.%I', t.table_schema,
+                t.table_name)::regclass
+       ) AS description
+FROM   information_schema.tables AS t
+WHERE  t.table_schema = 'pitanie'
+  AND  t.table_type   = 'BASE TABLE'
+ORDER  BY t.table_name;
+</code></pre>
+    </div>
+    <div>
+<pre><code class="language-sql" data-trim>
+-- Кто на кого ссылается
+SELECT con.conrelid::regclass  AS child_table,
+       a.attname               AS fk_column,
+       con.confrelid::regclass AS parent_table
+FROM   pg_constraint AS con
+JOIN   pg_attribute  AS a
+       ON  a.attrelid = con.conrelid
+       AND a.attnum   = ANY (con.conkey)
+WHERE  con.contype      = 'f'
+  AND  con.connamespace = 'pitanie'::regnamespace
+ORDER  BY 1::text, 2;
+</code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>Результат</b>23 таблицы с комментариями; 30 внешних ключей, из них 2 — самоссылки: <code>employees.manager_id</code> (иерархия) и <code>product_categories.parent_category_id</code> (классификатор).</div>
+  <aside class="notes">Показать в DBeaver ER-диаграмму схемы (вкладка ER Diagram у схемы pitanie). Обратить внимание: information_schema — стандарт SQL, переносима; pg_catalog — богаче, но специфична для PostgreSQL. Это мостик к модулю 12 (системные представления вместо системных процедур T-SQL).</aside>
+</section>
+
+<!-- ===================== 27. КОД: ПЕРВЫЕ ЦИФРЫ ===================== -->
+<section>
+  <h2>Первые «крупные цифры»</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+SELECT EXTRACT(YEAR FROM o.order_date)::int AS yr,
+       ROUND(SUM(oi.quantity * oi.unit_price
+                 * (1 - oi.discount_pct / 100))
+             / 1e6, 1)                     AS revenue_mln
+FROM   orders      AS o
+JOIN   order_items AS oi ON oi.order_id = o.order_id
+WHERE  o.status &lt;&gt; 'Отменён'
+GROUP  BY yr
+ORDER  BY yr;
+</code></pre>
+      <table class="t"><tr><th>yr</th><th>revenue_mln</th></tr><tr><td>2024</td><td>384.0</td></tr><tr><td>2025</td><td>445.1</td></tr></table>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+SELECT EXTRACT(YEAR FROM production_date)::int AS yr,
+       SUM(produced_qty)                       AS produced,
+       ROUND(100.0 * SUM(defect_qty)
+             / NULLIF(SUM(produced_qty), 0), 2) AS defect_pct
+FROM   production_batches
+GROUP  BY yr
+ORDER  BY yr;
+</code></pre>
+      <table class="t"><tr><th>yr</th><th>produced</th><th>defect_pct</th></tr><tr><td>2024</td><td>3 757 449</td><td>2.39</td></tr><tr><td>2025</td><td>4 062 469</td><td>2.64</td></tr></table>
+    </div>
+  </div>
+  <div class="box warn"><b>Вопрос к аудитории</b>Почему в формуле брака <code>100.0</code>, а не <code>100</code>, и зачем <code>NULLIF</code>? (ответ — модуль 2)</div>
+  <aside class="notes">Ответ: 100.0 переводит вычисление в numeric (иначе целочисленное деление даст 0); NULLIF(x, 0) защищает от деления на ноль, возвращая NULL. Код из module_00/examples.sql, разделы 5.1–5.2.</aside>
+</section>
+
+<!-- ===================== 28. КВИЗ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: прочитай данные</h2>
+  <p style="font-size:.8em">В <code>customers</code> 73 строки, у 21 клиента <code>email IS NULL</code>, у 3 — <code>region_id IS NULL</code>. Что вернёт запрос?</p>
+<pre class="small-code" style="width:70%"><code class="language-sql" data-trim>
+SELECT COUNT(*), COUNT(email), COUNT(region_id)
+FROM   customers;
+</code></pre>
+  <ul class="quiz">
+    <li>73, 73, 73</li>
+    <li data-correct>73, 52, 70</li>
+    <li>52, 52, 70</li>
+    <li>73, 21, 3</li>
+  </ul>
+  <p class="explain"><code>COUNT(*)</code> считает строки, <code>COUNT(столбец)</code> — только не-NULL значения. Пропуски в данных — первое, что проверяет аналитик: на них «теряются» клиенты в соединениях и отчётах.</p>
+</section>
+
+<!-- ===================== 29. СВЯЗАННЫЕ ТЕМЫ ===================== -->
+<section>
+  <h2>Связанные с SQL темы: карта</h2>
+  <div class="three-col" style="font-size:.9em">
+    <div>
+      <div class="card"><h4>Теория</h4><b>Реляционная алгебра</b> (Кодд, 1970): σ выборка, π проекция, ⋈ соединение, ∪ − ∩ — основа SQL и оптимизатора.<br><b>Нормализация</b> 1НФ–3НФ, НФБК: устранение избыточности (дубли клиентов — её нарушение).</div>
+      <div class="card" style="margin-top:.4em"><h4>Стандарт SQL</h4>SQL-92 → <b>SQL:1999</b> (рекурсия, триггеры) → SQL:2003 (окна, MERGE) → <b>SQL:2016</b> (JSON, MATCH_RECOGNIZE) → <b>SQL:2023</b> (SQL/PGQ — графовые запросы, JSON-тип).</div>
+    </div>
+    <div>
+      <div class="card orange-top"><h4>Производительность</h4><b>Индексы</b> (B-tree, GIN, BRIN), <b>планы выполнения</b> <code>EXPLAIN ANALYZE</code>, статистика, секционирование.</div>
+      <div class="card orange-top" style="margin-top:.4em"><h4>Хранилища и OLAP</h4>DWH, схема «звезда»: факты и измерения, ETL/ELT, колоночные СУБД (ClickHouse, Greenplum), <code>ROLLUP</code>/<code>CUBE</code> как OLAP в SQL.</div>
+    </div>
+    <div>
+      <div class="card green-top"><h4>Вокруг SQL</h4><b>NoSQL</b>: документные (MongoDB), ключ-значение (Redis), графовые (Neo4j); CAP.<br><b>ORM</b>: SQLAlchemy, Hibernate, Django ORM — SQL «под капотом».</div>
+      <div class="card green-top" style="margin-top:.4em"><h4>BI и аналитика</h4>Power BI (DAX), Yandex DataLens, Superset, Tableau; Python + pandas; dbt — SQL-трансформации как код.</div>
+    </div>
+  </div>
+  <aside class="notes">Не углубляться — показать, что SQL в центре экосистемы данных. Для системных аналитиков особенно важны: нормализация (проектирование), EXPLAIN (диалог с разработчиками о производительности), DWH/BI (куда уходят их запросы). Индексы и EXPLAIN будем упоминать в модулях 3, 5 и 9.</aside>
+</section>
+
+<!-- ===================== 30. ДИАЛЕКТЫ ===================== -->
+<section>
+  <h2>Диалекты SQL: T-SQL ↔ PL/pgSQL ↔ PL/SQL</h2>
+  <table class="t" style="font-size:.52em">
+    <tr><th>Задача</th><th>T-SQL (SQL Server)</th><th>PostgreSQL (SQL + PL/pgSQL)</th><th>Oracle (PL/SQL)</th></tr>
+    <tr><td>Первые N строк</td><td><code>SELECT TOP (10) …</code></td><td><code>LIMIT 10</code> / <code>FETCH FIRST 10 ROWS ONLY</code></td><td><code>FETCH FIRST 10 ROWS ONLY</code></td></tr>
+    <tr><td>Подзапрос на каждую строку</td><td><code>CROSS / OUTER APPLY</code></td><td><code>CROSS JOIN LATERAL</code> / <code>LEFT JOIN LATERAL … ON TRUE</code></td><td><code>CROSS / OUTER APPLY</code>, <code>LATERAL</code></td></tr>
+    <tr><td>Замена NULL</td><td><code>ISNULL(x, 0)</code></td><td><code>COALESCE(x, 0)</code></td><td><code>NVL(x, 0)</code></td></tr>
+    <tr><td>Обработка ошибок</td><td><code>BEGIN TRY … BEGIN CATCH</code></td><td><code>BEGIN … EXCEPTION WHEN … THEN</code></td><td><code>EXCEPTION WHEN … THEN</code></td></tr>
+    <tr><td>Вызов процедуры</td><td><code>EXEC proc @p = 1</code></td><td><code>CALL proc(1)</code></td><td><code>EXEC proc(1)</code> / <code>BEGIN proc(1); END;</code></td></tr>
+    <tr><td>Активные сессии</td><td><code>EXEC sp_who</code></td><td><code>SELECT * FROM pg_stat_activity</code></td><td><code>SELECT * FROM v$session</code></td></tr>
+    <tr><td>Конкатенация</td><td><code>'a' + 'b'</code></td><td><code>'a' || 'b'</code>, <code>CONCAT()</code></td><td><code>'a' || 'b'</code></td></tr>
+  </table>
+  <div class="box info"><b>Вывод</b>Ядро SQL (стандарт) переносимо на 80–90 %; различаются расширения, процедурные языки и системные объекты. В курсе — PostgreSQL 16, с пометками об аналогах в T-SQL.</div>
+</section>
+
+<!-- ===================== 31. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>SQL, Excel, Python или BI — что выбрать?</h2>
+  <p style="font-size:.85em">Финансовый директор «Питание +» говорит: «Зачем SQL? Мы всё считаем в Excel-выгрузках». Приведите аргументы <b>за</b> и <b>против</b>. В каких задачах курса SQL незаменим, а где лучше другой инструмент?</p>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые аргументы за SQL: данные не копируются и не устаревают; объёмы (24 тыс. строк расхода сырья — Excel ещё справится, миллионы — нет); воспроизводимость и аудит запроса; единые формулы метрик (представления); права доступа; транзакционная целостность. Против/дополнения: визуализация и дашборды — BI; статистика, ML, прогноз — Python; разовые прикидки — Excel. Итог: SQL — фундамент, остальные инструменты читают данные через SQL.</aside>
+</section>
+
+<!-- ===================== 32. КВИЗ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: связанные темы</h2>
+  <p style="font-size:.85em">Аналитик подозревает, что отчёт по скидкам работает медленно из-за полного просмотра <code>order_items</code>. Какой инструмент PostgreSQL покажет, как СУБД выполняет запрос?</p>
+  <ul class="quiz">
+    <li><code>DESCRIBE order_items</code></li>
+    <li data-correct><code>EXPLAIN ANALYZE SELECT …</code></li>
+    <li><code>SHOW PLAN FOR SELECT …</code></li>
+    <li><code>VACUUM order_items</code></li>
+  </ul>
+  <p class="explain"><code>EXPLAIN</code> показывает план (Seq Scan, Index Scan, Hash Join…) и оценки стоимости; с <code>ANALYZE</code> запрос реально выполняется и выводятся фактические время и число строк. <code>DESCRIBE</code> — команда MySQL/Oracle, <code>VACUUM</code> — обслуживание таблиц.</p>
+</section>
+
+<!-- ===================== 33. ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: гипотезы потерь</h2>
+  <p style="font-size:.75em">Используя список «утечек» с обсуждения и ER-схему, сформулируйте <b>3 проверяемые гипотезы</b> по шаблону: <i>«Мы подозреваем, что … Это видно в таблицах … по метрике … Если подтвердится — компания теряет ≈ … руб. в год»</i>.</p>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ul style="font-size:.95em">
+        <li>Скидки: все ли менеджеры соблюдают политику 10 %?</li>
+        <li>Клиенты: все ли платят вовремя и в пределах лимита?</li>
+        <li>Цены: всегда ли продаём дороже себестоимости?</li>
+        <li>Расходы: окупаются ли растущие статьи?</li>
+      </ul></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ul style="font-size:.95em">
+        <li>Брак: одинаков ли по линиям, сменам, операторам?</li>
+        <li>Простои: какая линия «болеет» и как это влияет на план?</li>
+        <li>Закупки: по рыночной ли цене и у надёжных ли поставщиков?</li>
+        <li>Сырьё: соблюдаются ли нормы расхода, почему списываем?</li>
+      </ul></div>
+  </div>
+  <span class="timer">⏱ 10 мин</span> <span class="small">&nbsp;затем по 1 минуте на команду</span>
+  <aside class="notes">Гипотезы записать — команды уточнят их в лабораторной (финальное задание) и проверят далее по курсу. Хорошая гипотеза называет таблицу, поле и метрику. Плохая — «у нас всё неэффективно». Подсказывать только направление, не результат.</aside>
+</section>
+
+<!-- ===================== 34. ЛАБОРАТОРНАЯ ===================== -->
+<section>
+  <h2>Лабораторная работа «Схема данных и бизнес-процессы»</h2>
+  <div class="two-col">
+    <div style="font-size:.75em">
+      <p><b>60 минут, в командах.</b> Файл: <code>module_00/lab.md</code></p>
+      <p><span class="green">SQL писать не нужно</span> — все запросы готовые: запустить и прочитать результат.</p>
+      <ol>
+        <li>Общая часть: виды таблиц, структура таблицы, связи (ER-диаграмма), оргструктура</li>
+        <li>Проследить <b>один документ</b> от начала до конца и заполнить «маршрут»</li>
+        <li>Найти бизнес-правила в данных</li>
+        <li>Нарисовать <b>схему процесса</b>: шаги, роли, таблицы, точки риска</li>
+        <li>3 вопроса «где могут теряться деньги», защита — 2 минуты</li>
+      </ol>
+    </div>
+    <div>
+      <div class="card"><h4><span class="badge team-a">Вариант 1</span></h4>«От заказа до денег»: клиент → заказ → отгрузка → счёт → оплата → возврат</div>
+      <div class="card green-top" style="margin-top:.4em"><h4><span class="badge team-b">Вариант 2</span></h4>«Закупка и производство»: поставщик → заказ → приёмка → партия → расход сырья по рецептуре</div>
+      <div class="box ok" style="margin-top:.4em"><b>Критерии</b>10 баллов + 1 бонус за второй маршрут.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 35. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: что запомнить</h2>
+  <div class="two-col">
+    <div style="font-size:.78em">
+      <ul>
+        <li>Курс — это <span class="orange">расследование</span>: каждый модуль даёт новый инструмент поиска потерь «Питание +»</li>
+        <li>Две команды: <span class="blue">А — финансы и продажи</span>, <span class="green">Б — производство и закупки</span>; общие справочники связывают находки</li>
+        <li>Подключение: порт <code>6432</code>, <code>sslmode=verify-full</code>, <code>root.crt</code>, затем <code>SET search_path TO pitanie, public;</code></li>
+        <li><code>pitanie</code> — только чтение; свои объекты — в <code>stud_&lt;фамилия&gt;</code></li>
+        <li>Находка = факт + рубли + SQL-доказательство + действие</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box info"><b>Домашнее задание</b>1. Стартовый квиз <code>quizzes/start_quiz.html</code><br>2. Завершить лабораторную: маршрут документа, бизнес-правила, схема процесса<br>3. Завести «журнал находок» команды</div>
+      <div class="box ok"><b>Следующий модуль 1 — «Сортировка и фильтрация»</b>Научимся точно отбирать строки: <code>IN</code>, <code>BETWEEN</code>, <code>LIKE</code>, ловушки <code>NULL</code>, топ-N через <code>LIMIT</code> / <code>FETCH FIRST</code> — и проверим первые гипотезы.</div>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
