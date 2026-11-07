@@ -1,0 +1,53 @@
+# Игнорировать временные файлы и кеш
+*.tmp
+*.log
+*.swp
+*.bak
+*~
+
+# Игнорировать системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Игнорировать файлы IDE
+.vscode/
+.idea/
+*.code-workspace
+.claude/
+
+# Игнорировать локальные настройки
+.env
+.env.local
+config.local.json
+
+# Игнорировать большие файлы данных (если не нужно версионировать)
+# *.csv
+# *.json
+# data/
+
+# Игнорировать файлы сборки
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+
+# Игнорировать личные заметки
+TODO.md
+NOTES.md
+scratch/
+
+# Игнорировать файлы проекта
+Claude.md
+*.html
+check_results.md
+students.md
+*.txt
+instructor_insights.md
+lab_solutions.sql
+quizzes/
+*.crt
+# Ответы к лабораторным и финальному проекту (только для преподавателя)
+*_solutions.md
+*_solutions.sql
