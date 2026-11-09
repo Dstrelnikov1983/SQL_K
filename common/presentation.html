@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 0+ — Основы SQL</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 0+ (выравнивающий)</div>
+  <h1>Основы SQL:<br>первые запросы аналитика</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">От «что такое таблица» до SELECT, GROUP BY и JOIN — на данных «Питание +»</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · самостоятельное изучение ≈ 3 ч · для тех, кто раньше не работал с SQL</div>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и порядок изучения</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">После модуля вы умеете:</p>
+      <ul style="font-size:.76em">
+        <li>объяснить, что такое таблица, строка, столбец, первичный и внешний ключ</li>
+        <li>прочитать и написать запрос <code>SELECT … FROM … WHERE … ORDER BY</code></li>
+        <li>правильно работать с <code>NULL</code></li>
+        <li>посчитать итоги: <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>GROUP BY</code>, <code>HAVING</code></li>
+        <li>соединить две таблицы через <code>JOIN</code> и <code>LEFT JOIN</code></li>
+        <li>создать временную таблицу и изменить в ней данные</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Шаг</th><th>мин</th></tr>
+        <tr><td>1. Слайды: данные и реляционная модель</td><td>15</td></tr>
+        <tr><td>2. Слайды: SELECT, WHERE, сортировка, NULL</td><td>25</td></tr>
+        <tr><td>3. Слайды: агрегаты, JOIN, изменение данных</td><td>30</td></tr>
+        <tr><td>4. Практика по шагам — <code>practice.md</code></td><td>60</td></tr>
+        <tr><td>5. Лабораторная — <code>lab.md</code></td><td>50</td></tr>
+        <tr><td class="hl">Итого</td><td class="hl">≈ 180</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box info"><b>Как изучать</b>Листайте слайды стрелками. Весь код со слайдов есть в <code>examples.sql</code> — выполняйте его сразу в DBeaver. Затем <code>practice.md</code> (пошагово, с проверочными цифрами) и <code>lab.md</code>.</div>
+</section>
+
+<!-- ===================== 4. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Данные и реляционная модель</h2>
+  <p>Таблицы, строки, столбцы, ключи и связи</p>
+</section>
+
+<!-- ===================== 5. EXCEL VS СУБД ===================== -->
+<section>
+  <h2>Почему не Excel: база данных и СУБД</h2>
+  <p style="font-size:.78em"><b>База данных</b> — организованный набор связанных данных. <b>СУБД</b> (система управления БД) — программа, которая хранит данные, проверяет их и выполняет запросы. У нас — <span class="blue">PostgreSQL 16</span> в облаке Yandex.</p>
+  <table class="t">
+    <tr><th>Вопрос</th><th>Excel-файл</th><th>Реляционная СУБД</th></tr>
+    <tr><td>Объём</td><td>~1 млн строк на лист, тормозит раньше</td><td>миллиарды строк</td></tr>
+    <tr><td>Одновременная работа</td><td>«файл занят другим пользователем»</td><td>сотни пользователей одновременно</td></tr>
+    <tr><td>Качество данных</td><td>в ячейку «дата» можно ввести «завтра»</td><td class="hl">типы и ограничения не пустят ошибку</td></tr>
+    <tr><td>Связи</td><td>ВПР между листами, ломается при вставке</td><td>ключи и <code>JOIN</code></td></tr>
+    <tr><td>Повторяемость</td><td>ручные клики, «как я это считал?»</td><td class="hl">запрос = текст, который можно перезапустить</td></tr>
+  </table>
+  <div class="box ok"><b>Для аналитика «Питание +»</b>Учётная система компании — это 23 таблицы и ~65 тыс. строк. Каждый вывод для руководства будет подтверждён запросом, который любой может перепроверить.</div>
+</section>
+
+<!-- ===================== 6. ТАБЛИЦА ===================== -->
+<section>
+  <h2>Таблица: строки, столбцы, типы</h2>
+  <p style="font-size:.75em">Таблица <code>products</code> — готовая продукция «Питание +» (35 строк):</p>
+  <table class="t" style="font-size:.52em">
+    <tr><th>product_id</th><th>sku</th><th>product_name</th><th>unit</th><th>shelf_life_days</th><th>base_price</th><th>is_active</th></tr>
+    <tr><td>1</td><td>MLK-001</td><td>Молоко пастеризованное 2,5% 1 л</td><td>шт</td><td>10</td><td>89.00</td><td>true</td></tr>
+    <tr><td>3</td><td>MLK-003</td><td>Молоко ультрапастеризованное 3,2% 1 л</td><td>шт</td><td>180</td><td>112.00</td><td>true</td></tr>
+    <tr><td>8</td><td>KSM-003</td><td>Йогурт клубничный 2,5% 0,3 кг</td><td>шт</td><td>7</td><td>69.00</td><td>true</td></tr>
+  </table>
+  <div class="three-col" style="margin-top:.4em">
+    <div class="card"><h4>Строка (запись)</h4>Один объект: один продукт, один заказ, одна партия.</div>
+    <div class="card"><h4>Столбец (атрибут)</h4>Одно свойство с именем и <b>типом</b>. Все значения столбца — одного типа.</div>
+    <div class="card orange-top"><h4>Типы данных</h4><code>integer</code> — целое · <code>numeric(12,2)</code> — деньги · <code>varchar(150)</code> — текст · <code>date</code> — дата · <code>boolean</code> — да/нет</div>
+  </div>
+  <p class="small">Порядок строк в таблице не гарантирован — если важен порядок, его задают явно (<code>ORDER BY</code>).</p>
+</section>
+
+<!-- ===================== 7. КЛЮЧИ И СВЯЗИ ===================== -->
+<section>
+  <h2>Ключи и связи между таблицами</h2>
+  <svg viewBox="0 0 1180 190" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Tahoma, sans-serif">
+    <style>
+      .bx rect{fill:#eaf0fb;stroke:#4472C4;stroke-width:2}
+      .bx text{font-size:16px;fill:#2c3e50}
+      .hdr{font-weight:700;font-family:Consolas,monospace}
+      .pk{fill:#ED7D31!important;font-weight:700}
+      .fk{fill:#70AD47!important;font-weight:700}
+      .lk{stroke:#8a96a8;stroke-width:2;fill:none}
+      .lb{font-size:15px;fill:#ED7D31;font-weight:700}
+    </style>
+    <g class="bx">
+      <rect x="10" y="20" width="230" height="140" rx="8"/>
+      <text x="25" y="48" class="hdr">customers</text>
+      <text x="25" y="80" class="pk">🔑 customer_id</text>
+      <text x="25" y="106">customer_name</text>
+      <text x="25" y="132">customer_type …</text>
+
+      <rect x="320" y="20" width="230" height="140" rx="8"/>
+      <text x="335" y="48" class="hdr">orders</text>
+      <text x="335" y="80" class="pk">🔑 order_id</text>
+      <text x="335" y="106" class="fk">↗ customer_id</text>
+      <text x="335" y="132">order_date, status …</text>
+
+      <rect x="630" y="20" width="230" height="140" rx="8"/>
+      <text x="645" y="48" class="hdr">order_items</text>
+      <text x="645" y="80" class="pk">🔑 order_item_id</text>
+      <text x="645" y="106" class="fk">↗ order_id</text>
+      <text x="645" y="132" class="fk">↗ product_id</text>
+
+      <rect x="940" y="20" width="230" height="140" rx="8"/>
+      <text x="955" y="48" class="hdr">products</text>
+      <text x="955" y="80" class="pk">🔑 product_id</text>
+      <text x="955" y="106">product_name</text>
+      <text x="955" y="132">base_price …</text>
+    </g>
+    <path class="lk" d="M240,90 H320"/><text class="lb" x="246" y="84">1</text><text class="lb" x="300" y="84">N</text>
+    <path class="lk" d="M550,90 H630"/><text class="lb" x="556" y="84">1</text><text class="lb" x="610" y="84">N</text>
+    <path class="lk" d="M860,140 H940"/><text class="lb" x="866" y="134">N</text><text class="lb" x="925" y="134">1</text>
+  </svg>
+  <div class="two-col" style="font-size:.95em">
+    <div class="box warn"><b>🔑 Первичный ключ (PRIMARY KEY)</b>Уникально определяет строку: не повторяется и не бывает пустым. <code>order_id = 1</code> — ровно один заказ.</div>
+    <div class="box ok"><b>↗ Внешний ключ (FOREIGN KEY)</b>Ссылка на ключ другой таблицы. <code>orders.customer_id</code> хранит номер клиента — СУБД не даст сослаться на несуществующего.</div>
+  </div>
+  <p class="small">Связь <b>1:N</b> — «один ко многим»: у одного клиента много заказов, в одном заказе много позиций.</p>
+</section>
+
+<!-- ===================== ЗАЧЕМ НЕСКОЛЬКО ТАБЛИЦ ===================== -->
+<section>
+  <h2>Зачем разносить данные по разным таблицам</h2>
+  <p style="font-size:.78em">Можно было бы хранить продажи одной большой таблицей: в каждой строке заказ, название клиента, его телефон, ИНН, продукт и цена. Но тогда возникают <span class="orange">аномалии</span>:</p>
+  <table class="t">
+    <tr><th>Проблема</th><th>Что происходит в «одной большой таблице»</th></tr>
+    <tr><td>Избыточность</td><td>телефон и ИНН клиента повторяются в тысячах строк его заказов</td></tr>
+    <tr><td>Аномалия обновления</td><td>клиент сменил телефон — исправили в одной строке, в остальных остался старый</td></tr>
+    <tr><td>Аномалия вставки</td><td>нельзя завести клиента, пока он ничего не заказал</td></tr>
+    <tr><td>Аномалия удаления</td><td>удалили последний заказ — вместе с ним потеряли клиента</td></tr>
+    <tr><td>Разночтения</td><td>«ООО Ромашка» и «ООО  "РОМАШКА"» — один клиент под двумя именами</td></tr>
+  </table>
+  <div class="box ok"><b>Решение — нормализация</b>Каждый факт хранится один раз в своей таблице (клиенты, заказы, продукты), а таблицы связаны ключами. «Одна большая таблица» (витрина) уместна для отчётов и BI, но не для хранения. В данных «Питание +» дубли клиентов всё-таки есть — их найдём в модуле 2.</div>
+</section>
+
+<!-- ===================== 9. ЯЗЫК SQL ===================== -->
+<section>
+  <h2>SQL — язык запросов к данным</h2>
+  <div class="two-col">
+    <div style="font-size:.76em">
+      <p><b>SQL</b> (Structured Query Language) — стандарт с 1986 г. Один язык для PostgreSQL, MS SQL Server, Oracle, MySQL, ClickHouse, BI-инструментов.</p>
+      <p class="orange">SQL декларативный</p>
+      <p>Вы описываете, <b>что</b> хотите получить, а не <b>как</b> искать: «дай заказы декабря, отсортируй по дате». Как читать диск и какие индексы использовать, решает СУБД.</p>
+    </div>
+    <div>
+      <table class="t" style="font-size:.55em">
+        <tr><th>Группа</th><th>Назначение</th><th>Команды</th></tr>
+        <tr><td><b>DQL</b></td><td>чтение данных</td><td><code>SELECT</code></td></tr>
+        <tr><td><b>DML</b></td><td>изменение данных</td><td><code>INSERT</code> <code>UPDATE</code> <code>DELETE</code> <code>MERGE</code></td></tr>
+        <tr><td><b>DDL</b></td><td>структура объектов</td><td><code>CREATE</code> <code>ALTER</code> <code>DROP</code></td></tr>
+        <tr><td><b>DCL</b></td><td>права доступа</td><td><code>GRANT</code> <code>REVOKE</code></td></tr>
+        <tr><td><b>TCL</b></td><td>транзакции</td><td><code>BEGIN</code> <code>COMMIT</code> <code>ROLLBACK</code></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box info"><b>Аналитик 90 % времени пишет SELECT</b>Сегодня — в основном DQL, плюс знакомство с DDL и DML на временной таблице. Транзакции — модуль 11, права — смежная тема из модуля 0.</div>
+</section>
+
+<!-- ===================== 10. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>SELECT: читаем и фильтруем данные</h2>
+  <p>SELECT · FROM · WHERE · ORDER BY · LIMIT · NULL</p>
+</section>
+
+<!-- ===================== 11. АНАТОМИЯ ЗАПРОСА ===================== -->
+<section>
+  <h2>Первый запрос: SELECT … FROM</h2>
+  <div class="two-col">
+    <div>
+<pre><code class="language-sql" data-trim>
+-- первая команда сессии: схема по умолчанию
+SET search_path TO pitanie, public;
+
+SELECT product_name,          -- какие столбцы
+       unit,
+       base_price
+FROM   products               -- из какой таблицы
+LIMIT  5;                     -- не больше 5 строк
+</code></pre>
+      <table class="t" style="font-size:.5em">
+        <tr><th>product_name</th><th>unit</th><th>base_price</th></tr>
+        <tr><td>Молоко пастеризованное 2,5% 1 л</td><td>шт</td><td>89.00</td></tr>
+        <tr><td>Молоко пастеризованное 3,2% 1 л</td><td>шт</td><td>95.00</td></tr>
+        <tr><td>…</td><td>…</td><td>…</td></tr>
+      </table>
+    </div>
+    <div style="font-size:.72em">
+      <p class="blue">Правила записи</p>
+      <ul>
+        <li>Запрос заканчивается <code>;</code></li>
+        <li>Ключевые слова не зависят от регистра: <code>select</code> = <code>SELECT</code>. Пишем их ПРОПИСНЫМИ — так читается легче</li>
+        <li>Текст — в <b>одинарных</b> кавычках: <code>'Отменён'</code></li>
+        <li>Имена столбцов и таблиц — строчными, через <code>_</code></li>
+        <li><code>--</code> комментарий до конца строки, <code>/* … */</code> — блок</li>
+        <li><code>SELECT *</code> — все столбцы: только для знакомства с таблицей</li>
+      </ul>
+      <p class="small">DBeaver: <code>Ctrl+Enter</code> — выполнить запрос под курсором, <code>Alt+X</code> — весь скрипт, <code>Ctrl+Shift+F</code> — форматирование.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. ВЫЧИСЛЕНИЯ И ПСЕВДОНИМЫ ===================== -->
+<section>
+  <h2>Псевдонимы и вычисляемые столбцы</h2>
+<pre><code class="language-sql" data-trim>
+SELECT product_name                                        AS "Продукт",
+       base_price,
+       standard_cost,
+       base_price - standard_cost                          AS markup_rub,
+       ROUND(100 * (base_price - standard_cost) / base_price, 1) AS markup_pct
+FROM   products
+LIMIT  3;
+</code></pre>
+  <table class="t" style="font-size:.52em">
+    <tr><th>Продукт</th><th>base_price</th><th>standard_cost</th><th>markup_rub</th><th>markup_pct</th></tr>
+    <tr><td>Молоко пастеризованное 2,5% 1 л</td><td>89.00</td><td>61.00</td><td>28.00</td><td>31.5</td></tr>
+    <tr><td>Молоко пастеризованное 3,2% 1 л</td><td>95.00</td><td>66.00</td><td>29.00</td><td>30.5</td></tr>
+    <tr><td>Молоко ультрапастеризованное 3,2% 1 л</td><td>112.00</td><td>74.00</td><td>38.00</td><td>33.9</td></tr>
+  </table>
+  <div class="two-col">
+    <div class="box info"><b>Две главные формулы курса</b>
+      <span class="badge team-a">А</span> сумма строки: <code>quantity * unit_price * (1 - discount_pct / 100)</code><br>
+      <span class="badge team-b">Б</span> % брака: <code>100.0 * defect_qty / produced_qty</code></div>
+    <div class="box warn"><b>Ловушка: целочисленное деление</b><code>7 / 2</code> → <b>3</b>, а <code>7.0 / 2</code> → 3.5. Поэтому в формуле брака стоит <code>100.0</code>, а не <code>100</code>.</div>
+  </div>
+</section>
+
+<!-- ===================== 13. WHERE ===================== -->
+<section>
+  <h2>WHERE: отбираем нужные строки</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- число
+SELECT product_name, shelf_life_days
+FROM   products
+WHERE  shelf_life_days &lt;= 10;            -- 6 строк
+
+-- текст (регистр важен!)
+SELECT customer_name
+FROM   customers
+WHERE  customer_type = 'Федеральная сеть'; -- 6
+
+-- дата: DATE 'ГГГГ-ММ-ДД'
+SELECT order_number, order_date, status
+FROM   orders
+WHERE  order_date &gt;= DATE '2025-12-30';  -- 19
+</code></pre>
+    </div>
+    <div>
+      <table class="t" style="font-size:.55em">
+        <tr><th>Оператор</th><th>Смысл</th><th>Пример</th></tr>
+        <tr><td><code>=</code> <code>&lt;&gt;</code></td><td>равно / не равно</td><td><code>status &lt;&gt; 'Отменён'</code></td></tr>
+        <tr><td><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td><td>сравнение</td><td><code>discount_pct &gt; 10</code></td></tr>
+        <tr><td><code>IN (…)</code></td><td>одно из списка</td><td><code>customer_type IN ('HoReCa', 'Маркетплейс')</code></td></tr>
+        <tr><td><code>BETWEEN a AND b</code></td><td>диапазон, границы включены</td><td><code>base_price BETWEEN 100 AND 150</code></td></tr>
+        <tr><td><code>LIKE</code></td><td>шаблон: <code>%</code> — любые символы, <code>_</code> — один</td><td><code>product_name LIKE 'Молоко%'</code></td></tr>
+        <tr><td><code>IS NULL</code></td><td>значение пусто</td><td><code>shipped_date IS NULL</code></td></tr>
+      </table>
+      <p class="small">Подробно эти предикаты — в модуле 1. Сегодня достаточно уметь их читать.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 14. AND / OR ===================== -->
+<section>
+  <h2>AND, OR, NOT и скобки</h2>
+  <p style="font-size:.75em">Задача: <b>отменённые</b> заказы каналов «Маркетплейс» или «Тендер». Приоритет: сначала <code>NOT</code>, потом <code>AND</code>, потом <code>OR</code>.</p>
+  <div class="two-col">
+    <div>
+      <p class="orange" style="font-size:.75em">✘ Без скобок — 59 заказов</p>
+<pre class="small-code"><code class="language-sql" data-trim>
+SELECT COUNT(*)
+FROM   orders
+WHERE  status  = 'Отменён'
+  AND  channel = 'Маркетплейс'
+   OR  channel = 'Тендер';
+-- = (Отменён И Маркетплейс) ИЛИ (любой Тендер)
+</code></pre>
+    </div>
+    <div>
+      <p class="green" style="font-size:.75em">✔ Со скобками — 13 заказов</p>
+<pre class="small-code"><code class="language-sql" data-trim>
+SELECT COUNT(*)
+FROM   orders
+WHERE  status = 'Отменён'
+  AND  (channel = 'Маркетплейс'
+        OR channel = 'Тендер');
+-- то же короче: channel IN ('Маркетплейс', 'Тендер')
+</code></pre>
+    </div>
+  </div>
+  <div class="box warn"><b>Правило</b>Смешиваете <code>AND</code> и <code>OR</code> — ставьте скобки всегда, даже если «и так работает». Ошибка не выдаёт сообщения: запрос просто возвращает неверную цифру.</div>
+</section>
+
+<!-- ===================== 16. ORDER BY / LIMIT / DISTINCT ===================== -->
+<section>
+  <h2>ORDER BY, LIMIT и DISTINCT</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- 5 самых дорогих продуктов;
+-- при равной цене — по названию
+SELECT product_name,
+       base_price
+FROM   products
+ORDER  BY base_price DESC, product_name
+LIMIT  5;
+</code></pre>
+      <table class="t" style="font-size:.5em">
+        <tr><th>product_name</th><th>base_price</th></tr>
+        <tr><td>Сыр Гауда 45% 1 кг</td><td>780.00</td></tr>
+        <tr><td>Сыр Российский 45% 1 кг</td><td>690.00</td></tr>
+        <tr><td>Конфеты шоколадные ассорти 200 г</td><td>299.00</td></tr>
+        <tr><td>Конфеты «Птичье молоко» 250 г</td><td>245.00</td></tr>
+        <tr><td>Сливки 33% 0,5 л</td><td>245.00</td></tr>
+      </table>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- какие типы клиентов существуют
+SELECT DISTINCT customer_type
+FROM   customers
+ORDER  BY customer_type;          -- 6 строк
+</code></pre>
+      <ul style="font-size:.68em">
+        <li><code>ASC</code> — по возрастанию (по умолчанию), <code>DESC</code> — по убыванию</li>
+        <li>Сортировать можно по нескольким столбцам: второй работает при равенстве первого</li>
+        <li><code>LIMIT n</code> — первые n строк; без <code>ORDER BY</code> «первые» — случайные!</li>
+        <li><code>DISTINCT</code> убирает повторяющиеся строки результата</li>
+      </ul>
+    </div>
+  </div>
+  <p class="small">В стандарте SQL вместо <code>LIMIT</code> — <code>FETCH FIRST 5 ROWS ONLY</code>, в MS SQL Server — <code>TOP 5</code>. Всё это — модуль 1.</p>
+</section>
+
+<!-- ===================== 17. NULL ===================== -->
+<section>
+  <h2>NULL — «значение неизвестно»</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- ✘ так НЕ работает: 0 строк
+SELECT customer_name FROM customers
+WHERE  email = NULL;
+
+-- ✔ так правильно: 21 клиент
+SELECT customer_name FROM customers
+WHERE  email IS NULL;
+
+-- COUNT(*) — строки, COUNT(столбец) — не-NULL
+SELECT COUNT(*)         AS all_rows,
+       COUNT(email)     AS with_email,
+       COUNT(region_id) AS with_region
+FROM   customers;
+</code></pre>
+      <table class="t" style="font-size:.52em"><tr><th>all_rows</th><th>with_email</th><th>with_region</th></tr><tr><td>73</td><td>52</td><td>70</td></tr></table>
+    </div>
+    <div style="font-size:.72em">
+      <p><code>NULL</code> — не ноль и не пустая строка, а <b>отсутствие значения</b>: email не указан, заказ ещё не отгружен (<code>shipped_date</code>), простой не закрыт (<code>end_time</code>).</p>
+      <ul>
+        <li>Любое сравнение с <code>NULL</code> даёт <b>UNKNOWN</b> — строка не попадает в результат</li>
+        <li>Проверка — только <code>IS NULL</code> / <code>IS NOT NULL</code></li>
+        <li>Арифметика с NULL даёт NULL: <code>100 + NULL</code> → NULL</li>
+        <li>Замена: <code>COALESCE(email, 'нет email')</code></li>
+        <li>Агрегаты <code>SUM</code>, <code>AVG</code>, <code>COUNT(столбец)</code> пропускают NULL</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 19. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Итоги и связи: агрегаты, GROUP BY, JOIN</h2>
+  <p>От отдельных строк — к цифрам для руководства</p>
+</section>
+
+<!-- ===================== 20. АГРЕГАТЫ ===================== -->
+<section>
+  <h2>Агрегатные функции: из многих строк — одна</h2>
+  <div class="two-col">
+    <div>
+<pre><code class="language-sql" data-trim>
+SELECT COUNT(*)                  AS products_cnt,
+       MIN(base_price)           AS min_price,
+       MAX(base_price)           AS max_price,
+       ROUND(AVG(base_price), 2) AS avg_price
+FROM   products;
+</code></pre>
+      <table class="t" style="font-size:.55em"><tr><th>products_cnt</th><th>min_price</th><th>max_price</th><th>avg_price</th></tr><tr><td>35</td><td>45.00</td><td>780.00</td><td>150.06</td></tr></table>
+    </div>
+    <div>
+      <table class="t" style="font-size:.58em">
+        <tr><th>Функция</th><th>Что считает</th></tr>
+        <tr><td><code>COUNT(*)</code></td><td>число строк</td></tr>
+        <tr><td><code>COUNT(col)</code></td><td>число непустых значений</td></tr>
+        <tr><td><code>COUNT(DISTINCT col)</code></td><td>число разных значений</td></tr>
+        <tr><td><code>SUM(col)</code></td><td>сумма</td></tr>
+        <tr><td><code>AVG(col)</code></td><td>среднее</td></tr>
+        <tr><td><code>MIN</code> / <code>MAX</code></td><td>минимум / максимум (числа, даты, текст)</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box info"><b>Аналогия с Excel</b>Это функции СЧЁТ, СУММ, СРЗНАЧ, МИН, МАКС — только применяются к столбцу таблицы целиком или к каждой группе строк.</div>
+</section>
+
+<!-- ===================== 21. GROUP BY / HAVING ===================== -->
+<section>
+  <h2>GROUP BY и HAVING: итоги по группам</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+SELECT line_id,
+       COUNT(*)          AS batches,
+       SUM(produced_qty) AS produced,
+       ROUND(100.0 * SUM(defect_qty)
+             / SUM(produced_qty), 2) AS defect_pct
+FROM   production_batches
+GROUP  BY line_id
+ORDER  BY defect_pct DESC;
+</code></pre>
+      <table class="t" style="font-size:.5em">
+        <tr><th>line_id</th><th>batches</th><th>produced</th><th>defect_pct</th></tr>
+        <tr><td>3</td><td>1254</td><td>1 953 553</td><td class="hl">4.75</td></tr>
+        <tr><td>2</td><td>1254</td><td>1 296 410</td><td>2.33</td></tr>
+        <tr><td>4</td><td>1150</td><td>1 976 468</td><td>1.65</td></tr>
+        <tr><td>1</td><td>1254</td><td>1 330 992</td><td>1.63</td></tr>
+        <tr><td>5</td><td>1150</td><td>1 262 495</td><td>1.57</td></tr>
+      </table>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- типы клиентов, где больше 10 клиентов
+SELECT customer_type,
+       COUNT(*) AS customers_cnt
+FROM   customers
+GROUP  BY customer_type
+HAVING COUNT(*) &gt; 10
+ORDER  BY customers_cnt DESC;
+</code></pre>
+      <div class="box warn" style="font-size:.66em"><b>Золотое правило GROUP BY</b>Каждый столбец в <code>SELECT</code> либо перечислен в <code>GROUP BY</code>, либо стоит внутри агрегата. Иначе — ошибка <code>must appear in the GROUP BY clause</code>.</div>
+      <div class="box info" style="font-size:.66em"><b>WHERE или HAVING?</b><code>WHERE</code> отбирает <b>строки</b> до группировки, <code>HAVING</code> — <b>группы</b> после, по значению агрегата.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 22. ПОРЯДОК ВЫПОЛНЕНИЯ ===================== -->
+<section>
+  <h2>В каком порядке СУБД выполняет запрос</h2>
+  <p style="font-size:.75em">Пишем в одном порядке, а логически запрос выполняется в другом:</p>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.62em;margin:.6em 0">
+    <div class="card" style="font-size:1em"><b>1</b> FROM / JOIN</div>➜
+    <div class="card" style="font-size:1em"><b>2</b> WHERE</div>➜
+    <div class="card" style="font-size:1em"><b>3</b> GROUP BY</div>➜
+    <div class="card" style="font-size:1em"><b>4</b> HAVING</div>➜
+    <div class="card orange-top" style="font-size:1em"><b>5</b> SELECT</div>➜
+    <div class="card" style="font-size:1em"><b>6</b> DISTINCT</div>➜
+    <div class="card green-top" style="font-size:1em"><b>7</b> ORDER BY</div>➜
+    <div class="card green-top" style="font-size:1em"><b>8</b> LIMIT</div>
+  </div>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- ✘ ОШИБКА: column "markup" does not exist
+SELECT product_name,
+       base_price - standard_cost AS markup
+FROM   products
+WHERE  markup &gt; 100;
+</code></pre>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- ✔ в WHERE повторяем выражение
+SELECT product_name,
+       base_price - standard_cost AS markup
+FROM   products
+WHERE  base_price - standard_cost &gt; 100
+ORDER  BY markup DESC;   -- а здесь псевдоним можно
+</code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>Следствие</b>Псевдоним из <code>SELECT</code> (шаг 5) ещё неизвестен в <code>WHERE</code> (шаг 2), но уже доступен в <code>ORDER BY</code> (шаг 7). Агрегаты нельзя писать в <code>WHERE</code> — группы появятся только на шаге 3.</div>
+</section>
+
+<!-- ===================== 23. INNER JOIN ===================== -->
+<section>
+  <h2>JOIN: собираем данные из нескольких таблиц</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+SELECT o.order_number,
+       o.order_date,
+       c.customer_name,
+       c.customer_type
+FROM   orders    AS o
+JOIN   customers AS c
+       ON c.customer_id = o.customer_id
+ORDER  BY o.order_date DESC
+LIMIT  3;
+</code></pre>
+      <table class="t" style="font-size:.48em">
+        <tr><th>order_number</th><th>order_date</th><th>customer_name</th><th>customer_type</th></tr>
+        <tr><td>ЗК-2025-04448</td><td>2025-12-31</td><td>АО "Хлеб-Соль"</td><td>Региональная сеть</td></tr>
+        <tr><td>ЗК-2025-04449</td><td>2025-12-31</td><td>ООО "Бриз"</td><td>Региональная сеть</td></tr>
+        <tr><td>ЗК-2025-04450</td><td>2025-12-31</td><td>ООО "ОЗОН-Партнёр"</td><td>Маркетплейс</td></tr>
+      </table>
+    </div>
+    <div style="font-size:.72em">
+      <ul>
+        <li><code>JOIN … ON</code> — для каждой строки заказа найти строку клиента, у которой <code>customer_id</code> совпадает</li>
+        <li>Условие соединения — почти всегда <b>внешний ключ = первичный ключ</b></li>
+        <li><code>o</code>, <code>c</code> — псевдонимы таблиц; <code>o.order_date</code> — «столбец order_date из orders»</li>
+        <li><code>JOIN</code> = <code>INNER JOIN</code>: в результат попадают только пары, нашедшие друг друга</li>
+      </ul>
+      <div class="box info"><b>Аналогия с Excel</b><code>JOIN</code> — это ВПР, который подтягивает сразу все нужные столбцы и не ломается при вставке строк.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 24. LEFT JOIN ===================== -->
+<section>
+  <h2>LEFT JOIN: сохранить строки без пары</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- все клиенты и число их заказов
+SELECT c.customer_name,
+       COUNT(o.order_id) AS orders_cnt
+FROM   customers AS c
+LEFT   JOIN orders AS o
+       ON o.customer_id = c.customer_id
+GROUP  BY c.customer_name
+ORDER  BY orders_cnt
+LIMIT  3;
+</code></pre>
+      <table class="t" style="font-size:.52em">
+        <tr><th>customer_name</th><th>orders_cnt</th></tr>
+        <tr><td>ООО "Новый горизонт"</td><td class="hl">0</td></tr>
+        <tr><td>ООО "Уралочка"</td><td>13</td></tr>
+        <tr><td>ООО "Южный берег"</td><td>13</td></tr>
+      </table>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- найти «непарные» строки
+SELECT c.customer_id, c.customer_name
+FROM   customers AS c
+LEFT   JOIN orders AS o
+       ON o.customer_id = c.customer_id
+WHERE  o.order_id IS NULL;
+</code></pre>
+      <table class="t" style="font-size:.55em">
+        <tr><th>Соединение</th><th>Клиентов в результате</th></tr>
+        <tr><td><code>JOIN</code> (INNER)</td><td>72 — только с заказами</td></tr>
+        <tr><td><code>LEFT JOIN</code></td><td class="hl">73 — все клиенты</td></tr>
+      </table>
+      <p class="small">У клиента без пары все столбцы правой таблицы (<code>o.*</code>) равны NULL. Поэтому <code>COUNT(o.order_id)</code> даёт 0, а <code>COUNT(*)</code> дал бы 1.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 26. ИЗМЕНЕНИЕ ДАННЫХ ===================== -->
+<section>
+  <h2>Создание и изменение данных: DDL и DML</h2>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- DDL: временная таблица — видна только вам
+CREATE TEMP TABLE findings (
+    finding_id integer      PRIMARY KEY,
+    team       char(1)      NOT NULL
+                            CHECK (team IN ('А', 'Б')),
+    title      varchar(200) NOT NULL,
+    loss_rub   numeric(14,2),
+    found_on   date NOT NULL DEFAULT CURRENT_DATE
+);
+
+-- DML: добавить строки
+INSERT INTO findings (finding_id, team, title)
+VALUES (1, 'А', 'Скидки сверх политики 10 %'),
+       (2, 'Б', 'Повышенный брак на линии 3');
+</code></pre>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- изменить значения
+UPDATE findings
+SET    loss_rub = 1500000
+WHERE  finding_id = 1;
+
+-- удалить строки
+DELETE FROM findings
+WHERE  finding_id = 2;
+
+-- удалить таблицу
+DROP TABLE findings;
+</code></pre>
+      <div class="box warn" style="font-size:.66em"><b>UPDATE и DELETE без WHERE</b>изменят или удалят <b>все</b> строки таблицы. Сначала напишите <code>SELECT … WHERE …</code>, проверьте строки — потом замените на <code>UPDATE</code>/<code>DELETE</code>.</div>
+      <div class="box ok" style="font-size:.66em"><b>Схема <code>pitanie</code> — только чтение</b>Тренируемся на временных таблицах — они живут до отключения от БД. Попробуйте вставить <code>team = 'В'</code>: ограничение <code>CHECK</code> не пропустит.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== РАЗБОР: РАЗНЫЕ ЦИФРЫ ===================== -->
+<section>
+  <h2>Разбор: почему у двух аналитиков разные цифры</h2>
+  <p style="font-size:.75em">Два отчёта «Число заказов за 2025 год» дали <b>2334</b> и <b>2201</b>. Оба запроса синтаксически верны.</p>
+  <div class="two-col">
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- Аналитик 1: 2334
+SELECT COUNT(*)
+FROM   orders
+WHERE  order_date BETWEEN DATE '2025-01-01'
+                      AND DATE '2025-12-31';
+</code></pre>
+    </div>
+    <div>
+<pre class="small-code"><code class="language-sql" data-trim>
+-- Аналитик 2: 2201
+SELECT COUNT(shipped_date)
+FROM   orders
+WHERE  order_date &gt;= DATE '2025-01-01'
+  AND  status &lt;&gt; 'Отменён';
+</code></pre>
+    </div>
+  </div>
+  <ol style="font-size:.7em">
+    <li>Аналитик 2 <b>исключил отменённые</b> заказы: без них 2240.</li>
+    <li><code>COUNT(shipped_date)</code> не считает <code>NULL</code> — 39 неотгруженных заказов выпали, фактически посчитаны <b>отгруженные</b>.</li>
+    <li>У аналитика 2 <b>нет верхней границы</b> даты — заказы 2026 г. тоже попадут в отчёт, когда появятся.</li>
+  </ol>
+  <div class="box ok"><b>Вывод</b>У метрики должно быть определение: «оформлено заказов» и «выполнено заказов» — разные показатели. Запрос метрики хранят и переиспользуют (представления — модуль 9).</div>
+</section>
+
+<!-- ===================== УПРАЖНЕНИЯ ===================== -->
+<section>
+  <h2>Упражнения: переведите вопрос на SQL</h2>
+  <p style="font-size:.72em">Напишите и выполните запрос сами, затем нажимайте «→» — решения появятся по одному.</p>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ol style="font-size:.95em">
+        <li>Сколько клиентов каждого типа?
+          <div class="fragment"><code>SELECT customer_type, COUNT(*) FROM customers GROUP BY customer_type;</code></div></li>
+        <li>Какие заказы 2025 года не отгружены (без отменённых)?
+          <div class="fragment"><code>… WHERE shipped_date IS NULL AND status &lt;&gt; 'Отменён' AND order_date &gt;= DATE '2025-01-01'</code> — 39</div></li>
+        <li>5 позиций с самой большой скидкой в рублях?
+          <div class="fragment"><code>SELECT order_item_id, quantity * unit_price * discount_pct / 100 AS disc_rub FROM order_items ORDER BY disc_rub DESC LIMIT 5;</code></div></li>
+      </ol>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ol style="font-size:.95em">
+        <li>Сколько партий выпущено в каждую смену?
+          <div class="fragment"><code>SELECT shift, COUNT(*) FROM production_batches GROUP BY shift;</code> — день 3135, ночь 2927</div></li>
+        <li>Какие простои до сих пор не закрыты?
+          <div class="fragment"><code>SELECT * FROM equipment_downtime WHERE end_time IS NULL;</code> — 4</div></li>
+        <li>Название линии и % брака на каждой?
+          <div class="fragment"><code>… FROM production_batches b JOIN production_lines l ON l.line_id = b.line_id GROUP BY l.line_name</code> и <code>100.0 * SUM(defect_qty) / SUM(produced_qty)</code></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 29. ТИПИЧНЫЕ ОШИБКИ ===================== -->
+<section>
+  <h2>Типичные ошибки новичка</h2>
+  <table class="t" style="font-size:.54em">
+    <tr><th>Сообщение / симптом</th><th>Причина</th><th>Как исправить</th></tr>
+    <tr><td><code>relation "orders" does not exist</code></td><td>не задана схема</td><td><code>SET search_path TO pitanie, public;</code> или <code>pitanie.orders</code></td></tr>
+    <tr><td><code>column "Отменён" does not exist</code></td><td>текст в двойных кавычках</td><td>текст — в одинарных: <code>'Отменён'</code></td></tr>
+    <tr><td><code>syntax error at or near "FROM"</code></td><td>лишняя запятая перед <code>FROM</code></td><td>проверить запятые в списке столбцов</td></tr>
+    <tr><td><code>must appear in the GROUP BY clause</code></td><td>столбец не в GROUP BY и не в агрегате</td><td>добавить в <code>GROUP BY</code> или обернуть в агрегат</td></tr>
+    <tr><td><code>aggregate functions are not allowed in WHERE</code></td><td>агрегат в WHERE</td><td>перенести условие в <code>HAVING</code></td></tr>
+    <tr><td><code>column reference "order_id" is ambiguous</code></td><td>столбец есть в двух таблицах JOIN</td><td>указать таблицу: <code>o.order_id</code></td></tr>
+    <tr><td>0 строк, а должны быть</td><td><code>= NULL</code>, регистр текста, лишний пробел</td><td><code>IS NULL</code>; проверить значения через <code>DISTINCT</code></td></tr>
+    <tr><td>«слишком много» строк</td><td><code>AND</code>/<code>OR</code> без скобок; JOIN без условия</td><td>скобки; проверить <code>ON</code></td></tr>
+  </table>
+  <p class="small">Читайте сообщение об ошибке целиком: PostgreSQL указывает позицию (<code>LINE 3: …  ^</code>) и часто подсказывает (<code>HINT:</code>).</p>
+</section>
+
+<!-- ===================== 30. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: шпаргалка SELECT</h2>
+  <div class="two-col">
+    <div>
+<pre><code class="language-sql" data-trim>
+SELECT   столбцы, выражения, агрегаты  -- 5
+FROM     таблица AS t                  -- 1
+[LEFT] JOIN другая AS d ON d.id = t.id -- 1
+WHERE    условия для строк             -- 2
+GROUP BY столбцы группировки           -- 3
+HAVING   условия для групп             -- 4
+ORDER BY столбцы [DESC]                -- 7
+LIMIT    n;                            -- 8
+</code></pre>
+    </div>
+    <div style="font-size:.72em">
+      <p class="green">Вы научились</p>
+      <ul>
+        <li>читать схему: таблицы, ключи, связи 1:N</li>
+        <li>отбирать, вычислять, сортировать</li>
+        <li>отличать NULL от значения</li>
+        <li>считать итоги по группам</li>
+        <li>соединять таблицы</li>
+        <li>создавать таблицу и менять в ней данные</li>
+      </ul>
+      <p class="orange">Что дальше</p>
+      <p>Практика (<code>practice.md</code>) → лабораторная (<code>lab.md</code>) → модуль 1 «Сортировка и фильтрация».</p>
+    </div>
+  </div>
+  <div class="box ok"><b>Совет</b>Заведите «журнал находок»: запрос + цифра + вывод. Первые записи появятся уже в лабораторной этого модуля.</div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
