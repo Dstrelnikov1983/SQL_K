@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 2 — Применение типов данных и встроенных функций</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+
+/* --- слайд «Порядок выполнения SELECT» --- */
+.qo-wrap{display:flex;gap:1.2em;align-items:stretch}
+.qo-wrap>div{flex:1;min-width:0}
+.qo-h{font-size:.62em;font-weight:700;color:var(--accent1);margin:0 0 .3em 0;text-transform:uppercase;letter-spacing:.04em}
+.qo-code{background:var(--code-bg);border-radius:8px;padding:10px 14px;font-family:Consolas,'Courier New',monospace;
+  font-size:.5em;line-height:1.75;color:#d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.qo-code .ln{display:flex;align-items:center;gap:10px;border-radius:5px;padding:0 6px}
+.qo-code .kw{color:#569cd6;font-weight:700;min-width:6.2em;display:inline-block;white-space:pre}
+.qo-code .cm{color:#6a9955}
+.qo-code .n{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;
+  background:#3a3d41;color:#cfd3d8;font-size:.85em;font-weight:700;flex:none}
+.qo-code .ln.focus{background:rgba(237,125,49,.30)}
+.qo-code .ln.focus .n{background:var(--accent2);color:#fff}
+.qo-code .ln.rel{background:rgba(237,125,49,.10)}
+.qo-code .ln.rel .n{background:#8a5a36;color:#fff}
+.qo-steps{list-style:none;margin:0!important;padding:0;font-size:.52em}
+.qo-steps li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e8f2;border-left:6px solid #c9d3e6;
+  border-radius:6px;padding:3px 10px;margin:0 0 4px 0;line-height:1.3;color:var(--muted)}
+.qo-steps li .n{font-weight:800;color:#9aa4b2;width:1.2em;text-align:right;flex:none}
+.qo-steps li .k{font-family:Consolas,'Courier New',monospace;font-weight:700;color:var(--text);min-width:7.4em}
+.qo-steps li .d{flex:1}
+.qo-steps li .m{font-size:.85em;background:#eef2fa;color:var(--accent1);border-radius:10px;padding:0 8px;font-weight:700;white-space:nowrap}
+.qo-steps li.focus{border-left-color:var(--accent2);background:#fff3e8;color:var(--text);box-shadow:0 2px 6px rgba(237,125,49,.25)}
+.qo-steps li.focus .n,.qo-steps li.focus .k{color:var(--accent2)}
+.qo-steps li.focus .m{background:var(--accent2);color:#fff}
+.qo-steps li.rel{border-left-color:#f3b88f;background:#fffaf5}
+.qo-steps li.done{border-left-color:var(--accent6)}
+.qo-legend{font-size:.5em;color:var(--muted);margin-top:.3em}
+.qo-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+/* --- матрица преобразований типов --- */
+.reveal table.cast-m{border-collapse:separate;border-spacing:2px;font-size:.42em;width:100%;margin:0}
+.reveal table.cast-m th{background:var(--accent1);color:#fff;padding:4px 5px;font-family:Consolas,'Courier New',monospace;font-weight:600;border:none;text-align:center}
+.reveal table.cast-m tr th:first-child{text-align:right;background:#2f5597}
+.reveal table.cast-m th.corner{background:#fff!important;color:var(--muted);font-family:'Segoe UI',sans-serif;font-size:.85em}
+.reveal table.cast-m td{text-align:center;padding:4px 3px;border:none;border-radius:3px;font-weight:700}
+.cast-m .ci,.cast-legend .ci{background:#d7ecc9;color:#3d7a20}
+.cast-m .ca,.cast-legend .ca{background:#fde3cf;color:#b4541a}
+.cast-m .ce,.cast-legend .ce{background:#dce6f6;color:#1f3f7a}
+.cast-m .cn,.cast-legend .cn{background:#f1f2f4;color:#b0b6bf;font-weight:400}
+.cast-m .cs{background:repeating-linear-gradient(45deg,#e3e8f2,#e3e8f2 4px,#f5f7fb 4px,#f5f7fb 8px)}
+.cast-legend{list-style:none;margin:0!important;padding:0;font-size:.5em}
+.cast-legend li{margin-bottom:.55em;line-height:1.3}
+.cast-legend span{display:inline-block;min-width:3.2em;text-align:center;border-radius:4px;padding:1px 4px;margin-right:6px;font-weight:700}
+.cast-legend b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 2</div>
+  <h1>Применение типов данных и встроенных функций</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">Считаем точно: типы, преобразования, числа, строки, даты и CASE</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 3 ак. ч.</div>
+  <aside class="notes">Напомнить итоги модуля 1: нашли «улики», но посчитать потери не смогли. Сегодня — инструменты для точного расчёта и очистки данных.</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план</h2>
+  <div class="two-col">
+    <div>
+      <h3>После модуля вы сможете</h3>
+      <ul style="font-size:.76em">
+        <li>выбирать тип данных под задачу и объяснять последствия выбора</li>
+        <li>явно и безопасно преобразовывать типы (<code>CAST</code>, <code>::</code>, <code>to_char</code>)</li>
+        <li>избегать ловушек: целочисленное деление, <code>float</code>, деление на 0</li>
+        <li>очищать строки: <code>TRIM</code>, <code>LOWER</code>, <code>regexp_replace</code>, <code>SPLIT_PART</code></li>
+        <li>считать сроки и длительности, строить календарь</li>
+        <li>классифицировать данные через <code>CASE</code></li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Типы данных PostgreSQL</td><td>20</td></tr>
+        <tr><td>Преобразования и ловушки</td><td>20</td></tr>
+        <tr><td>Математические функции</td><td>15</td></tr>
+        <tr><td>Строковые функции</td><td>25</td></tr>
+        <tr><td>Дата и время</td><td>25</td></tr>
+        <tr><td>CASE, группы, кейс</td><td>20</td></tr>
+        <tr><td>Итоги</td><td>10</td></tr>
+      </table>
+      <p class="small">Лабораторная работа — 80 мин (отдельно)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ПОРЯДОК ВЫПОЛНЕНИЯ SELECT (общая схема курса) ===================== -->
+<section>
+  <h2>Как выполняется SELECT … FROM: что разбираем сегодня</h2>
+  <div class="qo-wrap">
+    <div>
+      <p class="qo-h">Как мы пишем (синтаксический порядок)</p>
+      <div class="qo-code">
+        <div class="ln focus"><span class="n">6</span><span class="kw">SELECT</span><span>столбцы, выражения <span class='cm'>-- окна OVER(…) — шаг 5</span></span></div>
+        <div class="ln "><span class="n">7</span><span class="kw">DISTINCT</span><span><span class='cm'>-- необязательно</span></span></div>
+        <div class="ln "><span class="n">1</span><span class="kw">FROM</span><span>таблица t</span></div>
+        <div class="ln "><span class="n">1</span><span class="kw">  JOIN</span><span>таблица2 ON …</span></div>
+        <div class="ln focus"><span class="n">2</span><span class="kw">WHERE</span><span>условие на строки</span></div>
+        <div class="ln "><span class="n">3</span><span class="kw">GROUP BY</span><span>ключи группировки</span></div>
+        <div class="ln "><span class="n">4</span><span class="kw">HAVING</span><span>условие на группы</span></div>
+        <div class="ln rel"><span class="n">8</span><span class="kw">ORDER BY</span><span>столбцы [ASC | DESC]</span></div>
+        <div class="ln "><span class="n">9</span><span class="kw">LIMIT</span><span>n OFFSET m;</span></div>
+      </div>
+      <p class="qo-legend">цифра в кружке — номер шага выполнения</p>
+    </div>
+    <div>
+      <p class="qo-h">Как выполняет СУБД (логический порядок)</p>
+      <ul class="qo-steps">
+        <li class=""><span class="n">1</span><span class="k">FROM / JOIN</span><span class="d">таблицы, JOIN, подзапросы</span><span class="m">М3 · М5</span></li>
+        <li class="focus"><span class="n">2</span><span class="k">WHERE</span><span class="d">фильтр отдельных строк <b class="orange">← сегодня</b></span><span class="m">М1</span></li>
+        <li class=""><span class="n">3</span><span class="k">GROUP BY</span><span class="d">строки → группы</span><span class="m">М4</span></li>
+        <li class=""><span class="n">4</span><span class="k">HAVING</span><span class="d">фильтр групп</span><span class="m">М4</span></li>
+        <li class=""><span class="n">5</span><span class="k">OVER (…)</span><span class="d">оконные функции</span><span class="m">М8</span></li>
+        <li class="focus"><span class="n">6</span><span class="k">SELECT</span><span class="d">выражения, функции, псевдонимы <b class="orange">← сегодня</b></span><span class="m">М2</span></li>
+        <li class="done"><span class="n">7</span><span class="k">DISTINCT</span><span class="d">удаление дублей</span><span class="m">М1</span></li>
+        <li class="rel"><span class="n">8</span><span class="k">ORDER BY</span><span class="d">сортировка</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">9</span><span class="k">LIMIT/OFFSET</span><span class="d">отсечение строк</span><span class="m">М1</span></li>
+      </ul>
+      <p class="qo-legend"><span style="background:var(--accent2)"></span>тема модуля<span style="background:#f3b88f"></span>связано с темой<span style="background:var(--accent6)"></span>уже изучено</p>
+    </div>
+  </div>
+  <div class="box warn" style="font-size:.62em;margin-top:.5em"><b>Сегодня: выражения и функции — в SELECT (шаг 6) и WHERE (шаг 2)</b>Типы, <code>CAST</code>, числовые и строковые функции, даты и <code>CASE</code> — это <b>выражения</b>. Чаще всего они вычисляются на шаге 6 SELECT и в условиях шага 2 WHERE. Помним: псевдоним из SELECT в WHERE ещё не существует — он появится только на шаге 6.</div>
+  <aside class="notes">Показать общую схему курса: каждый модуль раскрывает один или несколько шагов. Вопрос аудитории: почему нельзя написать WHERE margin_pct &gt; 10, если margin_pct — псевдоним из SELECT? (WHERE выполняется раньше SELECT.)</aside>
+</section>
+
+
+<!-- ===================== 3. РАЗМИНКА ===================== -->
+<section class="quiz-slide">
+  <h2>Разминка: что вернёт PostgreSQL?</h2>
+  <p><code>SELECT 7 / 2;</code></p>
+  <ul class="quiz">
+    <li>3.5</li>
+    <li data-correct>3</li>
+    <li>4</li>
+    <li>Ошибка: нужен CAST</li>
+  </ul>
+  <p class="explain">integer / integer = integer, дробная часть отбрасывается (не округляется): <code>-7 / 2 = -3</code>. Чтобы получить 3.5: <code>7 / 2.0</code> или <code>7::numeric / 2</code>. В T-SQL поведение такое же.</p>
+  <aside class="notes">Спросить, кто ответил 3.5 — именно эта ошибка в модуле 1 «спрятала» долю брака. Мост к блоку о преобразованиях.</aside>
+</section>
+
+<!-- ===================== 4. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Типы данных в PostgreSQL</h2>
+  <p>Что лежит в таблицах «Питание +» и почему именно так</p>
+</section>
+
+<!-- ===================== 5. ОБЗОР ТИПОВ ===================== -->
+<section>
+  <h2>Основные группы типов</h2>
+  <table class="t">
+    <tr><th>Группа</th><th>PostgreSQL</th><th>T-SQL</th><th>В «Питание +»</th></tr>
+    <tr><td>Целые</td><td><code>smallint</code>, <code>integer</code>, <code>bigint</code></td><td>то же + <code>tinyint</code></td><td>quantity, planned_qty, defect_qty</td></tr>
+    <tr><td>Точные дробные</td><td><code>numeric(p,s)</code> = <code>decimal</code></td><td><code>decimal</code>, <code>money</code></td><td>unit_price, amount, rating</td></tr>
+    <tr><td>Приближённые</td><td><code>real</code>, <code>double precision</code></td><td><code>real</code>, <code>float</code></td><td>— (и правильно)</td></tr>
+    <tr><td>Строки</td><td><code>char(n)</code>, <code>varchar(n)</code>, <code>text</code></td><td><code>nvarchar</code>, <code>varchar(max)</code></td><td>названия, ИНН, телефоны</td></tr>
+    <tr><td>Дата/время</td><td><code>date</code>, <code>timestamp</code>, <code>timestamptz</code>, <code>interval</code></td><td><code>date</code>, <code>datetime2</code>, <code>datetimeoffset</code></td><td>order_date, start_time</td></tr>
+    <tr><td>Логический</td><td><code>boolean</code></td><td><code>bit</code></td><td>products.is_active</td></tr>
+    <tr><td>Прочие</td><td><code>uuid</code>, <code>jsonb</code>, массивы</td><td><code>uniqueidentifier</code>, <code>nvarchar</code>+JSON</td><td>обзорно</td></tr>
+  </table>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT column_name, data_type, numeric_precision, numeric_scale
+FROM   information_schema.columns
+WHERE  table_schema = 'pitanie' AND table_name = 'order_items';
+  </code></pre>
+</section>
+
+<!-- ===================== 6. NUMERIC vs FLOAT ===================== -->
+<section>
+  <h2>numeric против float</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT 0.1::float8 + 0.2::float8;
+-- 0.30000000000000004
+
+SELECT 0.1::float8 + 0.2::float8 = 0.3;
+-- false (!)
+
+SELECT 0.1::numeric + 0.2::numeric = 0.3;
+-- true
+
+SELECT 1234.5::numeric(5,2);
+-- ОШИБКА: numeric field overflow
+      </code></pre>
+    </div>
+    <div>
+      <div class="box warn"><b>float — двоичная дробь</b>0,1 нельзя точно записать в двоичной системе → накопление погрешности при суммировании тысяч строк.</div>
+      <div class="box ok"><b>Правило</b>Деньги, проценты скидок, количества с дробью — только <code>numeric(p,s)</code>. <code>float</code> — для измерений и научных расчётов.</div>
+      <p class="small"><code>numeric(10,2)</code>: всего 10 цифр, из них 2 после запятой → максимум 99 999 999,99.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. СТРОКИ ===================== -->
+<section>
+  <h2>Строковые типы и «тихая» обрезка</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT 'АБВ'::char(6),               -- 'АБВ   '
+       LENGTH('АБВ'::char(6)),       -- 3
+       OCTET_LENGTH('АБВ');          -- 6 байт
+
+SELECT 'Слишком длинное'::varchar(5);
+-- 'Слишк' — явный CAST обрезает молча
+
+-- а INSERT строки длиннее 5 в varchar(5)
+-- даст ошибку value too long
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Тип</th><th>Поведение</th></tr>
+        <tr><td><code>char(n)</code></td><td>дополняет пробелами; почти не нужен</td></tr>
+        <tr><td><code>varchar(n)</code></td><td>ограничение длины — бизнес-правило</td></tr>
+        <tr><td><code>text</code></td><td>без ограничения, та же скорость</td></tr>
+      </table>
+      <div class="box info"><b>Кодировка UTF-8</b>Кириллица — 2 байта на символ. <code>LENGTH</code> считает символы, <code>OCTET_LENGTH</code> — байты.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8. ДАТЫ И ПРОЧИЕ ===================== -->
+<section>
+  <h2>Дата/время, boolean, uuid, jsonb, массивы</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT DATE '2025-12-31',
+       TIMESTAMP '2025-12-31 23:30',
+       TIMESTAMPTZ '2025-12-31 23:30+03'
+         AT TIME ZONE 'Asia/Novosibirsk',
+       -- 2026-01-01 03:30 — уже другой год!
+       INTERVAL '1 day 2 hours';
+      </code></pre>
+      <div class="box warn"><b>timestamp vs timestamptz</b><code>timestamptz</code> хранит момент времени (UTC), отображает в зоне сессии. Для филиалов в разных часовых поясах — только он.</div>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT gen_random_uuid(),
+       '{"sku":"SYR-001","price":189}'::jsonb
+           -&gt;&gt; 'sku',                 -- 'SYR-001'
+       (ARRAY[7, 10, 14])[2],         -- 10
+       string_to_array('День;Ночь', ';');
+
+SELECT product_name
+FROM   products
+WHERE  NOT is_active;      -- Пряники мятные 350 г
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9. ОБСУЖДЕНИЕ 1 ===================== -->
+<section class="discussion-slide">
+  <h2>Обсуждение: какой тип выбрать?</h2>
+  <p>Вы — системный аналитик, проектируете новую таблицу «Рекламации клиентов». Какие типы вы зададите и почему?</p>
+  <div class="two-col">
+    <ul style="font-size:.8em">
+      <li>ИНН клиента, телефон, почтовый индекс</li>
+      <li>сумма претензии, процент компенсации</li>
+      <li>дата и время поступления (филиалы в Москве и Новосибирске)</li>
+    </ul>
+    <ul style="font-size:.8em">
+      <li>длительность рассмотрения</li>
+      <li>признак «решено в пользу клиента»</li>
+      <li>произвольные атрибуты от разных маркетплейсов</li>
+    </ul>
+  </div>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">ИНН/телефон/индекс — varchar (ведущие нули, «+», не нужна арифметика) + CHECK формата; сумма — numeric(14,2); процент — numeric(5,2) с CHECK 0..100; время — timestamptz (разные пояса); длительность — interval (или вычислять); признак — boolean; атрибуты — jsonb. Подчеркнуть: тип — это часть требований, а не «деталь реализации».</aside>
+</section>
+
+<!-- ===================== 10. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Неявное и явное преобразование</h2>
+  <p>CAST, ::, to_char / to_number / to_date и их ловушки</p>
+</section>
+
+<!-- ===================== 11. CAST ===================== -->
+<section>
+  <h2>CAST и ::, неявные преобразования, ошибки</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT CAST('2025-03-01' AS date),   -- стандарт SQL
+       '2025-03-01'::date,           -- PostgreSQL
+       CAST(189.567 AS numeric(10,2)), -- 189.57
+       '42'::integer + 1;            -- 43
+
+-- Неявно: литерал подстраивается под столбец
+SELECT COUNT(*)                      -- 218
+FROM   orders
+WHERE  order_date &gt;= '2025-12-01';
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT 'abc'::integer;
+-- invalid input syntax for type integer
+SELECT '2025-02-30'::date;
+-- date/time field value out of range
+SELECT 3000000000::integer;
+-- integer out of range
+      </code></pre>
+      <div class="box info"><b>T-SQL</b><code>TRY_CAST</code> / <code>TRY_CONVERT</code> возвращают NULL вместо ошибки. В PostgreSQL 16 такого нет — проверка regexp перед CAST или функция с <code>EXCEPTION</code> (модуль 10).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11a. МАТРИЦА ПРЕОБРАЗОВАНИЙ ===================== -->
+<section>
+  <h2>Матрица преобразований типов</h2>
+  <div class="two-col" style="gap:1em">
+    <div style="flex:2.6">
+      <table class="cast-m">
+      <tr><th class="corner">из ↓ / в →</th><th>smallint</th><th>integer</th><th>bigint</th><th>numeric</th><th>float8</th><th>text</th><th>boolean</th><th>date</th><th>timestamp</th><th>timestamptz</th><th>jsonb</th></tr>
+      <tr><th>smallint</th><td class="cs"></td><td class="ci">✔</td><td class="ci">✔</td><td class="ci">✔</td><td class="ci">✔</td><td class="ca">П</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td></tr>
+      <tr><th>integer</th><td class="ca">П</td><td class="cs"></td><td class="ci">✔</td><td class="ci">✔</td><td class="ci">✔</td><td class="ca">П</td><td class="ce">CAST</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td></tr>
+      <tr><th>bigint</th><td class="ca">П</td><td class="ca">П</td><td class="cs"></td><td class="ci">✔</td><td class="ci">✔</td><td class="ca">П</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td></tr>
+      <tr><th>numeric</th><td class="ca">П</td><td class="ca">П</td><td class="ca">П</td><td class="cs"></td><td class="ci">✔</td><td class="ca">П</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td></tr>
+      <tr><th>float8</th><td class="ca">П</td><td class="ca">П</td><td class="ca">П</td><td class="ca">П</td><td class="cs"></td><td class="ca">П</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td></tr>
+      <tr><th>text</th><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="cs"></td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td></tr>
+      <tr><th>boolean</th><td class="cn">—</td><td class="ce">CAST</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="ca">П</td><td class="cs"></td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td></tr>
+      <tr><th>date</th><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="ca">П</td><td class="cn">—</td><td class="cs"></td><td class="ci">✔</td><td class="ci">✔</td><td class="cn">—</td></tr>
+      <tr><th>timestamp</th><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="ca">П</td><td class="cn">—</td><td class="ca">П</td><td class="cs"></td><td class="ci">✔</td><td class="cn">—</td></tr>
+      <tr><th>timestamptz</th><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="ca">П</td><td class="cn">—</td><td class="ca">П</td><td class="ca">П</td><td class="cs"></td><td class="cn">—</td></tr>
+      <tr><th>jsonb</th><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ce">CAST</td><td class="ca">П</td><td class="ce">CAST</td><td class="cn">—</td><td class="cn">—</td><td class="cn">—</td><td class="cs"></td></tr>
+      </table>
+    </div>
+    <div style="flex:1">
+      <ul class="cast-legend">
+        <li><span class="ci">✔</span><b>Неявно</b> — в любом выражении, PostgreSQL сам приведёт тип</li>
+        <li><span class="ca">П</span><b>При присваивании</b> — неявно только в INSERT / UPDATE; в выражениях — нужен CAST</li>
+        <li><span class="ce">CAST</span><b>Только явно</b> — <code>CAST(x AS t)</code> или <code>x::t</code></li>
+        <li><span class="cn">—</span><b>Нельзя</b> — только через функцию (<code>to_char</code>, <code>to_date</code>, <code>to_jsonb</code>…)</li>
+      </ul>
+      <div class="box warn" style="font-size:.5em"><b>Закономерность</b>«Расширение» (smallint → bigint → numeric → float8) — неявно. «Сужение» с риском потери — только при присваивании. Из text — всегда явно.</div>
+    </div>
+  </div>
+  <p class="small" style="margin-top:.2em">Источник: системный каталог <code>pg_cast</code>, PostgreSQL 16 (Yandex Managed Service). text ≈ varchar ≈ char — между собой неявно. jsonb → число/boolean — только для скалярного значения.</p>
+</section>
+
+<!-- ===================== 11b. МАТРИЦА: ПРИМЕРЫ ===================== -->
+<section>
+  <h2>Матрица в действии</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- ✔ неявно: integer + numeric → numeric
+SELECT pg_typeof(1 + 2.5);           -- numeric
+
+-- П при присваивании: numeric → integer
+CREATE TEMP TABLE t (i int, s text, d date);
+INSERT INTO t(i) VALUES (3.7::numeric);  -- i = 4
+INSERT INTO t(s) VALUES (current_date);  -- '2026-11-10'
+INSERT INTO t(d) VALUES (now());         -- timestamptz → date
+
+-- CAST только явно: text → date
+INSERT INTO t(d) VALUES ('2025-03-01'::text);
+-- ERROR: column "d" is of type date
+--        but expression is of type text
+INSERT INTO t(d) VALUES ('2025-03-01'::text::date); -- ок
+      </code></pre>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- — нельзя: smallint/bigint → boolean
+SELECT 1::bigint::boolean;
+-- ERROR: cannot cast type bigint to boolean
+SELECT 1::integer::boolean;              -- true
+
+-- нет неявного integer → text в функциях
+SELECT LENGTH(12345);
+-- ERROR: function length(integer) does not exist
+SELECT LENGTH(12345::text);              -- 5
+
+-- jsonb → число: только явно
+SELECT ('price                                                                                                                                                                                        '::jsonb -&gt; 'price')::int + 1;  -- 190
+      </code></pre>
+      <div class="box info"><b>Строковый литерал — особый случай</b><code>'2025-12-01'</code> без типа имеет тип <i>unknown</i> и приводится к чему угодно — поэтому <code>WHERE order_date &gt;= '2025-12-01'</code> работает, а с <code>'…'::text</code> — нет.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. ИНН ===================== -->
+<section>
+  <h2>ИНН — это не число</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT customer_id,
+       inn,
+       LENGTH(inn)   AS len,
+       inn::bigint   AS inn_as_number
+FROM   customers
+WHERE  inn LIKE '0%';
+  </code></pre>
+  <table class="t">
+    <tr><th>customer_id</th><th>inn</th><th>len</th><th>inn_as_number</th></tr>
+    <tr><td>22</td><td>0152338412</td><td>10</td><td class="hl">152338412</td></tr>
+    <tr><td>31</td><td>0064230192</td><td>10</td><td class="hl">64230192</td></tr>
+    <tr><td colspan="4">… всего 5 клиентов с ведущим нулём</td></tr>
+  </table>
+  <div class="box ok"><b>Правило</b>Идентификаторы, над которыми не выполняют арифметику (ИНН, ОГРН, телефон, индекс, артикул), — строки.</div>
+</section>
+
+<!-- ===================== 13. ЦЕЛОЧИСЛЕННОЕ ДЕЛЕНИЕ ===================== -->
+<section>
+  <h2>Главная ловушка: целочисленное деление</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT batch_number,
+       defect_qty,
+       produced_qty,
+       defect_qty / produced_qty                     AS wrong_share,    -- integer / integer
+       100 * defect_qty / produced_qty               AS wrong_pct_int,
+       ROUND(100.0 * defect_qty / produced_qty, 2)   AS right_pct
+FROM   production_batches
+ORDER  BY batch_id
+LIMIT  3;
+  </code></pre>
+  <table class="t">
+    <tr><th>batch_number</th><th>defect</th><th>produced</th><th>wrong_share</th><th>wrong_pct_int</th><th>right_pct</th></tr>
+    <tr><td>П240101-1Д</td><td>19</td><td>922</td><td class="hl">0</td><td class="hl">2</td><td>2.06</td></tr>
+    <tr><td>П240101-1Н</td><td>12</td><td>1068</td><td class="hl">0</td><td class="hl">1</td><td>1.12</td></tr>
+    <tr><td>П240101-2Д</td><td>22</td><td>1254</td><td class="hl">0</td><td class="hl">1</td><td>1.75</td></tr>
+  </table>
+  <div class="box warn"><b>Цена ошибки</b>Фильтр «брак &gt; 5 %» по целочисленной формуле находит 625 партий вместо 627.</div>
+</section>
+
+<!-- ===================== 14. КВИЗ ОКРУГЛЕНИЕ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: округление</h2>
+  <p>Что вернёт <code>SELECT ROUND(2.5), ROUND(2.5::float8);</code></p>
+  <ul class="quiz">
+    <li>3 и 3</li>
+    <li data-correct>3 и 2</li>
+    <li>2 и 2</li>
+    <li>3 и ошибка</li>
+  </ul>
+  <p class="explain"><code>numeric</code> округляется «от нуля» (2.5 → 3, −2.5 → −3), <code>double precision</code> — к ближайшему чётному («банковское», 2.5 → 2, 3.5 → 4). А вот <code>ROUND(2.567::float8, 1)</code> — ошибка: функция round(double precision, integer) не существует.</p>
+</section>
+
+<!-- ===================== 15. TO_CHAR ===================== -->
+<section>
+  <h2>to_char, to_number, to_date</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT to_char(1245137.26, 'FM999G999G990D00');
+-- 1,245,137.26   (lc_numeric = en_US)
+
+SET lc_numeric = 'ru_RU.UTF-8';
+SELECT to_char(1245137.26, 'FM999G999G990D00'),
+       -- 1 245 137,26
+       to_number('1 245 137,26', '9G999G999D99');
+       -- 1245137.26
+RESET lc_numeric;
+
+SELECT to_date('08.03.2025', 'DD.MM.YYYY'),
+       to_date('240101', 'YYMMDD');  -- 2024-01-01
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Код</th><th>Смысл</th></tr>
+        <tr><td><code>9</code> / <code>0</code></td><td>цифра / цифра с ведущим нулём</td></tr>
+        <tr><td><code>G</code> / <code>D</code></td><td>разделитель групп / десятичный (из локали)</td></tr>
+        <tr><td><code>FM</code></td><td>убрать ведущие пробелы</td></tr>
+        <tr><td><code>DD MM YYYY</code></td><td>день, месяц, год</td></tr>
+        <tr><td><code>HH24:MI</code></td><td>часы и минуты</td></tr>
+      </table>
+      <div class="box info"><b>T-SQL</b><code>FORMAT()</code>, <code>CONVERT(…, стиль)</code>, <code>PARSE()</code> ↔ PostgreSQL <code>to_char</code>, <code>to_date</code>, <code>to_number</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 16. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Математические функции</h2>
+  <p>ROUND, TRUNC, CEIL, FLOOR, GREATEST / LEAST, NULLIF</p>
+</section>
+
+<!-- ===================== 17. МАТЕМАТИКА ===================== -->
+<section>
+  <h2>Математика на данных «Питание +»</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT ROUND(189.456, 2),       -- 189.46
+       ROUND(1622899.67, -3),   -- 1623000
+       TRUNC(189.456, 1),       -- 189.4
+       CEIL(2.1), FLOOR(-2.1),  -- 3 | -3
+       ABS(-15), MOD(17, 5),    -- 15 | 2
+       POWER(1.1, 3);           -- 1.331
+
+-- Сколько коробок по 12 шт.
+SELECT quantity,
+       CEIL(quantity / 12.0) AS boxes,      -- 595 → 50
+       quantity / 12         AS wrong       -- 595 → 49
+FROM   order_items;
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- GREATEST/LEAST — внутри строки, не агрегат
+SELECT ROUND(unit_price
+             * (1 - discount_pct / 100), 2) AS net,
+       GREATEST(ROUND(unit_price
+             * (1 - discount_pct / 100), 2),
+                205.00)                     AS floor_price
+FROM   order_items
+WHERE  product_id = 13;   -- net 165.22 &lt; 205
+
+-- random() и воспроизводимость
+SELECT setseed(0.42);
+SELECT random();
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. NULLIF ===================== -->
+<section>
+  <h2>Деление на ноль: NULLIF</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- 7 списаний с quantity = 0
+SELECT amount / quantity
+FROM   material_writeoffs
+WHERE  writeoff_id = 16;
+-- ОШИБКА: division by zero
+
+SELECT writeoff_id, quantity, amount,
+       ROUND(amount / NULLIF(quantity, 0), 2)
+         AS unit_cost
+FROM   material_writeoffs
+WHERE  writeoff_id IN (2, 16);
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>writeoff_id</th><th>quantity</th><th>amount</th><th>unit_cost</th></tr>
+        <tr><td>2</td><td>77.20</td><td>25610.22</td><td>331.74</td></tr>
+        <tr><td>16</td><td>0.00</td><td>0.00</td><td class="hl">NULL</td></tr>
+      </table>
+      <div class="box ok"><b>Шаблон</b><code>a / NULLIF(b, 0)</code> — вместо ошибки NULL. Дальше решаем, как показывать NULL в отчёте (<code>COALESCE</code>).</div>
+      <div class="box warn"><b>Вопрос</b>Списание 0 кг на 0 руб. — это нормальная запись или ошибка учёта?</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 19. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Функции для работы со строками</h2>
+  <p>Очистка, разбор и нормализация</p>
+</section>
+
+<!-- ===================== 20. СТРОКИ 1 ===================== -->
+<section>
+  <h2>Длина, регистр, пробелы, склейка</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT '[' || email || ']'      AS raw,
+       LENGTH(email)            AS len_raw,
+       LOWER(TRIM(email))       AS clean
+FROM   customers
+WHERE  customer_id = 5;
+-- [ zakaz.5@company.ru ] | 20 | zakaz.5@company.ru
+
+SELECT UPPER('ооо "Свежесть"'),
+       INITCAP('комаров илья петрович'),
+       LTRIM('  тендер №45/2025'),
+       TRIM(BOTH '"' FROM '"Колос"');
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT supplier_name || ' / ' || phone,      -- NULL
+       CONCAT(supplier_name, ' / ', phone),
+       CONCAT_WS(' / ', supplier_name,
+                 phone, inn),
+       format('%s (рейтинг %s)', supplier_name,
+              COALESCE(rating::text, 'нет'))
+FROM   suppliers
+WHERE  supplier_id = 12;
+      </code></pre>
+      <div class="box info"><b>T-SQL ↔ PostgreSQL</b><code>LEN</code> ↔ <code>LENGTH</code>; <code>CHARINDEX</code> ↔ <code>STRPOS</code>/<code>POSITION</code>; <code>+</code> ↔ <code>||</code>; <code>STRING_SPLIT</code> ↔ <code>SPLIT_PART</code>/<code>string_to_array</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 21. РАЗБОР НОМЕРА ===================== -->
+<section>
+  <h2>Разбор номера партии П240101-1Д</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT batch_number,
+       to_date(SUBSTRING(batch_number FROM 2 FOR 6), 'YYMMDD')               AS prod_date,
+       regexp_replace(SPLIT_PART(batch_number, '-', 2), '\D', '', 'g')::int  AS line_no,
+       CASE RIGHT(batch_number, 1) WHEN 'Д' THEN 'День'
+                                   WHEN 'Н' THEN 'Ночь' END                  AS shift,
+       POSITION('-' IN batch_number)                                         AS dash_pos
+FROM   production_batches
+ORDER  BY batch_id
+LIMIT  3;
+  </code></pre>
+  <table class="t">
+    <tr><th>batch_number</th><th>prod_date</th><th>line_no</th><th>shift</th><th>dash_pos</th></tr>
+    <tr><td>П240101-1Д</td><td>2024-01-01</td><td>1</td><td>День</td><td>8</td></tr>
+    <tr><td>П240101-1Н</td><td>2024-01-01</td><td>1</td><td>Ночь</td><td>8</td></tr>
+  </table>
+  <div class="box ok"><b>Проверка качества данных</b>Сравните разобранные значения с полями таблицы — 0 противоречий из 6062 партий.</div>
+</section>
+
+<!-- ===================== 22. REGEXP ===================== -->
+<section>
+  <h2>regexp_replace: телефоны и названия</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- «Маска» формата: цифры → 9
+SELECT DISTINCT
+       regexp_replace(phone, '\d', '9', 'g')
+FROM   customers;
+-- +9 (999) 999-99-99 | +99999999999
+-- 9 (999) 999 99 99  | 9-999-999-99-99
+
+-- Нормализация к +7XXXXXXXXXX
+SELECT phone,
+       '+7' || RIGHT(regexp_replace(
+                 phone, '\D', '', 'g'), 10)
+FROM   customers;
+-- 8 (988) 214 52 93 → +79882145293
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT customer_name,
+       TRIM(regexp_replace(
+         regexp_replace(UPPER(customer_name),
+           '\m(ООО|АО|ИП)\M|"|\(ДУБЛЬ\)',
+           '', 'g'),
+         '\s+', ' ', 'g')) AS name_norm
+FROM   customers
+WHERE  inn = '7924695572';
+      </code></pre>
+      <table class="t">
+        <tr><th>customer_name</th><th>name_norm</th></tr>
+        <tr><td>ООО "Ромашка"</td><td>РОМАШКА</td></tr>
+        <tr><td>Ромашка ООО</td><td>РОМАШКА</td></tr>
+        <tr><td>ООО  "РОМАШКА"</td><td>РОМАШКА</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 23. КВИЗ СТРОКИ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: склейка с NULL</h2>
+  <p>У поставщика 12 <code>phone IS NULL</code>. Что вернёт <code>'Тел.: ' || phone</code>?</p>
+  <ul class="quiz">
+    <li><code>'Тел.: '</code></li>
+    <li><code>'Тел.: NULL'</code></li>
+    <li data-correct><code>NULL</code></li>
+    <li>Ошибку</li>
+  </ul>
+  <p class="explain">Оператор <code>||</code> с NULL даёт NULL. <code>CONCAT('Тел.: ', phone)</code> вернёт <code>'Тел.: '</code> — CONCAT/CONCAT_WS пропускают NULL. В T-SQL <code>+</code> ведёт себя как <code>||</code> (при CONCAT_NULL_YIELDS_NULL ON).</p>
+</section>
+
+<!-- ===================== 24. ОБСУЖДЕНИЕ 2 ===================== -->
+<section class="discussion-slide">
+  <h2>Обсуждение: насколько можно доверять нормализации?</h2>
+  <p>Нормализация названия склеила три «Ромашки», но «ИП Иванов (Колос)» и «ООО "Колос" (дубль)» остались разными. Дубли нашлись только по ИНН.</p>
+  <ul>
+    <li>Какие ложные срабатывания даст сравнение только по названию? («ООО "Альфа"» в Москве и в Самаре)</li>
+    <li>Когда и ИНН не поможет? (филиалы, ИП → ООО, опечатки)</li>
+    <li>Кто в компании должен принимать решение «это один клиент» и как это зафиксировать в данных?</li>
+  </ul>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Ожидаемо: одинаковые названия у разных юрлиц; ИНН у филиалов один (нужен КПП), смена ОПФ меняет ИНН, опечатки в ИНН (проверка контрольной суммы). Решение — мастер-данные (MDM), владелец справочника, таблица соответствий «старый id → основной id». Найденные дубли искажают топ клиентов, кредитные лимиты (лимит выдаётся на каждую карточку!).</aside>
+</section>
+
+<!-- ===================== 25. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">05</div>
+  <h2>Функции даты и времени</h2>
+  <p>EXTRACT, date_trunc, интервалы, AGE, to_char, generate_series</p>
+</section>
+
+<!-- ===================== 26. EXTRACT / TRUNC ===================== -->
+<section>
+  <h2>Текущие значения, EXTRACT, date_trunc</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT CURRENT_DATE,      -- date
+       NOW(),             -- timestamptz начала транзакции
+       LOCALTIMESTAMP,    -- timestamp
+       current_setting('TimeZone'); -- Europe/Moscow
+
+SELECT EXTRACT(YEAR    FROM order_date),  -- 2025
+       EXTRACT(QUARTER FROM order_date),  -- 4
+       EXTRACT(ISODOW  FROM order_date),  -- 3 (ср)
+       date_part('week', order_date)      -- 1 (!)
+FROM   orders
+WHERE  order_id = 4458;   -- 2025-12-31
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT date_trunc('month', start_time),
+       -- 2025-04-01 00:00:00
+       date_trunc('week',  start_time)
+       -- 2025-04-07 00:00:00 (понедельник)
+FROM   equipment_downtime
+WHERE  downtime_id = 148;  -- 2025-04-10 13:30
+      </code></pre>
+      <div class="box warn"><b>ISO-неделя</b>31.12.2025 — неделя №1 2026 года. Для отчётов «по неделям» используйте <code>date_trunc('week', …)</code> или <code>to_char(d, 'IYYY-IW')</code>.</div>
+      <div class="box info"><b>Дата среза</b>Данные заканчиваются 31.12.2025 — в отчётах фиксируйте дату, а не <code>CURRENT_DATE</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 27. АРИФМЕТИКА ДАТ ===================== -->
+<section>
+  <h2>Арифметика дат и интервалы</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Выражение</th><th>Тип результата</th></tr>
+        <tr><td><code>date − date</code></td><td><b>integer</b> (дни)</td></tr>
+        <tr><td><code>date + integer</code></td><td>date</td></tr>
+        <tr><td><code>date + interval</code></td><td>timestamp</td></tr>
+        <tr><td><code>timestamp − timestamp</code></td><td><b>interval</b></td></tr>
+        <tr><td><code>AGE(a, b)</code></td><td>interval «годы-месяцы-дни»</td></tr>
+      </table>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT DATE '2025-01-31' + INTERVAL '1 month';
+-- 2025-02-28 00:00:00
+SELECT AGE(DATE '2025-12-31', DATE '2009-01-01');
+-- 16 years 11 mons 30 days
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT downtime_id,
+       end_time - start_time   AS duration,
+       ROUND(EXTRACT(EPOCH FROM
+             end_time - start_time) / 3600, 2)
+                               AS hours
+FROM   equipment_downtime
+WHERE  end_time IS NOT NULL
+ORDER  BY end_time - start_time DESC
+LIMIT  3;
+-- 148 | 14:52:00 | 14.87
+-- 249 | 14:42:00 | 14.70
+-- 259 | 14:39:00 | 14.65
+      </code></pre>
+      <div class="box info"><b>T-SQL</b><code>DATEDIFF(day, a, b)</code> ↔ <code>b − a</code>; <code>DATEADD</code> ↔ <code>+ INTERVAL</code>; <code>DATEPART</code> ↔ <code>EXTRACT</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 28. TO_CHAR RU + CALENDAR ===================== -->
+<section>
+  <h2>Даты по-русски и календарь</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SET lc_time = 'ru_RU.UTF-8';
+
+SELECT to_char(DATE '2025-03-08',
+               'TMDay, DD TMMonth YYYY'),
+       -- Суббота, 08 Марта 2025
+       to_char(DATE '2025-03-08', 'TMMon YYYY'),
+       -- Мар 2025
+       to_char(DATE '2025-03-08', 'YYYY-"Q"Q');
+       -- 2025-Q1
+      </code></pre>
+      <p class="small"><code>TM</code> — названия из <code>lc_time</code>; без него — Saturday, March.</p>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT d::date                          AS day,
+       to_char(d, 'TMDy')               AS dow,
+       EXTRACT(ISODOW FROM d) IN (6, 7) AS weekend
+FROM   generate_series(DATE '2025-12-01',
+                       DATE '2025-12-31',
+                       INTERVAL '1 day') AS d;
+      </code></pre>
+      <table class="t">
+        <tr><th>day</th><th>dow</th><th>weekend</th></tr>
+        <tr><td>2025-12-01</td><td>Пн</td><td>false</td></tr>
+        <tr><td>2025-12-06</td><td>Сб</td><td>true</td></tr>
+      </table>
+      <p class="small">Календарь + LEFT JOIN (модуль 3) = «дни без отгрузок».</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 28b. ОБСУЖДЕНИЕ 3 ===================== -->
+<section class="discussion-slide">
+  <h2>Обсуждение: «вечные» простои</h2>
+  <p>В <code>equipment_downtime</code> 4 простоя без <code>end_time</code>. Если подставить дату среза, простой №12 на линии 3 «длится» 694 дня (≈ 16 660 ч).</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT downtime_id, line_id, start_time,
+       COALESCE(end_time, TIMESTAMP '2026-01-01') - start_time AS open_duration
+FROM   equipment_downtime
+WHERE  end_time IS NULL;
+  </code></pre>
+  <ul style="font-size:.8em">
+    <li>Включать ли такие записи в отчёт «часы простоя»? Если да — с какой длительностью?</li>
+    <li>Чем опасен <code>CURRENT_DATE</code> / <code>NOW()</code> вместо фиксированной даты среза?</li>
+    <li>Какое правило ввода данных (или проверку) вы предложите заказчику?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Варианты: исключить и показать отдельной строкой «незакрытые», ограничить сменой (12 ч), запросить уточнение у ответственного за линию. NOW() — цифры отчёта меняются каждый день, нельзя воспроизвести. Правило: CHECK (end_time IS NULL OR end_time &gt; start_time), ежедневный контроль «открытых» простоев старше 24 ч, обязательное закрытие при смене. Без этого 16 660 «часов» одного простоя исказят рейтинг линий сильнее, чем реальная проблема линии 2 (590 ч за 2025 г.).</aside>
+</section>
+
+<!-- ===================== 29. КВИЗ ДАТЫ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: тип разности</h2>
+  <p>Какой тип у <code>shipped_date - order_date</code> (оба столбца — <code>date</code>)?</p>
+  <ul class="quiz">
+    <li><code>interval</code></li>
+    <li data-correct><code>integer</code></li>
+    <li><code>date</code></li>
+    <li><code>numeric</code></li>
+  </ul>
+  <p class="explain"><code>date − date</code> = целое число дней. А <code>timestamp − timestamp</code> = <code>interval</code>; часы из него — <code>EXTRACT(EPOCH FROM …) / 3600</code>.</p>
+</section>
+
+<!-- ===================== 30. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: какая ловушка уже встречалась вам в реальной работе?</h2>
+  <p class="small">Кликайте по варианту (Shift+клик — убрать голос).</p>
+  <ul class="poll">
+    <li><span style="width:15em">Целочисленное деление</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Погрешность float</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Часовые пояса</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Ведущие нули / форматы</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Деление на ноль</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Попросить 1–2 человек рассказать историю (Excel тоже считается). Связать с требованиями: в ТЗ на отчёт указывать типы, точность округления, часовой пояс, дату среза.</aside>
+</section>
+
+<!-- ===================== 31. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">06</div>
+  <h2>Условные выражения CASE</h2>
+  <p>Классификация, «светофоры», защита расчётов</p>
+</section>
+
+<!-- ===================== 32. CASE ===================== -->
+<section>
+  <h2>CASE: простой и поисковый</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Поисковый CASE: порядок веток важен
+SELECT discount_pct,
+       CASE
+         WHEN discount_pct = 0   THEN 'без скидки'
+         WHEN discount_pct &lt;= 10 THEN 'в рамках политики'
+         WHEN discount_pct &lt;= 15 THEN 'сверх политики'
+         ELSE 'критично (&gt;15 %)'
+       END AS discount_class
+FROM   order_items;
+
+-- Простой CASE
+CASE RIGHT(batch_number, 1)
+  WHEN 'Д' THEN 'День'
+  WHEN 'Н' THEN 'Ночь'
+  ELSE '??'
+END
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- «Светофор» брака за 02.06.2025
+SELECT batch_number,
+       ROUND(100.0 * defect_qty
+             / NULLIF(produced_qty, 0), 2) AS pct,
+       CASE
+         WHEN 100.0 * defect_qty
+              / NULLIF(produced_qty, 0) &gt;= 5
+           THEN 'красный'
+         WHEN 100.0 * defect_qty
+              / NULLIF(produced_qty, 0) &gt;= 2
+           THEN 'жёлтый'
+         ELSE 'зелёный'
+       END AS light
+FROM   production_batches
+WHERE  production_date = DATE '2025-06-02';
+-- красный — только П250602-3Н (6.25 %)
+      </code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>T-SQL</b><code>IIF(cond, a, b)</code> ↔ <code>CASE WHEN cond THEN a ELSE b END</code>; <code>ISNULL</code> ↔ <code>COALESCE</code>.</div>
+</section>
+
+<!-- ===================== 33. ГРУППЫ ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: точные цифры</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ol>
+        <li>Срок отгрузки <code>shipped_date − order_date</code>: сколько отгрузок ≥ 5 дней в регионы 9 и 10, а сколько — в остальные?</li>
+        <li>Какие продукты имеют срок годности ≤ 10 дней?</li>
+        <li>Сформулируйте гипотезу о возвратах.</li>
+      </ol>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ol>
+        <li>Длительность простоев в часах: топ-5 самых долгих. Какая линия?</li>
+        <li>Возраст этой линии на 31.12.2025 (<code>AGE</code>).</li>
+        <li>Посчитайте партии «брак &gt; 5 %» двумя формулами — объясните разницу.</li>
+      </ol>
+    </div>
+  </div>
+  <span class="timer">⏱ 12 мин</span>
+  <aside class="notes">А: Сибирь — 869 из 932 отгрузок ≥ 5 дней, остальные — 0 из 3310; срок ≤ 10 дней — молоко пастеризованное, кефир, ряженка, йогурты (7 дней); гипотеза — продукция приходит с малым остатком срока → возвраты «Истёк срок годности» (A3). Б: топ-5 — все линия 2 (14,9–14,2 ч); возраст 16 лет 11 мес.; 625 vs 627 партий — целочисленное деление отбрасывает дробь (5,98 % → 5).</aside>
+</section>
+
+<!-- ===================== 34. КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «Сколько стоит масло, которое мы продаём?»</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT p.product_name,
+       oi.unit_price,
+       oi.discount_pct,
+       ROUND(oi.unit_price
+             * (1 - oi.discount_pct / 100), 2) AS net,
+       p.standard_cost,
+       ROUND(oi.unit_price
+             * (1 - oi.discount_pct / 100)
+             - p.standard_cost, 2)             AS margin
+FROM   order_items AS oi
+JOIN   orders      AS o ON o.order_id   = oi.order_id
+JOIN   products    AS p ON p.product_id = oi.product_id
+WHERE  oi.unit_price * (1 - oi.discount_pct / 100)
+       &lt; p.standard_cost
+  AND  o.status &lt;&gt; 'Отменён'
+  AND  o.order_date &gt;= DATE '2025-03-01'
+ORDER  BY margin;
+      </code></pre>
+    </div>
+    <div>
+      <p><span class="badge team-a">Команда А</span> <span class="badge team-b">Команда Б</span></p>
+      <table class="t">
+        <tr><th>Показатель</th><th>Значение</th></tr>
+        <tr><td>Позиций ниже себестоимости</td><td class="hl">314</td></tr>
+        <tr><td>Худшая маржа, руб./шт.</td><td class="hl">−63,25 (−30,9 %)</td></tr>
+        <tr><td>Потери с 01.03.2025</td><td class="hl">3 661 609 руб.</td></tr>
+        <tr><td>Цены в заказах ≠ прайсу</td><td>0 позиций</td></tr>
+      </table>
+      <ol style="font-size:.72em">
+        <li>Кто «виноват»: менеджеры, прайс-лист или закупки?</li>
+        <li>Что должна проверить команда Б (подсказка: сырьё для масла)?</li>
+        <li>Какое решение вы предложите руководству и как проверите эффект?</li>
+      </ol>
+      <span class="timer">⏱ 8 мин</span>
+    </div>
+  </div>
+  <aside class="notes">Убыточны только два SKU — масло 82,5 % и 72,5 %. Цены в заказах всегда совпадают с прайсом → убыток заложен в прайс-листе 2025 (189 руб. при себестоимости 205); скидки (в т.ч. сверхнормативные) усугубляют. Команда Б: цена молочного жира у поставщиков выросла ~+28 % с 02.2025 (B8) — проверим в модулях 3–4. Решение: пересмотр прайса, запрет скидок ниже себестоимости (контроль через CHECK/триггер — модули 10–12), мониторинг маржи. Межкомандная связь B8 → A4.</aside>
+</section>
+
+<!-- ===================== 35. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>Типы</h4>
+      <ul>
+        <li>деньги — <code>numeric</code>, не <code>float</code></li>
+        <li>ИНН, телефон — строки</li>
+        <li><code>timestamptz</code> для разных поясов</li>
+        <li><code>int / int</code> = int → <code>100.0 *</code></li>
+      </ul></div>
+    <div class="card orange-top"><h4>Функции</h4>
+      <ul>
+        <li><code>LOWER(TRIM())</code>, <code>regexp_replace</code></li>
+        <li><code>SUBSTRING</code>, <code>SPLIT_PART</code></li>
+        <li><code>NULLIF(b, 0)</code>, <code>COALESCE</code></li>
+        <li><code>ROUND(x::numeric, n)</code></li>
+      </ul></div>
+    <div class="card green-top"><h4>Даты</h4>
+      <ul>
+        <li>date − date = дни</li>
+        <li><code>EXTRACT(EPOCH FROM interval)</code></li>
+        <li>фиксированная дата среза</li>
+        <li><code>TM</code> + <code>lc_time</code> для русского</li>
+      </ul></div>
+  </div>
+  <div class="box ok"><b>Цифры, которые мы получили</b>Масло: −3,66 млн руб. с 03.2025 · Линия 2: 168 → 590 ч простоя · 32 «грязных» email и 4 лишние карточки клиентов · Сибирь: 93 % отгрузок ≥ 5 дней.</div>
+</section>
+
+<!-- ===================== 36. МОСТ ===================== -->
+<section>
+  <h2>Мост к модулю 3: извлечение данных из нескольких таблиц</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size:.8em">Сегодня мы уже «подсмотрели» <code>JOIN</code>. Вопросы, на которые без соединений не ответить:</p>
+      <ul style="font-size:.78em">
+        <li>Какие <b>клиенты</b> и <b>менеджеры</b> стоят за сверхнормативными скидками?</li>
+        <li>Какой <b>поставщик</b> привозит сырьё с отклонениями качества?</li>
+        <li>Какие клиенты <b>ни разу</b> не заказывали (OUTER JOIN)?</li>
+        <li>Кто чей руководитель (SELF JOIN по <code>employees.manager_id</code>)?</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box info"><b>Домашнее задание</b>Завершить лабораторную работу (<code>lab.md</code>) и вывод для руководства.</div>
+      <div class="box warn"><b>Вопрос на подумать</b>Сколько строк вернёт <code>SELECT * FROM regions, production_lines;</code> (12 регионов, 5 линий)? Зачем это может понадобиться?</div>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
