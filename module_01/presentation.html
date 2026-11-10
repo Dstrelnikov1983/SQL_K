@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 1 — Сортировка и фильтрация в запросах</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 1</div>
+  <h1>Сортировка и фильтрация в запросах</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">WHERE, предикаты, NULL, ORDER BY, LIMIT / FETCH — первые «улики» потерь «Питание +»</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 2 ак. ч.</div>
+  <aside class="notes">Приветствие. Напомнить легенду: аналитики «Питание +» ищут, где компания теряет деньги. Сегодня — первый инструмент: точный отбор строк.</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план</h2>
+  <div class="two-col">
+    <div>
+      <h3>После модуля вы сможете</h3>
+      <ul style="font-size:.78em">
+        <li>строить условия <code>WHERE</code> без ошибок приоритета</li>
+        <li>применять <code>IN</code>, <code>BETWEEN</code>, <code>LIKE / ILIKE</code>, регулярные выражения</li>
+        <li>правильно обращаться с <span class="orange">NULL</span></li>
+        <li>сортировать по нескольким ключам и выражениям</li>
+        <li>делать «топ-N» и постраничный вывод (<code>LIMIT</code>, <code>FETCH … WITH TIES</code>, keyset)</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Разминка и WHERE, логика</td><td>15</td></tr>
+        <tr><td>Предикаты IN / BETWEEN / LIKE</td><td>15</td></tr>
+        <tr><td>NULL и трёхзначная логика</td><td>15</td></tr>
+        <tr><td>ORDER BY, TOP ↔ LIMIT, пагинация</td><td>15</td></tr>
+        <tr><td>Практика + групповая работа</td><td>20</td></tr>
+        <tr><td>Итоги, мост к модулю 2</td><td>10</td></tr>
+      </table>
+      <p class="small">Лабораторная работа — 50 мин (отдельно)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: с чем вы чаще всего ошибались в WHERE?</h2>
+  <p class="small">Кликайте по варианту, чтобы добавить голос (Shift+клик — убрать).</p>
+  <ul class="poll">
+    <li><span style="width:14em">Сравнение с NULL</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">AND / OR без скобок</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">Границы дат</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">Регистр в LIKE</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">Никогда не ошибался 😎</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Быстрый опрос для калибровки. К концу модуля вернуться: «кто голосовал за "никогда" — нашли ли у себя хоть одну ловушку?»</aside>
+</section>
+
+<!-- ===================== 4. ЛОГИЧЕСКИЙ ПОРЯДОК ===================== -->
+<section>
+  <h2>Где живут WHERE и ORDER BY в запросе</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT   order_number, order_date   -- 5
+FROM     orders                     -- 1
+WHERE    status = 'Отменён'         -- 2
+-- GROUP BY / HAVING                -- 3, 4 (модуль 4)
+ORDER BY order_date DESC            -- 6
+LIMIT    10;                        -- 7
+      </code></pre>
+    </div>
+    <div>
+      <div class="box info"><b>Логический порядок выполнения</b>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT/OFFSET</div>
+      <div class="box warn"><b>Следствие</b>В <code>WHERE</code> нельзя сослаться на псевдоним из <code>SELECT</code>, а в <code>ORDER BY</code> — можно.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 5. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Фильтрация в WHERE</h2>
+  <p>Операторы сравнения, логика, приоритет</p>
+</section>
+
+<!-- ===================== 6. WHERE БАЗА ===================== -->
+<section>
+  <h2>Операторы сравнения и полуоткрытый интервал</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- Заказы декабря 2025 года
+SELECT order_id,
+       order_number,
+       order_date,
+       status
+FROM   orders
+WHERE  order_date &gt;= DATE '2025-12-01'
+  AND  order_date &lt;  DATE '2026-01-01'
+ORDER  BY order_date, order_id;
+
+-- Позиции со скидкой сверх политики 10 %
+SELECT COUNT(*) AS items_over_policy     -- 4365
+FROM   order_items
+WHERE  discount_pct &gt; 10;
+  </code></pre>
+  <div class="box ok"><b>Привычка аналитика</b>Периоды задаём как <code>&gt;= начало AND &lt; начало_следующего</code> — работает и для <code>date</code>, и для <code>timestamp</code>.</div>
+</section>
+
+<!-- ===================== 7. ПРИОРИТЕТ ===================== -->
+<section>
+  <h2>Приоритет: NOT → AND → OR</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Хотели: менеджер 10 И (Дистрибуция ИЛИ Тендер)
+SELECT COUNT(*)            -- 690 ✘
+FROM   orders
+WHERE  employee_id = 10
+  AND  channel = 'Дистрибуция'
+   OR  channel = 'Тендер';
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)            -- 651 ✔
+FROM   orders
+WHERE  employee_id = 10
+  AND  channel IN ('Дистрибуция', 'Тендер');
+      </code></pre>
+    </div>
+    <div>
+      <div class="box warn"><b>Что произошло</b>Без скобок условие читается как <code>(emp = 10 AND Дистрибуция) OR Тендер</code> — +39 тендерных заказов <i>чужих</i> менеджеров.</div>
+      <div class="box info"><b>Правило</b>Есть <code>OR</code> рядом с <code>AND</code> — ставим скобки. Список значений — пишем <code>IN</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8. ОБСУЖДЕНИЕ 1 ===================== -->
+<section class="discussion-slide">
+  <h2>Обсуждение: цена логической ошибки</h2>
+  <p>Отчёт «Скидки менеджера Соколова по каналам» строился запросом без скобок и попал к руководству.</p>
+  <ul>
+    <li>Какие решения могли быть приняты на основе неверной цифры?</li>
+    <li>Как организовать проверку запросов в команде аналитиков, чтобы такое не повторялось?</li>
+    <li>Почему синтаксически корректный, но логически неверный запрос опаснее, чем запрос с ошибкой?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: ошибочное премирование/наказание, неверная оценка канала «Тендер»; ревью запросов (второй аналитик), контрольные суммы («сверка» итога с независимым запросом), тест на известных данных; ошибка синтаксиса видна сразу, логическая — «тихая», цифра выглядит правдоподобно (690 vs 651 — разница 6 %).</aside>
+</section>
+
+<!-- ===================== 9. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Предикаты IN, BETWEEN, LIKE</h2>
+  <p>и регулярные выражения PostgreSQL</p>
+</section>
+
+<!-- ===================== 10. IN / BETWEEN ===================== -->
+<section>
+  <h2>IN и BETWEEN</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Список значений
+SELECT customer_name, customer_type
+FROM   customers
+WHERE  customer_type IN ('Федеральная сеть',
+                         'Региональная сеть');
+
+-- Диапазон: границы ВКЛЮЧАЮТСЯ
+SELECT COUNT(*)                   -- 2624
+FROM   order_items
+WHERE  discount_pct BETWEEN 12 AND 18;
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Ловушка BETWEEN с timestamp
+SELECT COUNT(*)                   -- 13 ✘
+FROM   equipment_downtime
+WHERE  start_time BETWEEN '2025-07-01'
+                      AND '2025-07-28';
+
+SELECT COUNT(*)                   -- 15 ✔
+FROM   equipment_downtime
+WHERE  start_time &gt;= '2025-07-01'
+  AND  start_time &lt;  '2025-07-29';
+      </code></pre>
+      <div class="box warn"><b>Почему 13?</b><code>'2025-07-28'</code> → <code>2025-07-28 00:00:00</code>: простои, начавшиеся днём 28.07, не попали.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11. КВИЗ BETWEEN ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: BETWEEN</h2>
+  <p>Какое условие эквивалентно <code>x BETWEEN 10 AND 20</code>?</p>
+  <ul class="quiz">
+    <li><code>x &gt; 10 AND x &lt; 20</code></li>
+    <li data-correct><code>x &gt;= 10 AND x &lt;= 20</code></li>
+    <li><code>x &gt;= 10 AND x &lt; 20</code></li>
+    <li>Зависит от типа данных <code>x</code></li>
+  </ul>
+  <p class="explain">BETWEEN включает обе границы для любого типа. «Зависит от типа» — частая путаница: для timestamp ведёт себя так же, но граница-дата означает полночь. А <code>BETWEEN 20 AND 10</code> вернёт 0 строк (есть <code>BETWEEN SYMMETRIC</code>).</p>
+</section>
+
+<!-- ===================== 12. LIKE / ILIKE ===================== -->
+<section>
+  <h2>LIKE и ILIKE</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Шаблон</th><th>Смысл</th></tr>
+        <tr><td><code>%</code></td><td>любая последовательность (в т.ч. пустая)</td></tr>
+        <tr><td><code>_</code></td><td>ровно один символ</td></tr>
+        <tr><td><code>\%</code> <code>\_</code></td><td>буквальные % и _</td></tr>
+        <tr><td><code>ILIKE</code></td><td>без учёта регистра (PostgreSQL)</td></tr>
+      </table>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT sku, product_name
+FROM   products
+WHERE  sku LIKE 'KSM-00_';      -- 8 строк
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Комментарии: 'акция' и 'Акция -10%'
+SELECT COUNT(*) FILTER (WHERE comment LIKE  '%акция%'),  -- 234
+       COUNT(*) FILTER (WHERE comment ILIKE '%акция%')   -- 452
+FROM   orders;
+
+-- Буквальный символ %
+SELECT DISTINCT comment
+FROM   orders
+WHERE  comment LIKE '%10\%%';   -- 'Акция -10%'
+      </code></pre>
+      <div class="box info"><b>T-SQL</b>В SQL Server регистр зависит от collation столбца; в PostgreSQL <code>LIKE</code> всегда регистрозависим.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 13. REGEXP ===================== -->
+<section>
+  <h2>Регулярные выражения: ~, ~*, SIMILAR TO</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Телефоны строго в формате +7XXXXXXXXXX
+SELECT customer_id, phone
+FROM   customers
+WHERE  phone ~ '^\+7[0-9]{10}$';     -- 19 из 73
+
+-- Без учёта регистра
+SELECT customer_name
+FROM   customers
+WHERE  customer_name ~* 'ромашк';
+
+-- SIMILAR TO — стандарт SQL, «гибрид»
+SELECT sku
+FROM   products
+WHERE  sku SIMILAR TO '(SYR|SOU)-%';
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Оператор</th><th>Что делает</th></tr>
+        <tr><td><code>~</code> / <code>!~</code></td><td>соответствует / не соответствует regexp</td></tr>
+        <tr><td><code>~*</code> / <code>!~*</code></td><td>то же без учёта регистра</td></tr>
+        <tr><td><code>SIMILAR TO</code></td><td>шаблон LIKE + <code>|</code>, <code>()</code>, <code>*</code></td></tr>
+      </table>
+      <div class="box warn"><b>Осторожно</b>Регулярное выражение ищет <i>подстроку</i>: без <code>^…$</code> шаблон совпадёт с частью строки.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 14. ГРЯЗНЫЕ EMAIL ===================== -->
+<section>
+  <h2>Практика: «грязные» email клиентов</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT customer_id,
+       customer_name,
+       '[' || email || ']' AS email_visible      -- скобки делают пробелы видимыми
+FROM   customers
+WHERE  email LIKE ' %'
+   OR  email LIKE '% '
+   OR  email &lt;&gt; LOWER(email)
+ORDER  BY customer_id;
+  </code></pre>
+  <table class="t">
+    <tr><th>customer_id</th><th>customer_name</th><th>email_visible</th></tr>
+    <tr><td>1</td><td>ООО "Торговый дом Вектор"</td><td class="hl">[ZAKAZ.1@YANDEX.RU]</td></tr>
+    <tr><td>5</td><td>АО "Гастроном №1"</td><td class="hl">[ zakaz.5@company.ru ]</td></tr>
+    <tr><td colspan="3">… всего 32 строки + ещё 21 клиент вообще без email</td></tr>
+  </table>
+  <aside class="notes">Показать вживую. Спросить: почему клиенты с NULL не попали в результат? (email LIKE ... для NULL даёт UNKNOWN). Мост к следующему разделу.</aside>
+</section>
+
+<!-- ===================== 15. ОБСУЖДЕНИЕ 2 ===================== -->
+<section class="discussion-slide">
+  <h2>Обсуждение: где хранить «правила чистоты» данных?</h2>
+  <p>В справочнике клиентов email записаны с пробелами и в разном регистре, телефоны — в 4 форматах, есть «похожие» названия.</p>
+  <ul>
+    <li>Кто должен исправлять такие данные: аналитик в запросе, ИТ в базе или менеджер в CRM?</li>
+    <li>Какие ограничения (CHECK, UNIQUE) на уровне БД предотвратили бы проблему?</li>
+    <li>Чем рискует аналитик, который «чистит» данные только в своих запросах?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемо: исправлять у источника (CRM/ввод), аналитик — фиксирует и измеряет проблему; CHECK (email = lower(trim(email))), UNIQUE (inn), CHECK (phone ~ '^\+7\d{10}$'); риски — разные аналитики чистят по-разному → разные цифры; чистка не воспроизводится. Это тема для модулей 7 (модификация) и 9 (представления).</aside>
+</section>
+
+<!-- ===================== 16. РАЗДЕЛ NULL ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>NULL в предикатах и выражениях</h2>
+  <p>Трёхзначная логика и её ловушки</p>
+</section>
+
+<!-- ===================== 17. ТРЁХЗНАЧНАЯ ЛОГИКА ===================== -->
+<section>
+  <h2>Трёхзначная логика: TRUE, FALSE, UNKNOWN</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Выражение</th><th>Результат</th></tr>
+        <tr><td><code>NULL = NULL</code></td><td class="hl">NULL</td></tr>
+        <tr><td><code>NULL &lt;&gt; 1</code></td><td class="hl">NULL</td></tr>
+        <tr><td><code>TRUE AND NULL</code></td><td class="hl">NULL</td></tr>
+        <tr><td><code>FALSE AND NULL</code></td><td>FALSE</td></tr>
+        <tr><td><code>TRUE OR NULL</code></td><td>TRUE</td></tr>
+        <tr><td><code>NOT NULL</code></td><td class="hl">NULL</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="box warn"><b>Правило WHERE</b>Строка проходит, только если условие = <b>TRUE</b>. FALSE и UNKNOWN отбрасываются.</div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)            -- 0 (!)
+FROM   customers
+WHERE  region_id = NULL;
+
+SELECT customer_id, customer_name
+FROM   customers
+WHERE  region_id IS NULL;   -- 19, 54, 67
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. КВИЗ NULL ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: «все, кроме региона 1»</h2>
+  <p>В <code>customers</code> 73 клиента: 13 из региона 1, у 3 регион не указан. Сколько строк вернёт <code>WHERE region_id &lt;&gt; 1</code>?</p>
+  <ul class="quiz">
+    <li>60</li>
+    <li data-correct>57</li>
+    <li>73</li>
+    <li>0</li>
+  </ul>
+  <p class="explain">57: для трёх клиентов с NULL условие <code>NULL &lt;&gt; 1</code> = UNKNOWN. Чтобы получить 60, пишите <code>region_id IS DISTINCT FROM 1</code> или <code>region_id &lt;&gt; 1 OR region_id IS NULL</code>.</p>
+</section>
+
+<!-- ===================== 19. IS DISTINCT / COALESCE ===================== -->
+<section>
+  <h2>IS DISTINCT FROM, COALESCE, NULLIF</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Позиции закупок, где приёмка не «Принято»
+SELECT
+  COUNT(*) FILTER (WHERE quality_status
+                   &lt;&gt; 'Принято'),                -- 86
+  COUNT(*) FILTER (WHERE quality_status
+                   IS DISTINCT FROM 'Принято')   -- 94
+FROM purchase_order_items;
+      </code></pre>
+      <p class="small">8 позиций ещё не получены — статус NULL.</p>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Подставить значение вместо NULL
+SELECT customer_name,
+       COALESCE(email, '(нет email)')
+FROM   customers;
+
+-- Превратить 0 в NULL → нет деления на 0
+SELECT 100.0 * defect_qty
+             / NULLIF(produced_qty, 0)
+FROM   production_batches;
+
+-- NULL «заражает» конкатенацию
+SELECT 'тел. ' || phone,         -- NULL
+       CONCAT('тел. ', phone)    -- 'тел. '
+FROM   suppliers WHERE supplier_id = 12;
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 20. NOT IN ===================== -->
+<section>
+  <h2>Ловушка NOT IN с NULL</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)                     -- 0 (!)
+FROM   customers
+WHERE  region_id NOT IN (1, 2, NULL);
+
+SELECT COUNT(*)                     -- 51
+FROM   customers
+WHERE  region_id NOT IN (1, 2);
+      </code></pre>
+    </div>
+    <div>
+      <div class="box warn"><b>Почему 0?</b><code>x NOT IN (1, 2, NULL)</code> ≡ <code>x &lt;&gt; 1 AND x &lt;&gt; 2 AND x &lt;&gt; NULL</code>. Последнее — всегда UNKNOWN, значит всё условие никогда не TRUE.</div>
+      <div class="box info"><b>Где встретится снова</b>Модуль 5: <code>NOT IN (SELECT …)</code>, где NULL «прячется» в подзапросе. Решение — <code>NOT EXISTS</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 21. NULL В СОРТИРОВКЕ ===================== -->
+<section>
+  <h2>NULL при сортировке: NULLS FIRST / LAST</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT supplier_name, rating
+FROM   suppliers
+ORDER  BY rating DESC;
+-- 1-я строка: «Специи и Ко» | NULL (!)
+
+SELECT supplier_name, rating
+FROM   suppliers
+ORDER  BY rating DESC NULLS LAST;
+-- 1-я строка: «Сахарный комбинат Воронеж» | 4.8
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>СУБД</th><th>NULL при ASC</th></tr>
+        <tr><td>PostgreSQL, Oracle</td><td>в конце («больше всех»)</td></tr>
+        <tr><td>SQL Server, MySQL</td><td>в начале («меньше всех»)</td></tr>
+      </table>
+      <div class="box ok"><b>Совет</b>В отчётах всегда указывайте <code>NULLS FIRST/LAST</code> явно — переносимо и читаемо. В T-SQL такого синтаксиса нет: используют <code>ORDER BY CASE WHEN x IS NULL THEN 1 ELSE 0 END, x</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 22. РАЗДЕЛ ORDER BY ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Сортировка, TOP ↔ LIMIT, OFFSET FETCH</h2>
+  <p>Топ-N и постраничный вывод</p>
+</section>
+
+<!-- ===================== 23. ORDER BY ===================== -->
+<section>
+  <h2>ORDER BY: ключи, выражения, COLLATE</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Несколько ключей
+SELECT customer_type, customer_name, credit_limit
+FROM   customers
+ORDER  BY customer_type ASC,
+          credit_limit  DESC,
+          customer_name;
+
+-- По выражению / псевдониму
+SELECT order_item_id,
+       ROUND(quantity * unit_price
+             * discount_pct / 100, 2) AS discount_rub
+FROM   order_items
+ORDER  BY discount_rub DESC
+LIMIT  5;                  -- 1-я: 9654 | 88 200,00
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Свой порядок статусов
+ORDER BY CASE status
+           WHEN 'Новый'     THEN 1
+           WHEN 'В работе'  THEN 2
+           WHEN 'Отгружен'  THEN 3
+           WHEN 'Доставлен' THEN 4
+           ELSE 5
+         END;
+
+-- Правила сравнения строк
+ORDER BY customer_name COLLATE "C";
+      </code></pre>
+      <div class="box info"><b>COLLATE</b>База использует ICU-сортировку; <code>"C"</code> — побайтовое сравнение: «ооо "Свежесть"» уйдёт в конец списка.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 24. TOP ↔ LIMIT ===================== -->
+<section>
+  <h2>TOP (T-SQL) ↔ LIMIT / FETCH FIRST (PostgreSQL)</h2>
+  <table class="t">
+    <tr><th>T-SQL</th><th>PostgreSQL</th><th>Стандарт SQL</th></tr>
+    <tr><td><code>SELECT TOP (5) …</code></td><td><code>… LIMIT 5</code></td><td><code>FETCH FIRST 5 ROWS ONLY</code></td></tr>
+    <tr><td><code>TOP (5) WITH TIES</code></td><td colspan="2"><code>FETCH FIRST 5 ROWS WITH TIES</code> (PG 13+)</td></tr>
+    <tr><td><code>OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY</code></td><td><code>LIMIT 20 OFFSET 40</code></td><td>то же, что в T-SQL</td></tr>
+    <tr><td><code>TOP (10) PERCENT</code></td><td colspan="2">нет — через оконные функции (модуль 8)</td></tr>
+  </table>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT invoice_number, invoice_date, amount
+FROM   invoices
+ORDER  BY amount DESC
+FETCH  FIRST 5 ROWS ONLY;     -- 1-я: СЧ-2025-02646 | 2025-04-10 | 1 245 137,26
+  </code></pre>
+</section>
+
+<!-- ===================== 25. WITH TIES ===================== -->
+<section>
+  <h2>WITH TIES и «случайный» порядок</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- «Топ-3 позиции по скидке»
+SELECT COUNT(*)                 -- 869 (!)
+FROM  (SELECT order_item_id
+       FROM   order_items
+       ORDER  BY discount_pct DESC
+       FETCH  FIRST 3 ROWS WITH TIES) AS t;
+      </code></pre>
+      <p class="small">Все 869 позиций имеют максимальную скидку 25 % — они «равны» третьей.</p>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Без ORDER BY порядок НЕ гарантирован
+SELECT order_number
+FROM   orders
+LIMIT  3;
+      </code></pre>
+      <div class="box warn"><b>Правило</b>«Топ-N» без <code>ORDER BY</code> — это «любые N». Сегодня совпало, завтра после VACUUM или параллельного плана — другие строки.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 26. КВИЗ WITH TIES ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: топ-10 счетов</h2>
+  <p>Нужно показать 10 крупнейших счетов, но если 10-е и 11-е места равны по сумме — показать оба. Что выбрать?</p>
+  <ul class="quiz">
+    <li><code>LIMIT 10</code></li>
+    <li><code>LIMIT 11</code></li>
+    <li data-correct><code>ORDER BY amount DESC FETCH FIRST 10 ROWS WITH TIES</code></li>
+    <li><code>SELECT DISTINCT … LIMIT 10</code></li>
+  </ul>
+  <p class="explain">WITH TIES добавляет все строки, равные последней по ключу сортировки. Требует ORDER BY.</p>
+</section>
+
+<!-- ===================== 27. ПАГИНАЦИЯ ===================== -->
+<section>
+  <h2>Постраничный вывод: OFFSET и keyset</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Страница 3 по 20 строк
+SELECT order_id, order_number, order_date
+FROM   orders
+ORDER  BY order_date DESC, order_id DESC
+OFFSET 40 ROWS
+FETCH  NEXT 20 ROWS ONLY;
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- Keyset: «после последней увиденной»
+SELECT order_id, order_number, order_date
+FROM   orders
+WHERE  (order_date, order_id)
+       &lt; (DATE '2025-12-29', 4433)
+ORDER  BY order_date DESC, order_id DESC
+LIMIT  20;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Проблема OFFSET</th><th>Почему</th></tr>
+        <tr><td>Медленно на дальних страницах</td><td>OFFSET 20000 читает и выбрасывает 20 000 строк (1,7 мс → 0,05 мс у keyset на 24 тыс. строк)</td></tr>
+        <tr><td>Дубли/пропуски</td><td>новые строки «сдвигают» страницы</td></tr>
+        <tr><td>Прыгающие строки</td><td>неуникальный ключ сортировки (11 заказов за 31.12.2025)</td></tr>
+      </table>
+      <div class="box ok"><b>Решение</b>Уникальный «добивающий» ключ + keyset (seek) для лент и API.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 28. ОБСУЖДЕНИЕ 3 ===================== -->
+<section class="discussion-slide">
+  <h2>Обсуждение: пагинация в реальной системе</h2>
+  <p>Отдел продаж просит в веб-отчёте «Все заказы» кнопки «1, 2, 3 … 223» и переход на любую страницу.</p>
+  <ul>
+    <li>Какие проблемы возникнут, когда заказов станет 5 млн?</li>
+    <li>Можно ли с keyset-пагинацией сделать переход сразу на страницу 150? Какой компромисс предложить заказчику?</li>
+    <li>Что увидит менеджер, если, пока он листает, в систему поступят новые заказы?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемо: OFFSET линейно дорожает; keyset не умеет «прыжок» — компромисс: кнопки «далее/назад», фильтры по датам вместо номеров страниц, «бесконечная лента»; с OFFSET при вставке новых строк — дубли на следующей странице; keyset стабилен. Для системного аналитика это вопрос требований (NFR), а не только SQL.</aside>
+</section>
+
+<!-- ===================== 29. ГРУППЫ ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: первые «улики»</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ol>
+        <li>Найдите позиции со скидкой выше 10 % — сколько их?</li>
+        <li>Отсортируйте по сумме скидки сверх 10 % в рублях, выведите топ-10.</li>
+        <li>Выпишите <code>order_id</code> и посмотрите, кто оформлял эти заказы (<code>orders … WHERE order_id IN (…)</code>).</li>
+      </ol>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ol>
+        <li>Найдите партии с браком больше 5 % выпуска — сколько их?</li>
+        <li>Отсортируйте по доле брака. Что общего у этих партий?</li>
+        <li>Проверьте гипотезу одним запросом с <code>AND NOT (…)</code>.</li>
+      </ol>
+    </div>
+  </div>
+  <span class="timer">⏱ 10 мин</span>
+  <aside class="notes">Ожидаемые ответы. А: 4365 позиций; топ — скидки 25 % на конфеты/сливки; все заказы — employee_id 10 (Соколов И. А.). Б: 627 партий; все — линия 3, ночная смена; проверка AND NOT (line_id = 3 AND shift = 'Ночь') → 0; ночных партий линии 3 тоже 627 — брак > 5 % в КАЖДОЙ ночной смене. Попросить каждую команду озвучить одну фразу «для директора».</aside>
+</section>
+
+<!-- ===================== 30. КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «Масло, которое продаётся в убыток?»</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size:.8em">Финансовый директор заметил, что маржа молочного направления в 2025 г. упала. Аналитик выполнил:</p>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT product_id, product_name,
+       base_price, standard_cost
+FROM   products
+WHERE  product_name ILIKE 'масло%';
+      </code></pre>
+      <table class="t">
+        <tr><th>id</th><th>Товар</th><th>Прайс</th><th>Себест.</th></tr>
+        <tr><td>13</td><td>Масло 82,5 %</td><td class="hl">189,00</td><td class="hl">205,00</td></tr>
+        <tr><td>14</td><td>Масло 72,5 %</td><td>159,00</td><td>151,00</td></tr>
+      </table>
+    </div>
+    <div>
+      <p><span class="badge team-a">Команда А</span> <span class="badge team-b">Команда Б</span></p>
+      <ol style="font-size:.75em">
+        <li>Сколько позиций масла 82,5 % продано по цене со скидкой ниже 205? (<code>unit_price * (1 - discount_pct/100) &lt; 205</code>) — <b>552 из 552</b>.</li>
+        <li>А масла 72,5 % ниже 151? — <b>365 из 524</b>.</li>
+        <li>Какие гипотезы о причинах вы предложите? Какие таблицы нужно посмотреть каждой команде?</li>
+        <li>Чего нельзя утверждать, имея только эти два запроса?</li>
+      </ol>
+      <span class="timer">⏱ 7 мин</span>
+    </div>
+  </div>
+  <aside class="notes">Гипотезы: выросла себестоимость (сырьё — молочный жир — команда Б: цены закупок purchase_order_items), прайс не пересмотрели (price_history — команда А), скидки менеджеров усугубляют. Нельзя утверждать: что standard_cost действовал весь период (это актуальная себестоимость!) — значит часть продаж 2024 г. могла быть прибыльной; нельзя посчитать сумму убытка без арифметики и связей. Межкомандная связка B8 → A4, вернёмся в модулях 2–4.</aside>
+</section>
+
+<!-- ===================== 31. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>Фильтрация</h4>
+      <ul>
+        <li>NOT → AND → OR, скобки при <code>OR</code></li>
+        <li>периоды — полуоткрытые</li>
+        <li><code>ILIKE</code>, <code>~</code> — для «грязных» строк</li>
+      </ul></div>
+    <div class="card orange-top"><h4>NULL</h4>
+      <ul>
+        <li><code>IS NULL</code>, не <code>= NULL</code></li>
+        <li><code>&lt;&gt;</code> теряет NULL → <code>IS DISTINCT FROM</code></li>
+        <li><code>NOT IN (…, NULL)</code> = 0 строк</li>
+        <li><code>COALESCE</code>, <code>NULLIF</code></li>
+      </ul></div>
+    <div class="card green-top"><h4>Сортировка и топ-N</h4>
+      <ul>
+        <li>LIMIT без ORDER BY — «любые» строки</li>
+        <li><code>NULLS FIRST/LAST</code> явно</li>
+        <li><code>FETCH … WITH TIES</code></li>
+        <li>OFFSET медленный → keyset</li>
+      </ul></div>
+  </div>
+  <div class="box ok"><b>Первые улики</b>4365 позиций со скидкой &gt; 10 % · 627 ночных партий линии 3 с браком &gt; 5 % · масло 82,5 % дешевле себестоимости · 4 «вечных» простоя.</div>
+</section>
+
+<!-- ===================== 32. МОСТ ===================== -->
+<section>
+  <h2>Мост к модулю 2: типы данных и функции</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size:.8em">Сегодня мы нашли «подозрительные» строки. Но чтобы посчитать потери, нужно:</p>
+      <ul style="font-size:.78em">
+        <li>правильно делить: <code>defect_qty / produced_qty</code> = <span class="orange">0</span> — почему?</li>
+        <li>чистить строки: <code>TRIM</code>, <code>LOWER</code>, <code>regexp_replace</code></li>
+        <li>считать дни и часы: <code>shipped_date − order_date</code>, <code>end_time − start_time</code></li>
+        <li>округлять деньги и строить «светофоры» через <code>CASE</code></li>
+      </ul>
+    </div>
+    <div>
+      <div class="box info"><b>Домашнее задание</b>Завершить лабораторную работу (<code>lab.md</code>), подготовить 3–5 предложений «вывода для руководства».</div>
+      <div class="box warn"><b>Вопрос на подумать</b>Чему равно <code>SELECT 7 / 2;</code> в PostgreSQL? А <code>ROUND(2.5::float8)</code>?</div>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
