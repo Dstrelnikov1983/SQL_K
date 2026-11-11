@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 3 — Извлечение данных из нескольких таблиц</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+/* --- ER-диаграммы (рисуются скриптом по описанию в ER_SPECS) --- */
+.er{margin:.35em 0;position:relative}
+.er svg{display:block;max-width:100%;height:auto}
+.er.center svg{margin:0 auto}
+.er-legend{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:.5em;color:var(--text);margin-top:.3em;align-items:center}
+.er-legend span{display:inline-flex;align-items:center;gap:6px}
+.er-legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+
+/* --- слайд «Порядок выполнения SELECT» --- */
+.qo-wrap{display:flex;gap:1.2em;align-items:stretch}
+.qo-wrap>div{flex:1;min-width:0}
+.qo-h{font-size:.62em;font-weight:700;color:var(--accent1);margin:0 0 .3em 0;text-transform:uppercase;letter-spacing:.04em}
+.qo-code{background:var(--code-bg);border-radius:8px;padding:10px 14px;font-family:Consolas,'Courier New',monospace;
+  font-size:.5em;line-height:1.75;color:#d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.qo-code .ln{display:flex;align-items:center;gap:10px;border-radius:5px;padding:0 6px}
+.qo-code .kw{color:#569cd6;font-weight:700;min-width:6.2em;display:inline-block;white-space:pre}
+.qo-code .cm{color:#6a9955}
+.qo-code .n{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;
+  background:#3a3d41;color:#cfd3d8;font-size:.85em;font-weight:700;flex:none}
+.qo-code .ln.focus{background:rgba(237,125,49,.30)}
+.qo-code .ln.focus .n{background:var(--accent2);color:#fff}
+.qo-code .ln.rel{background:rgba(237,125,49,.10)}
+.qo-code .ln.rel .n{background:#8a5a36;color:#fff}
+.qo-steps{list-style:none;margin:0!important;padding:0;font-size:.52em}
+.qo-steps li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e8f2;border-left:6px solid #c9d3e6;
+  border-radius:6px;padding:3px 10px;margin:0 0 4px 0;line-height:1.3;color:var(--muted)}
+.qo-steps li .n{font-weight:800;color:#9aa4b2;width:1.2em;text-align:right;flex:none}
+.qo-steps li .k{font-family:Consolas,'Courier New',monospace;font-weight:700;color:var(--text);min-width:7.4em}
+.qo-steps li .d{flex:1}
+.qo-steps li .m{font-size:.85em;background:#eef2fa;color:var(--accent1);border-radius:10px;padding:0 8px;font-weight:700;white-space:nowrap}
+.qo-steps li.focus{border-left-color:var(--accent2);background:#fff3e8;color:var(--text);box-shadow:0 2px 6px rgba(237,125,49,.25)}
+.qo-steps li.focus .n,.qo-steps li.focus .k{color:var(--accent2)}
+.qo-steps li.focus .m{background:var(--accent2);color:#fff}
+.qo-steps li.rel{border-left-color:#f3b88f;background:#fffaf5}
+.qo-steps li.done{border-left-color:var(--accent6)}
+.qo-legend{font-size:.5em;color:var(--muted);margin-top:.3em}
+.qo-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- 1 ===================== ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 3</div>
+  <h1>Извлечение данных из нескольких таблиц</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">JOIN как инструмент поиска потерь: связать, не потерять, не размножить</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 2 ак. ч.</div>
+  <aside class="notes">Модуль про соединения. Главная мысль: каждая потеря «Питание +» видна только на стыке таблиц — скидка видна в order_items, а кто её дал — в employees; переплата видна только при сравнении двух строк закупок.</aside>
+</section>
+
+<!-- 2 ===================== ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">После модуля вы сможете:</p>
+      <ul style="font-size:.78em">
+        <li>объяснить JOIN через декартово произведение</li>
+        <li>выбрать INNER / LEFT / FULL / CROSS / SELF под задачу</li>
+        <li>не попасть в ловушку <code>ON</code> vs <code>WHERE</code></li>
+        <li>находить «сирот» (anti-join) и обрабатывать NULL</li>
+        <li>замечать «размножение» строк до того, как оно испортит сумму</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Декартово произведение, CROSS JOIN</td><td>15</td></tr>
+        <tr><td>INNER и OUTER JOIN, ловушка ON/WHERE</td><td>20</td></tr>
+        <tr><td>Цепочки таблиц, USING / NATURAL</td><td>10</td></tr>
+        <tr><td>NULL и «сироты»</td><td>10</td></tr>
+        <tr><td>SELF-JOIN, размножение строк</td><td>15</td></tr>
+        <tr><td>Кейс, групповая работа, квизы</td><td>20</td></tr>
+      </table>
+      <p class="small">Лабораторная работа — отдельное занятие (45 + 10 мин)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ПОРЯДОК ВЫПОЛНЕНИЯ SELECT (общая схема курса) ===================== -->
+<section>
+  <h2>Как выполняется SELECT … FROM: что разбираем сегодня</h2>
+  <div class="qo-wrap">
+    <div>
+      <p class="qo-h">Как мы пишем (синтаксический порядок)</p>
+      <div class="qo-code">
+        <div class="ln "><span class="n">6</span><span class="kw">SELECT</span><span>столбцы, выражения <span class='cm'>-- окна OVER(…) — шаг 5</span></span></div>
+        <div class="ln "><span class="n">7</span><span class="kw">DISTINCT</span><span><span class='cm'>-- необязательно</span></span></div>
+        <div class="ln focus"><span class="n">1</span><span class="kw">FROM</span><span>таблица t</span></div>
+        <div class="ln focus"><span class="n">1</span><span class="kw">  JOIN</span><span>таблица2 ON …</span></div>
+        <div class="ln "><span class="n">2</span><span class="kw">WHERE</span><span>условие на строки</span></div>
+        <div class="ln "><span class="n">3</span><span class="kw">GROUP BY</span><span>ключи группировки</span></div>
+        <div class="ln "><span class="n">4</span><span class="kw">HAVING</span><span>условие на группы</span></div>
+        <div class="ln "><span class="n">8</span><span class="kw">ORDER BY</span><span>столбцы [ASC | DESC]</span></div>
+        <div class="ln "><span class="n">9</span><span class="kw">LIMIT</span><span>n OFFSET m;</span></div>
+      </div>
+      <p class="qo-legend">цифра в кружке — номер шага выполнения</p>
+    </div>
+    <div>
+      <p class="qo-h">Как выполняет СУБД (логический порядок)</p>
+      <ul class="qo-steps">
+        <li class="focus"><span class="n">1</span><span class="k">FROM / JOIN</span><span class="d">таблицы, JOIN, подзапросы <b class="orange">← сегодня</b></span><span class="m">М3 · М5</span></li>
+        <li class="done"><span class="n">2</span><span class="k">WHERE</span><span class="d">фильтр отдельных строк</span><span class="m">М1</span></li>
+        <li class=""><span class="n">3</span><span class="k">GROUP BY</span><span class="d">строки → группы</span><span class="m">М4</span></li>
+        <li class=""><span class="n">4</span><span class="k">HAVING</span><span class="d">фильтр групп</span><span class="m">М4</span></li>
+        <li class=""><span class="n">5</span><span class="k">OVER (…)</span><span class="d">оконные функции</span><span class="m">М8</span></li>
+        <li class="done"><span class="n">6</span><span class="k">SELECT</span><span class="d">выражения, функции, псевдонимы</span><span class="m">М2</span></li>
+        <li class="done"><span class="n">7</span><span class="k">DISTINCT</span><span class="d">удаление дублей</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">8</span><span class="k">ORDER BY</span><span class="d">сортировка</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">9</span><span class="k">LIMIT/OFFSET</span><span class="d">отсечение строк</span><span class="m">М1</span></li>
+      </ul>
+      <p class="qo-legend"><span style="background:var(--accent2)"></span>тема модуля<span style="background:#f3b88f"></span>связано с темой<span style="background:var(--accent6)"></span>уже изучено</p>
+    </div>
+  </div>
+  <div class="box warn" style="font-size:.62em;margin-top:.5em"><b>Сегодня: шаг 1 — FROM и JOIN</b>JOIN выполняется <b>первым</b>: он собирает «широкую» таблицу, с которой работают все остальные шаги. Если соединение размножило строки — ошибутся и WHERE, и GROUP BY, и SUM. Условие в <code>ON</code> работает внутри шага 1, условие в <code>WHERE</code> — уже после него: для LEFT JOIN это разные результаты.</div>
+  <aside class="notes">Вопрос аудитории: если FROM вернул 1 000 строк из-за размножения, а должен был 100 — какие шаги дальше дадут неверный результат? (Все.) Мост к ловушке ON vs WHERE.</aside>
+</section>
+
+
+<!-- 3 ===================== ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: как вы пишете соединения?</h2>
+  <p>Кликайте по варианту, чтобы добавить голос (Shift+клик — убрать).</p>
+  <ul class="poll">
+    <li><span style="width:16em">Только <code>JOIN … ON</code></span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Через запятую в <code>FROM</code> + <code>WHERE</code></span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Как получится / копирую из примеров</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Пользуюсь в основном ORM / BI</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Опрос для калибровки. Если много «через запятую» — больше времени на слайд с забытым условием и на ловушку ON/WHERE (через запятую нельзя записать внешнее соединение).</aside>
+</section>
+
+<!-- 4 ===================== ЗАЧЕМ ===================== -->
+<section>
+  <h2>Где «Питание +» теряет деньги — и почему без JOIN не увидеть</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span></h4>
+      <ul>
+        <li>скидка в <code>order_items</code>, а кто её дал — в <code>employees</code></li>
+        <li>счёт в <code>invoices</code>, оплаты в <code>payments</code>, лимит в <code>customers</code></li>
+        <li>возврат в <code>returns</code>, срок годности в <code>products</code>, регион в <code>regions</code></li>
+      </ul>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span></h4>
+      <ul>
+        <li>брак в <code>production_batches</code>, оператор в <code>employees</code></li>
+        <li>цена в <code>purchase_order_items</code>, поставщик — через <code>purchase_orders</code></li>
+        <li>норма в <code>recipes</code>, факт в <code>material_consumption</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="box info"><b>Идея модуля</b>Данные нормализованы: каждый факт хранится в одном месте. Аналитика начинается, когда факты снова собирают вместе.</div>
+</section>
+
+<!-- 4a ===================== СХЕМА ДАННЫХ (ER) ===================== -->
+<section>
+  <h2>Схема данных: что с чем можно соединить</h2>
+  <div class="er center" data-er="overview"></div>
+  <div class="er-legend">
+    <span><i style="background:#4472C4"></i>Команда А — продажи и финансы</span>
+    <span><i style="background:#548235"></i>Команда Б — производство и закупки</span>
+    <span><i style="background:#44546A"></i>общие справочники</span>
+    <span><svg width="44" height="16"><path d="M0 8H44" stroke="#44546A" stroke-width="1.6"/><path d="M13 8L0 1M13 8L0 15" stroke="#44546A" stroke-width="1.6"/><path d="M37 1V15M32 1V15" stroke="#44546A" stroke-width="1.6"/></svg>много — ровно один (FK NOT NULL)</span>
+    <span><svg width="44" height="16"><path d="M0 8H44" stroke="#44546A" stroke-width="1.6"/><path d="M13 8L0 1M13 8L0 15" stroke="#44546A" stroke-width="1.6"/><path d="M37 1V15" stroke="#44546A" stroke-width="1.6"/><circle cx="31" cy="8" r="4" fill="#fff" stroke="#44546A" stroke-width="1.6"/></svg>FK допускает NULL → думать о LEFT JOIN</span>
+    <span><svg width="44" height="16"><path d="M4 8H40" stroke="#4472C4" stroke-width="1.6" stroke-dasharray="2 5" stroke-linecap="round"/><circle cx="4" cy="8" r="3.5" fill="#4472C4"/><circle cx="40" cy="8" r="3.5" fill="#4472C4"/></svg>условие соединения не по FK</span>
+    <span><svg width="44" height="16"><path d="M0 8H44" stroke="#8a94a6" stroke-width="1.6" stroke-dasharray="7 5"/></svg>CROSS JOIN</span>
+  </div>
+  <aside class="notes">Эта схема — карта для всего модуля; на каждом слайде с запросом будет её фрагмент с теми же обозначениями. Спросите: «Сколько JOIN нужно, чтобы от оплаты дойти до региона клиента?» (payments → invoices → orders → customers → regions — 4 JOIN). «Где FK допускает NULL?» — customers.region_id, customers.manager_id, suppliers.region_id, employees.manager_id, parent_category_id: в этих местах INNER JOIN теряет строки. Связи production_batches.operator_id, production_lines.responsible_id и purchase_orders.employee_id с employees не нарисованы, чтобы не загромождать схему, — они подписаны у столбцов.</aside>
+</section>
+
+<!-- 5 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Декартово произведение и CROSS JOIN</h2>
+  <p>Фундамент всех соединений</p>
+</section>
+
+<!-- 6 ===================== ДЕКАРТОВО ===================== -->
+<section>
+  <h2>Декартово произведение: «каждый с каждым»</h2>
+  <div class="two-col">
+    <div>
+      <div class="er" data-er="cartesian"></div>
+      <p style="font-size:.7em">5 линий × <code>VALUES ('День'), ('Ночь')</code> = <span class="orange">5 × 2 = 10 строк</span>. Связи между ними нет — каждая строка с каждой.</p>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT l.line_id,
+       l.line_name,
+       s.shift
+FROM   production_lines AS l
+CROSS  JOIN (VALUES ('День'), ('Ночь'))
+            AS s (shift)
+ORDER  BY l.line_id, s.shift;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Таблицы</th><th>Строк в произведении</th></tr>
+        <tr><td>линии × смены</td><td>10</td></tr>
+        <tr><td>линии × смены × 730 дней</td><td>7 300</td></tr>
+        <tr><td>orders × customers</td><td class="hl">325 434</td></tr>
+        <tr><td>order_items × products × orders</td><td class="hl">≈ 2,7 млрд</td></tr>
+      </table>
+      <div class="box warn"><b>Рост мультипликативный</b>|A × B| = |A| · |B|. Одно забытое условие — и запрос «висит» или возвращает миллионы бессмысленных строк.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 ===================== JOIN = ПРОИЗВЕДЕНИЕ + ФИЛЬТР ===================== -->
+<section>
+  <h2>JOIN = декартово произведение + фильтр</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- старый стиль (SQL-89)
+SELECT COUNT(*)
+FROM   orders, customers
+WHERE  orders.customer_id
+     = customers.customer_id;   -- 4458
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- современный стиль (SQL-92)
+SELECT COUNT(*)
+FROM   orders    AS o
+JOIN   customers AS c
+       ON c.customer_id = o.customer_id;  -- 4458
+      </code></pre>
+    </div>
+    <div>
+      <div class="er" data-er="join2"></div>
+      <div class="box info"><b>Логически</b>СУБД «как будто» строит все 325 434 пары и оставляет те, где условие TRUE. Физически оптимизатор использует Hash / Merge / Nested Loop Join — произведение не материализуется.</div>
+      <div class="box ok"><b>Почему JOIN … ON лучше</b>Условие связи отделено от фильтров; забытое <code>ON</code> — синтаксическая ошибка; внешние соединения через «запятую» не записать.</div>
+    </div>
+  </div>
+  <aside class="notes">Покажите оба запроса и запрос без WHERE (325 434). Спросите: что вернёт COUNT(*) при FROM orders, customers, employees без условий? 4458*73*35 ≈ 11,4 млн.</aside>
+</section>
+
+<!-- 8 ===================== CROSS JOIN СЕТКА ===================== -->
+<section>
+  <h2>CROSS JOIN на практике: сетка отчёта</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT d.prod_date::date, l.line_id, s.shift
+FROM   generate_series(DATE '2025-12-01',
+                       DATE '2025-12-31',
+                       INTERVAL '1 day') AS d (prod_date)
+CROSS  JOIN production_lines AS l
+CROSS  JOIN (VALUES ('День'), ('Ночь')) AS s (shift)
+LEFT   JOIN production_batches AS b
+       ON  b.line_id         = l.line_id
+       AND b.production_date = d.prod_date
+       AND b.shift           = s.shift
+WHERE  b.batch_id IS NULL;
+      </code></pre>
+    </div>
+    <div>
+      <div class="er" data-er="grid"></div>
+      <p style="font-size:.72em;margin:.3em 0">Сетка: 31 день × 5 линий × 2 смены = <b>310</b> ячеек. Пустых — <span class="orange">48</span>:</p>
+      <ul style="font-size:.7em">
+        <li>воскресенья — стоят все линии (4 × 10 = 40)</li>
+        <li>субботы — нет ночной смены на линиях 4 и 5 (4 × 2 = 8)</li>
+      </ul>
+      <div class="box info"><b>Зачем сетка</b>Факт отсутствия события не хранится в таблице фактов. Его можно увидеть, только сравнив с «каркасом» всех возможных сочетаний.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 ===================== ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Где ещё нужна «сетка»?</h2>
+  <p>Придумайте 2–3 отчёта «Питание +», которые невозможно построить правильно без CROSS JOIN. Что будет, если строить их только по таблице фактов?</p>
+  <span class="timer">⏱ 3 мин</span>
+  <aside class="notes">Ожидаемые ответы: план/факт по месяцам × категориям (месяц без продаж пропадёт, а план есть); выручка менеджер × месяц (нулевой месяц не виден — нельзя посчитать среднее правильно); регион × продукт для ассортиментной матрицы (где не продаём); материал × поставщик — у кого не закупали; календарь простоев линия × день. Без сетки нули «исчезают», средние завышаются, графики рвутся.</aside>
+</section>
+
+<!-- 10 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>INNER и OUTER JOIN</h2>
+  <p>Кто попадёт в результат, а кто — потеряется</p>
+</section>
+
+<!-- 11 ===================== ВИДЫ JOIN ===================== -->
+<section>
+  <h2>Виды соединений на одном примере</h2>
+  <p style="font-size:.72em"><code>customers</code> (73) и <code>orders</code> (4458). У клиента 73 «Новый горизонт» заказов нет.</p>
+  <table class="t">
+    <tr><th>Тип</th><th>Что возвращает</th><th>Строк</th></tr>
+    <tr><td><code>INNER JOIN</code></td><td>только пары, где условие TRUE</td><td>4458 (72 клиента)</td></tr>
+    <tr><td><code>LEFT JOIN</code></td><td>все строки левой + пары; у «одиноких» справа NULL</td><td class="hl">4459 (73 клиента)</td></tr>
+    <tr><td><code>RIGHT JOIN</code></td><td>зеркально: все строки правой</td><td>4458</td></tr>
+    <tr><td><code>FULL JOIN</code></td><td>все строки обеих сторон</td><td>4459</td></tr>
+    <tr><td><code>CROSS JOIN</code></td><td>все пары без условия</td><td>325 434</td></tr>
+  </table>
+  <div class="box info"><b>Правило выбора</b>Задайте вопрос: «Какая таблица — главная? Можно ли потерять её строки?» Если нельзя — она слева в LEFT JOIN.</div>
+</section>
+
+<!-- 12 ===================== INNER ===================== -->
+<section>
+  <h2>INNER JOIN: заказ + клиент + менеджер</h2>
+  <div class="two-col" style="align-items:center">
+    <div style="flex:1.45">
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT o.order_number,
+       o.order_date,
+       c.customer_name,
+       e.full_name AS manager
+FROM   orders    AS o
+JOIN   customers AS c ON c.customer_id = o.customer_id
+JOIN   employees AS e ON e.employee_id = o.employee_id
+WHERE  o.order_date >= DATE '2025-12-30'
+ORDER  BY o.order_date, o.order_number;
+  </code></pre>
+    </div>
+    <div><div class="er center" data-er="inner"></div></div>
+  </div>
+  <table class="t">
+    <tr><th>order_number</th><th>order_date</th><th>customer_name</th><th>manager</th></tr>
+    <tr><td>ЗК-2025-04440</td><td>2025-12-30</td><td>АО "ПродМаркет"</td><td>Федоров Павел Олегович</td></tr>
+    <tr><td>ЗК-2025-04441</td><td>2025-12-30</td><td>АО "Перекрёсток Регион"</td><td>Павлов Сергей Дмитриевич</td></tr>
+    <tr><td>ЗК-2025-04442</td><td>2025-12-30</td><td>ООО "Радуга"</td><td>Соколов Игорь Андреевич</td></tr>
+  </table>
+  <p class="small">19 строк. <code>JOIN</code> = <code>INNER JOIN</code>. Порядок JOIN-ов для INNER на результат не влияет.</p>
+</section>
+
+<!-- 13a ===================== LEFT JOIN ===================== -->
+<section>
+  <h2>LEFT JOIN: главная таблица слева — её строки не теряются</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT c.customer_name,
+       c.customer_type,
+       r.region_name
+FROM   customers AS c        -- главная: сохраняется
+LEFT   JOIN regions AS r     -- необязательная
+       ON r.region_id = c.region_id
+ORDER  BY r.region_name NULLS FIRST;
+      </code></pre>
+      <table class="t">
+        <tr><th>customer_name</th><th>customer_type</th><th>region_name</th></tr>
+        <tr><td>ООО "Фермер"</td><td>Розница</td><td class="hl">NULL</td></tr>
+        <tr><td>ООО "Мегаполис"</td><td>Дистрибьютор</td><td class="hl">NULL</td></tr>
+        <tr><td>ООО "Юпитер"</td><td>Региональная сеть</td><td class="hl">NULL</td></tr>
+        <tr><td>ООО "Торговый дом Вектор"</td><td>Дистрибьютор</td><td>Москва и МО</td></tr>
+        <tr><td>…</td><td>…</td><td>…</td></tr>
+      </table>
+      <p class="small">73 строки = 70 пар + 3 клиента без пары.</p>
+    </div>
+    <div>
+      <div class="er center" data-er="left_join"></div>
+      <p class="blue" style="font-size:.7em;margin:.3em 0">Как СУБД строит результат</p>
+      <ol style="font-size:.62em">
+        <li>Для каждой строки <code>c</code> ищет строки <code>r</code>, где условие <code>ON</code> = TRUE.</li>
+        <li>Нашлось <i>k</i> пар → <i>k</i> строк, как в INNER JOIN.</li>
+        <li>Не нашлось ни одной → <b>одна</b> строка, все столбцы <code>r</code> = NULL.</li>
+      </ol>
+      <div class="box warn"><b>Цена INNER JOIN здесь</b>INNER вернёт 70 строк. В отчёте «Выручка по регионам» пропадут 161 заказ и <span class="orange">22,3 млн руб.</span> — без ошибки и без предупреждения.</div>
+    </div>
+  </div>
+  <aside class="notes">Попросите предсказать число строк до запуска: 73. LEFT JOIN без WHERE никогда не возвращает меньше строк, чем в левой таблице; больше — может, если у строки несколько пар (здесь справа «один», поэтому ровно 73). Выручка 22,3 млн из 860,7 млн (2,6 %) приходится на клиентов без региона: Фермер, Мегаполис, Юпитер. Вопрос: «Чья это ошибка — отчёта или справочника клиентов?» Обе: отчёт должен показывать строку «Регион не указан» (COALESCE — через несколько слайдов), а данные нужно исправить.</aside>
+</section>
+
+<!-- 13b ===================== RIGHT JOIN ===================== -->
+<section>
+  <h2>RIGHT JOIN: то же самое, но главная таблица справа</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- менеджеры по продажам без закреплённых клиентов
+SELECT e.full_name, c.customer_name
+FROM   customers AS c
+RIGHT  JOIN employees AS e          -- главная
+       ON c.manager_id = e.employee_id
+WHERE  e.position = 'Менеджер по продажам'
+  AND  c.customer_id IS NULL;
+-- Попов Станислав Игоревич | NULL
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- то же через LEFT: таблицы поменяли местами
+SELECT e.full_name, c.customer_name
+FROM   employees AS e               -- главная
+LEFT   JOIN customers AS c
+       ON c.manager_id = e.employee_id
+WHERE  e.position = 'Менеджер по продажам'
+  AND  c.customer_id IS NULL;
+      </code></pre>
+    </div>
+    <div>
+      <div class="er center" data-er="right_join"></div>
+      <div class="box info"><b>Правило эквивалентности</b><code>A RIGHT JOIN B</code> ≡ <code>B LEFT JOIN A</code>. Заменить ключевое слово, не переставив таблицы, — значит сохранить <i>другую</i> таблицу.</div>
+      <div class="box warn"><b>RIGHT в цепочке</b><code>orders o JOIN customers c … RIGHT JOIN employees e …</code> сохраняет только <code>e</code>: весь результат <code>o ⋈ c</code> становится «необязательной» стороной.</div>
+      <div class="box ok"><b>Соглашение команд</b>Пишем LEFT JOIN, главную таблицу ставим первой в <code>FROM</code>.</div>
+    </div>
+  </div>
+  <aside class="notes">Без условия IS NULL запрос вернёт 74 строки: 8 менеджеров с клиентами дают 73 строки, Попов — 1 строку с NULL. Фильтр по e.position стоит в WHERE и ничего не ломает: e — сохраняемая сторона. Вопрос аудитории: «Что будет, если условие e.position перенести в ON?» — ON не фильтрует сохраняемую таблицу: в результате окажутся все 35 сотрудников (100 строк), а с условием IS NULL — 27 строк: 26 сотрудников других должностей + Попов. «Не менеджеров» запрос выдаст за «менеджеров без клиентов». Где RIGHT JOIN встречается на практике: SQL, сгенерированный BI и ORM; JOIN, дописанный в конец длинного запроса. Вопрос для команды А: менеджер без клиентов — простаивающий ресурс или ошибка в справочнике?</aside>
+</section>
+
+<!-- 13c ===================== FULL JOIN ===================== -->
+<section>
+  <h2>FULL JOIN: «дыры» с обеих сторон</h2>
+  <p style="font-size:.66em;margin:0 0 .3em">Задача команды А: как изменился ассортимент клиента АО "Свежесть" (id 8) в 2025 г. по сравнению с 2024 г.?</p>
+  <div class="two-col">
+    <div style="flex:1.25">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT COALESCE(y24.product_id, y25.product_id) AS product_id,
+       p.product_name,
+       CASE WHEN y25.product_id IS NULL THEN 'перестал брать'
+            WHEN y24.product_id IS NULL THEN 'новая позиция'
+            ELSE 'берёт оба года'
+       END AS status
+FROM   (SELECT DISTINCT oi.product_id
+        FROM   orders AS o
+        JOIN   order_items AS oi ON oi.order_id = o.order_id
+        WHERE  o.customer_id = 8
+          AND  o.order_date &lt;  DATE '2025-01-01') AS y24
+FULL   JOIN
+       (SELECT DISTINCT oi.product_id
+        FROM   orders AS o
+        JOIN   order_items AS oi ON oi.order_id = o.order_id
+        WHERE  o.customer_id = 8
+          AND  o.order_date >= DATE '2025-01-01') AS y25
+       ON y25.product_id = y24.product_id
+JOIN   products AS p
+       ON p.product_id = COALESCE(y24.product_id, y25.product_id)
+ORDER  BY status, product_id;
+      </code></pre>
+      <div class="box info"><b>FULL не всегда «двусторонний»</b><code>regions FULL JOIN suppliers</code> → 17 строк, но поставщиков без региона нет — здесь FULL = LEFT.</div>
+    </div>
+    <div>
+      <div class="er center" data-er="full_join"></div>
+      <table class="t">
+        <tr><th>status</th><th>Позиций</th><th>Примеры</th></tr>
+        <tr><td style="white-space:nowrap">берёт оба года</td><td>22</td><td>молоко, кефир, сыры…</td></tr>
+        <tr><td class="hl" style="white-space:nowrap">перестал брать</td><td class="hl">3</td><td>творог 9 %, «Птичье молоко», хлопья</td></tr>
+        <tr><td class="green" style="white-space:nowrap">новая позиция</td><td class="green">6</td><td>соусы, биойогурт, масло…</td></tr>
+      </table>
+      <div class="box warn"><b>Ключ — через COALESCE</b>NULL может оказаться с любой стороны, поэтому дальше соединяем и сортируем по <code>COALESCE(y24…, y25…)</code>.</div>
+    </div>
+  </div>
+  <aside class="notes">Подзапросы в FROM здесь — просто два готовых набора строк (y24 и y25): так их и объясняйте; подробно — в модуле 5. 31 строка = 22 пары + 3 «только слева» + 6 «только справа». Вопросы: 1) Почему не LEFT JOIN? (потеряем либо новые, либо ушедшие позиции — смотря какой год слева). 2) Что вернёт WHERE y24.product_id IS NULL OR y25.product_id IS NULL? (9 строк — только изменения ассортимента). 3) Как превратить это в деньги для руководства? Выручка 2024 г. по ушедшим позициям — потерянный оборот (SUM — модуль 4). Типичные задачи FULL JOIN: сверка план/факт, сверка двух систем (1С ↔ CRM), сравнение периодов. Проверка цифр regions/suppliers: 12 регионов, 12 поставщиков, у всех поставщиков region_id заполнен, 5 регионов без поставщиков.</aside>
+</section>
+
+<!-- 14 ===================== КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: сколько строк?</h2>
+  <p style="font-size:.8em">В <code>production_lines</code> 5 строк. Сколько строк вернёт запрос?</p>
+  <div class="two-col" style="align-items:center">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT *
+FROM   production_lines AS l
+LEFT   JOIN equipment_downtime AS d
+       ON d.line_id = l.line_id AND 1 = 0;
+  </code></pre>
+    </div>
+    <div><div class="er center" data-er="quiz_downtime"></div></div>
+  </div>
+  <ul class="quiz">
+    <li>0</li>
+    <li data-correct>5</li>
+    <li>282</li>
+    <li>1410</li>
+  </ul>
+  <p class="explain">Условие никогда не выполняется, но LEFT JOIN сохраняет все строки левой таблицы — 5 строк с NULL во всех столбцах простоев. При INNER JOIN было бы 0.</p>
+</section>
+
+<!-- 15 ===================== ЛОВУШКА ON vs WHERE ===================== -->
+<section>
+  <h2>Классическая ловушка: условие в ON или в WHERE?</h2>
+  <div class="two-col" style="align-items:center">
+    <p style="font-size:.72em">Задача: «все клиенты и их заказы за декабрь 2025».<br>Главная таблица — <code>customers</code>, фильтр — по столбцу <span class="orange">необязательной</span> таблицы <code>orders</code>.</p>
+    <div class="er center" data-er="on_where"></div>
+  </div>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*), COUNT(DISTINCT c.customer_id)
+FROM   customers AS c
+LEFT   JOIN orders AS o
+       ON  o.customer_id = c.customer_id
+       AND o.order_date >= DATE '2025-12-01';
+-- 228 строк, 73 клиента ✔
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*), COUNT(DISTINCT c.customer_id)
+FROM   customers AS c
+LEFT   JOIN orders AS o
+       ON  o.customer_id = c.customer_id
+WHERE  o.order_date >= DATE '2025-12-01';
+-- 218 строк, 63 клиента ✘
+      </code></pre>
+    </div>
+  </div>
+  <div class="box warn"><b>Почему пропали 10 клиентов</b>LEFT JOIN дал им <code>o.order_date = NULL</code>. <code>NULL >= дата</code> → UNKNOWN → WHERE отбрасывает строку. Внешнее соединение «тихо» превратилось во внутреннее.</div>
+  <div class="box ok"><b>Правило</b>Фильтр по <i>необязательной</i> (правой) таблице — в <code>ON</code>. Фильтр по главной (левой) — в <code>WHERE</code>.</div>
+</section>
+
+<!-- 16 ===================== КВИЗ 2 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: фильтр по левой таблице в ON</h2>
+  <div class="two-col" style="align-items:center">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)
+FROM   customers AS c
+LEFT   JOIN orders AS o
+       ON  o.customer_id   = c.customer_id
+       AND c.customer_type = 'HoReCa';
+  </code></pre>
+    </div>
+    <div><div class="er center" data-er="horeca"></div></div>
+  </div>
+  <p style="font-size:.75em">Клиентов HoReCa — 4, у них 111 заказов. Что вернёт запрос?</p>
+  <ul class="quiz">
+    <li>4 — только клиенты HoReCa</li>
+    <li>111 — только заказы HoReCa</li>
+    <li data-correct>180 — все 73 клиента, но заказы только у HoReCa</li>
+    <li>Ошибку: в ON нельзя ссылаться на левую таблицу</li>
+  </ul>
+  <p class="explain">LEFT JOIN никогда не удаляет строки левой таблицы. 69 клиентов «не HoReCa» остались с NULL (69 + 111 = 180). Чтобы отфильтровать клиентов, условие нужно перенести в WHERE.</p>
+</section>
+
+<!-- 17 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Более двух таблиц, USING и NATURAL</h2>
+  <p>Цепочки соединений и составные ключи</p>
+</section>
+
+<!-- 18 ===================== ЦЕПОЧКА ПРОДАЖ ===================== -->
+<section>
+  <h2>Цепочка продаж: 5 таблиц</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT o.order_number,
+       p.product_name,
+       sub.category_name AS subcategory,
+       top.category_name AS category,
+       oi.quantity, oi.unit_price, oi.discount_pct
+FROM   orders             AS o
+JOIN   order_items        AS oi  ON oi.order_id     = o.order_id
+JOIN   products           AS p   ON p.product_id    = oi.product_id
+JOIN   product_categories AS sub ON sub.category_id = p.category_id
+JOIN   product_categories AS top ON top.category_id = sub.parent_category_id
+WHERE  o.order_number = 'ЗК-2024-00001';
+  </code></pre>
+  <div class="er center" data-er="sales_chain"></div>
+  <table class="t">
+    <tr><th>product_name</th><th>subcategory</th><th>category</th><th>discount_pct</th></tr>
+    <tr><td>Творожный сырок ванильный 50 г</td><td>Кисломолочные продукты</td><td>Молочная продукция</td><td class="hl">20.00</td></tr>
+    <tr><td>Сыр плавленый 150 г</td><td>Сыры и масло</td><td>Молочная продукция</td><td class="hl">15.00</td></tr>
+    <tr><td>Шоколад молочный 90 г</td><td>Шоколад и конфеты</td><td>Кондитерские изделия</td><td class="hl">18.00</td></tr>
+  </table>
+  <p class="small">Политика компании — скидка не более 10 %. Запомним этот заказ.</p>
+</section>
+
+<!-- 19 ===================== ЦЕПОЧКА ПРОИЗВОДСТВА ===================== -->
+<section>
+  <h2>Цепочка производства и составной ключ</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT b.batch_number,
+       m.material_name,
+       ROUND(r.qty_per_unit
+             * b.produced_qty, 2) AS norm_qty,
+       mc.quantity                AS fact_qty
+FROM   production_batches   AS b
+JOIN   recipes              AS r
+       ON r.product_id = b.product_id
+JOIN   material_consumption AS mc
+       ON  mc.batch_id    = b.batch_id
+       AND mc.material_id = r.material_id
+JOIN   raw_materials        AS m
+       ON m.material_id = r.material_id
+WHERE  b.batch_id = 1;
+      </code></pre>
+    </div>
+    <div>
+      <div class="er center" data-er="prod_chain"></div>
+      <table class="t">
+        <tr><th>material</th><th>norm</th><th>fact</th></tr>
+        <tr><td>Молоко сырое</td><td>949.66</td><td>977.824</td></tr>
+        <tr><td>Пакет тетра-пак 1 л</td><td>922.00</td><td>939.308</td></tr>
+      </table>
+      <div class="box warn"><b>Забыли второе условие?</b>Соединение <code>material_consumption</code> только по <code>batch_id</code> на всей таблице: <span class="orange">107 929</span> строк вместо 24 275. Каждая норма «склеилась» с каждым фактом партии.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 20 ===================== USING / NATURAL ===================== -->
+<section>
+  <h2>USING и NATURAL JOIN</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- USING: ключи с одинаковым именем,
+-- order_id в результате один
+SELECT order_id,
+       o.order_number,
+       i.invoice_number
+FROM   orders   AS o
+JOIN   invoices AS i USING (order_id);
+      </code></pre>
+      <div class="er center" data-er="using"></div>
+      <div class="box ok"><b>USING — можно</b>Коротко и явно: видно, по какому столбцу связь.</div>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)
+FROM   invoices NATURAL JOIN payments;   -- 3477 ?!
+
+SELECT COUNT(*)
+FROM   invoices AS i
+JOIN   payments AS p
+       ON p.invoice_id = i.invoice_id;  -- 4519
+      </code></pre>
+      <div class="er center" data-er="natural"></div>
+      <div class="box warn"><b>NATURAL — опасно</b>Соединяет по <i>всем</i> одноимённым столбцам: <code>invoice_id</code> <b>и</b> <code>amount</code>. Частичные оплаты исчезли без ошибки. <code>employees NATURAL JOIN customers</code> → 0 строк (общие <code>manager_id, email, phone</code>).</div>
+    </div>
+  </div>
+</section>
+
+<!-- 21 ===================== ОБСУЖДЕНИЕ 2 ===================== -->
+<section class="discussion-slide">
+  <h2>NATURAL JOIN в отчёте: чья ответственность?</h2>
+  <p>Отчёт «Оплаты по счетам» год работал правильно. Потом в таблицу <code>payments</code> добавили столбец <code>amount</code> (раньше назывался <code>paid_sum</code>), и отчёт стал показывать на 23 % меньше оплат. Ошибок нет.</p>
+  <ul>
+    <li>Как бы вы искали причину?</li>
+    <li>Какие правила code review / стандарты SQL предотвратили бы проблему?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемо: сверка контрольных сумм (сумма оплат в отчёте vs SUM(payments.amount)); сравнение числа строк до/после; поиск NATURAL/USING по кодовой базе. Правила: запрет NATURAL JOIN и SELECT * в отчётах; явные ON; регресс-тесты на контрольные цифры; ревью DDL-изменений с проверкой зависимых запросов. Цифра 23 % соответствует нашим данным: 3477 из 4519 = 77 %.</aside>
+</section>
+
+<!-- 22 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Неизвестные значения и «сироты»</h2>
+  <p>NULL после внешнего соединения, COALESCE, anti-join</p>
+</section>
+
+<!-- 23 ===================== ANTI-JOIN ===================== -->
+<section>
+  <h2>Anti-join: найти тех, у кого «нет пары»</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- клиенты без заказов
+SELECT c.customer_id, c.customer_name
+FROM   customers AS c
+LEFT   JOIN orders AS o
+       ON o.customer_id = c.customer_id
+WHERE  o.order_id IS NULL;      -- 1 строка
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- счета без единой оплаты
+SELECT i.invoice_number, i.amount
+FROM   invoices AS i
+LEFT   JOIN payments AS p
+       ON p.invoice_id = i.invoice_id
+WHERE  p.payment_id IS NULL;    -- 229 строк
+      </code></pre>
+    </div>
+    <div>
+      <div class="er center" data-er="anti"></div>
+      <table class="t">
+        <tr><th>«Сироты» в «Питание +»</th><th>Строк</th></tr>
+        <tr><td>Клиенты без заказов</td><td>1</td></tr>
+        <tr><td>Счета без оплат</td><td class="hl">229</td></tr>
+        <tr><td>Клиенты без региона</td><td>3</td></tr>
+        <tr><td>Материалы без списаний</td><td>2</td></tr>
+        <tr><td>Менеджеры продаж без клиентов</td><td>3</td></tr>
+        <tr><td>Поставщики без заказов</td><td>0</td></tr>
+      </table>
+      <div class="box info"><b>Проверяйте NULL в ключе</b>Проверять <code>IS NULL</code> нужно у столбца, который в правой таблице NOT NULL (обычно PK). Иначе NULL «из данных» спутается с NULL «нет пары».</div>
+    </div>
+  </div>
+</section>
+
+<!-- 24 ===================== COALESCE ===================== -->
+<section>
+  <h2>COALESCE: превращаем NULL в понятную подпись</h2>
+  <div class="two-col" style="align-items:center">
+    <div style="flex:1.7">
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT c.customer_name,
+       COALESCE(r.region_name, '— регион не указан —') AS region_name,
+       COALESCE(r.federal_district, 'н/д')              AS federal_district
+FROM   customers AS c
+LEFT   JOIN regions AS r ON r.region_id = c.region_id
+WHERE  c.region_id IS NULL OR c.customer_id &lt;= 2;
+  </code></pre>
+    </div>
+    <div><div class="er center" data-er="coalesce"></div></div>
+  </div>
+  <table class="t">
+    <tr><th>customer_name</th><th>region_name</th><th>federal_district</th></tr>
+    <tr><td>ООО "Торговый дом Вектор"</td><td>Москва и МО</td><td>Центральный</td></tr>
+    <tr><td>ООО "Ромашка"</td><td>Тверская область</td><td>Центральный</td></tr>
+    <tr><td>ООО "Фермер"</td><td class="hl">— регион не указан —</td><td class="hl">н/д</td></tr>
+  </table>
+  <div class="box warn"><b>Два разных NULL</b><code>region_id IS NULL</code> у клиента — «неизвестно в данных». NULL после LEFT JOIN у <code>region_name</code> — «нет пары». COALESCE их не различает: если важно — проверяйте оба столбца.</div>
+</section>
+
+<!-- 25 ===================== КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «Счета без оплат — это просто задержка?»</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size:.72em">Финансовый директор: «229 неоплаченных счетов — это нормально, клиенты просто платят позже. Большинство — декабрьские».</p>
+      <table class="t">
+        <tr><th>Клиент</th><th>Неопл. счетов</th><th>Сумма, руб.</th><th>Лимит</th></tr>
+        <tr><td>ООО "Торговый дом Вектор"</td><td class="hl">31</td><td class="hl">5 689 976</td><td class="hl">3 000 000</td></tr>
+        <tr><td>ООО "Лента-Сервис"</td><td>10</td><td>5 146 292</td><td>15 000 000</td></tr>
+        <tr><td>ООО "Глобус"</td><td>8</td><td>4 095 992</td><td>15 000 000</td></tr>
+      </table>
+      <p class="small">Получено: invoices ⋈ orders ⋈ customers ⟕ payments, WHERE payment_id IS NULL</p>
+    </div>
+    <div>
+    <div class="card orange-top">
+      <h4>Вопросы</h4>
+      <ol style="font-size:.95em">
+        <li>Прав ли финансовый директор? Что отличает первую строку?</li>
+        <li>Каких данных не хватает, чтобы оценить реальный долг (подсказка: частичные оплаты)?</li>
+        <li>Какой следующий запрос вы бы написали?</li>
+      </ol>
+      <span class="timer">⏱ 5 мин</span>
+    </div>
+    <div class="er center" data-er="case_debt" style="margin-top:1em"></div>
+    </div>
+  </div>
+  <aside class="notes">Ответ: у сетей долги — свежие декабрьские счета с отсрочкой 45 дней, а у Вектора 31 счёт за весь 2025 г. при лимите 3 млн. Полный долг Вектора = все счета 14 716 047,93 − все оплаты 7 808 447,48 = 6 907 600,45 руб. (точка A2). Нужно учесть частичные оплаты и due_date. Следующий запрос: долг vs лимит и заказы, отгруженные после первой просрочки (39 заказов). Это задание А5/А10 лабораторной.</aside>
+</section>
+
+<!-- 26 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">05</div>
+  <h2>SELF-JOIN и размножение строк</h2>
+  <p>Таблица, соединённая сама с собой</p>
+</section>
+
+<!-- 27 ===================== SELF-JOIN ИЕРАРХИЯ ===================== -->
+<section>
+  <h2>SELF-JOIN: иерархия сотрудников и категорий</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT e.full_name  AS employee,
+       m1.full_name AS manager,
+       m2.full_name AS manager_of_manager
+FROM   employees AS e
+JOIN   employees AS m1
+       ON m1.employee_id = e.manager_id
+LEFT   JOIN employees AS m2
+       ON m2.employee_id = m1.manager_id
+WHERE  e.position = 'Менеджер по продажам';
+      </code></pre>
+      <table class="t">
+        <tr><th>employee</th><th>manager</th><th>manager_of_manager</th></tr>
+        <tr><td>Соколов И. А.</td><td>Ершова Т. Ю.</td><td>Громов А. И.</td></tr>
+      </table>
+      <div class="er" data-er="self_emp"></div>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT child.category_name  AS subcategory,
+       parent.category_name AS category
+FROM   product_categories AS child
+JOIN   product_categories AS parent
+       ON parent.category_id
+        = child.parent_category_id;   -- 7 строк
+      </code></pre>
+      <div class="er center" data-er="self_cat"></div>
+      <div class="box info"><b>Псевдонимы обязательны</b>Одна таблица — две «роли». Имя псевдонима должно говорить о роли: <code>child/parent</code>, <code>e/boss</code>.</div>
+      <div class="box warn"><b>LEFT для корня</b>У гендиректора <code>manager_id IS NULL</code>: INNER JOIN «потеряет» его (34 строки вместо 35).</div>
+    </div>
+  </div>
+  <aside class="notes">Иерархия произвольной глубины — рекурсивный CTE, модуль 9. Здесь — фиксированное число уровней.</aside>
+</section>
+
+<!-- 28 ===================== SELF-JOIN СРАВНЕНИЕ ===================== -->
+<section>
+  <h2>SELF-JOIN для сравнения строк: один материал — разные цены</h2>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT m.material_name,
+       sa.supplier_name AS expensive_supplier, a.unit_price AS expensive_price,
+       sb.supplier_name AS cheap_supplier,     b.unit_price AS cheap_price
+FROM   purchase_order_items AS a
+JOIN   purchase_orders      AS poa ON poa.po_id      = a.po_id
+JOIN   purchase_order_items AS b   ON b.material_id  = a.material_id
+JOIN   purchase_orders      AS pob ON pob.po_id      = b.po_id
+JOIN   suppliers            AS sa  ON sa.supplier_id = poa.supplier_id
+JOIN   suppliers            AS sb  ON sb.supplier_id = pob.supplier_id
+JOIN   raw_materials        AS m   ON m.material_id  = a.material_id
+WHERE  poa.supplier_id &lt;&gt; pob.supplier_id
+  AND  date_trunc('month', poa.order_date) = date_trunc('month', pob.order_date)
+  AND  a.unit_price > b.unit_price * 1.15
+  AND  a.material_id = 4 AND poa.order_date >= DATE '2025-12-01';
+  </code></pre>
+  <div class="er center" data-er="price_pairs" data-scale="0.85"></div>
+  <table class="t">
+    <tr><th>material</th><th>expensive_supplier</th><th>price</th><th>cheap_supplier</th><th>price</th></tr>
+    <tr><td>Сахар-песок</td><td class="hl">ООО "АгроСнаб-М"</td><td class="hl">85.29</td><td>АО "Сахарный комбинат Воронеж"</td><td>65.06</td></tr>
+  </table>
+  <p class="small">Пары без зеркальных дублей — условие <code>a.id &lt; b.id</code> вместо <code>&lt;&gt;</code>.</p>
+</section>
+
+<!-- 29 ===================== РАЗМНОЖЕНИЕ ===================== -->
+<section>
+  <h2>Эффект «размножения строк»</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT SUM(i.amount)
+FROM   invoices AS i;
+-- 821 243 564.75  ✔
+
+SELECT SUM(i.amount), COUNT(*)
+FROM   invoices AS i
+LEFT   JOIN payments AS p
+       ON p.invoice_id = i.invoice_id;
+-- 923 186 907.89 | 4748  ✘
+      </code></pre>
+      <div class="er" data-er="mult_pay"></div>
+      <div class="er" data-er="mult_fan"></div>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>invoice</th><th>invoice_amount</th><th>payment</th></tr>
+        <tr><td>СЧ-2024-00005</td><td class="hl">330 803.11</td><td>165 401.56</td></tr>
+        <tr><td>СЧ-2024-00005</td><td class="hl">330 803.11</td><td>165 401.56</td></tr>
+      </table>
+      <div class="box warn"><b>+101,9 млн руб. «из воздуха»</b>Счёт с двумя оплатами попал в сумму дважды. Две «многие» таблицы к одной (позиции × возвраты заказа) — перемножение: 7 позиций × 3 возврата = 21 строка.</div>
+      <div class="box ok"><b>Вопрос-предохранитель</b>«Одна строка результата — это что?» Сначала агрегируйте «многие», потом соединяйте (модули 4, 5, 9).</div>
+    </div>
+  </div>
+</section>
+
+<!-- 30 ===================== КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: где ошибка?</h2>
+  <p style="font-size:.78em">Аналитик хочет получить пары «сотрудник — коллега с тем же руководителем» без повторов:</p>
+  <div class="two-col" style="align-items:center">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT a.full_name, b.full_name
+FROM   employees AS a
+JOIN   employees AS b ON b.manager_id = a.manager_id
+WHERE  a.manager_id = 5;
+  </code></pre>
+    </div>
+    <div><div class="er center" data-er="quiz_self"></div></div>
+  </div>
+  <ul class="quiz">
+    <li>Ошибки нет — 3 пары</li>
+    <li>Нужен LEFT JOIN</li>
+    <li data-correct>Будут пары «сам с собой» и зеркальные дубли — нужно <code>a.employee_id &lt; b.employee_id</code></li>
+    <li>SELF-JOIN требует CROSS JOIN</li>
+  </ul>
+  <p class="explain">У руководителя 5 трое подчинённых → 3 × 3 = 9 строк: 3 «сам с собой» + 6 зеркальных. Условие <code>a.employee_id &lt; b.employee_id</code> оставляет 3 уникальные пары.</p>
+</section>
+
+<!-- 31 ===================== ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: спроектируйте соединение</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <p>Нужен отчёт: <i>«возвраты по продуктам с регионом клиента и менеджером, причина и срок доставки»</i>.</p>
+      <ol>
+        <li>Перечислите таблицы и связи (нарисуйте цепочку).</li>
+        <li>Где нужен LEFT JOIN? Что потеряется при INNER?</li>
+        <li>Есть ли риск размножения строк?</li>
+      </ol>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <p>Нужен отчёт: <i>«партии с линией, оператором, браком и фактическим расходом каждого материала vs норма»</i>.</p>
+      <ol>
+        <li>Перечислите таблицы и связи.</li>
+        <li>По каким столбцам соединять <code>material_consumption</code>?</li>
+        <li>Какой гранулярности будет результат?</li>
+      </ol>
+    </div>
+  </div>
+  <span class="timer">⏱ 10 мин</span>
+  <aside class="notes">А: returns → orders → customers ⟕ regions (у 3 клиентов NULL — 4 возврата потеряются при INNER), returns → products → product_categories, orders → employees. Гранулярность — один возврат; размножения нет, если не присоединять order_items (иначе возврат × позиции заказа). Б: production_batches → production_lines, → employees (operator_id), → recipes (по product_id), material_consumption по (batch_id, material_id). Гранулярность — партия × материал; брак партии повторяется в каждой строке материала — нельзя суммировать defect_qty после такого JOIN.</aside>
+</section>
+
+<!-- 32 ===================== ОБСУЖДЕНИЕ 3 ===================== -->
+<section class="discussion-slide">
+  <h2>Какой JOIN выбрать?</h2>
+  <table class="t">
+    <tr><th>Вопрос руководства</th><th>Ваш выбор?</th></tr>
+    <tr><td>Какие поставщики в этом году ничего не поставили?</td><td></td></tr>
+    <tr><td>Выручка по каждому менеджеру по месяцам, включая месяцы без продаж</td><td></td></tr>
+    <tr><td>Чем различаются цены одного материала у разных поставщиков?</td><td></td></tr>
+    <tr><td>Какие продукты есть в рецептурах, но не производились в 2025 г.?</td><td></td></tr>
+    <tr><td>Кто руководитель ответственного за линию 2?</td><td></td></tr>
+  </table>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">1) suppliers LEFT JOIN purchase_orders с фильтром года в ON + IS NULL (anti-join). 2) CROSS JOIN менеджеры × месяцы + LEFT JOIN к заказам (условие на месяц в ON). 3) SELF-JOIN purchase_order_items по material_id и месяцу. 4) products JOIN recipes … LEFT JOIN production_batches с фильтром 2025 в ON + IS NULL. 5) production_lines JOIN employees resp JOIN employees boss (self-join).</aside>
+</section>
+
+<!-- 33 ===================== T-SQL vs PG ===================== -->
+<section>
+  <h2>Справка: T-SQL ↔ PostgreSQL</h2>
+  <table class="t">
+    <tr><th>Возможность</th><th>T-SQL (MS SQL Server)</th><th>PostgreSQL</th></tr>
+    <tr><td>INNER / LEFT / RIGHT / FULL / CROSS JOIN</td><td>есть</td><td>есть, синтаксис тот же</td></tr>
+    <tr><td><code>USING (col)</code>, <code>NATURAL JOIN</code></td><td>нет</td><td>есть</td></tr>
+    <tr><td>Устаревший внешний JOIN <code>*=</code></td><td>удалён</td><td>нет</td></tr>
+    <tr><td>CROSS APPLY / OUTER APPLY</td><td>есть</td><td><code>CROSS JOIN LATERAL</code> / <code>LEFT JOIN LATERAL … ON TRUE</code> (модуль 6)</td></tr>
+    <tr><td>Генерация ряда дат для сетки</td><td>рекурсивный CTE / таблица-календарь, <code>GENERATE_SERIES</code> (2022+)</td><td><code>generate_series(start, stop, step)</code></td></tr>
+    <tr><td>Таблица-константа</td><td><code>(VALUES …) AS t(c)</code></td><td><code>(VALUES …) AS t(c)</code></td></tr>
+  </table>
+</section>
+
+<!-- 34 ===================== ЧТО ЗАПОМНИТЬ ===================== -->
+<section>
+  <h2>Что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>Механика</h4>
+      <ul><li>JOIN = произведение + фильтр</li><li>CROSS JOIN — сетка для «нулей»</li><li>LEFT сохраняет левую сторону всегда</li></ul></div>
+    <div class="card orange-top"><h4>Ловушки</h4>
+      <ul><li>фильтр правой таблицы — в ON</li><li>NATURAL JOIN — не использовать</li><li>составной ключ — все столбцы в ON</li><li>SUM «одного» после JOIN с «многими»</li></ul></div>
+    <div class="card green-top"><h4>Приёмы</h4>
+      <ul><li>anti-join: LEFT … IS NULL по PK</li><li>COALESCE для подписей</li><li>SELF-JOIN: роли в псевдонимах, <code>a.id &lt; b.id</code></li><li>сверяйте COUNT(*) после каждого JOIN</li></ul></div>
+  </div>
+</section>
+
+<!-- 35 ===================== ИТОГИ И МОСТ ===================== -->
+<section>
+  <h2>Итоги и мост к модулю 4</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">Что уже «нащупали» команды</p>
+      <ul style="font-size:.72em">
+        <li><span class="badge team-a">А</span> скидки 12–25 % в заказах одного менеджера</li>
+        <li><span class="badge team-a">А</span> клиент с 31 неоплаченным счётом и долгом выше лимита</li>
+        <li><span class="badge team-a">А</span> возвраты с истёкшим сроком в далёких регионах</li>
+        <li><span class="badge team-b">Б</span> брак > 6 % — одна линия, одна смена</li>
+        <li><span class="badge team-b">Б</span> один поставщик дороже других на 20 %+</li>
+        <li><span class="badge team-b">Б</span> перерасход какао на линии 5</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box info"><b>Модуль 4. Группирование и агрегирование</b>Пока мы видим отдельные строки. Чтобы сказать руководству «сколько денег», нужны <code>SUM</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>ROLLUP</code>/<code>CUBE</code> — и аккуратность с размножением строк.</div>
+      <div class="box ok"><b>Лабораторная работа 3</b>Вариант 1 — команда А, Вариант 2 — команда Б. Файл <code>lab.md</code>.</div>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<script>
+/* =====================================================================
+   ER-диаграммы к слайдам с запросами.
+   <div class="er" data-er="КЛЮЧ" data-scale="0.9"></div> — место вставки.
+   Описание таблицы: id, t (имя таблицы), a (псевдоним в запросе), n (подпись — число строк),
+     at:[столбец, ряд] сетки, cols — столбцы: 'имя:pk' | 'имя:fk' | '*имя' (выделить) | 'имя:fk>таблица'.
+     virtual:true — не таблица БД (VALUES, generate_series).
+   Связь: from 'id.столбец' (сторона «много») → to 'id.столбец' (сторона «один»),
+     k: 'fk' (внешний ключ, по умолчанию) | 'join' (условие соединения не по FK) | 'cross' (CROSS JOIN),
+     opt:true — FK допускает NULL (o|), hl:true — выделить оранжевым, side:'l'|'r' — петля сбоку, label.
+   Цвет шапки: синий — команда А, зелёный — команда Б, графит — общие справочники.
+   ===================================================================== */
+var ER_SPECS = {
+  overview:{gx:46,gy:30,label:'Схема данных Питание+ для модуля 3',tables:[
+    {id:'pay',t:'payments',at:[0,0],cols:['payment_id:pk','invoice_id:fk']},
+    {id:'oi',t:'order_items',at:[0,1],cols:['order_item_id:pk','order_id:fk','product_id:fk']},
+    {id:'ret',t:'returns',at:[0,2],cols:['return_id:pk','order_id:fk','product_id:fk']},
+    {id:'inv',t:'invoices',at:[1,0],cols:['invoice_id:pk','order_id:fk']},
+    {id:'o',t:'orders',at:[1,1],cols:['order_id:pk','customer_id:fk','employee_id:fk']},
+    {id:'p',t:'products',at:[1,2],cols:['product_id:pk','category_id:fk']},
+    {id:'pc',t:'product_categories',at:[1,3],cols:['category_id:pk','parent_category_id:fk']},
+    {id:'c',t:'customers',at:[2,0],cols:['customer_id:pk','region_id:fk','manager_id:fk']},
+    {id:'e',t:'employees',at:[2,1],cols:['employee_id:pk','manager_id:fk']},
+    {id:'r',t:'regions',at:[3,0],cols:['region_id:pk']},
+    {id:'rec',t:'recipes',at:[3,2],cols:['recipe_id:pk','product_id:fk','material_id:fk']},
+    {id:'pb',t:'production_batches',at:[3,3],cols:['batch_id:pk','product_id:fk','line_id:fk','operator_id:fk>employees']},
+    {id:'s',t:'suppliers',at:[4,0],cols:['supplier_id:pk','region_id:fk']},
+    {id:'rm',t:'raw_materials',at:[4,1],cols:['material_id:pk']},
+    {id:'mc',t:'material_consumption',at:[4,2],cols:['consumption_id:pk','batch_id:fk','material_id:fk']},
+    {id:'pl',t:'production_lines',at:[4,3],cols:['line_id:pk','responsible_id:fk>employees']},
+    {id:'po',t:'purchase_orders',at:[5,0],cols:['po_id:pk','supplier_id:fk','employee_id:fk>employees']},
+    {id:'poi',t:'purchase_order_items',at:[5,1],cols:['po_item_id:pk','po_id:fk','material_id:fk']},
+    {id:'ed',t:'equipment_downtime',at:[5,3],cols:['downtime_id:pk','line_id:fk']}
+  ],links:[
+    {from:'pay.invoice_id',to:'inv.invoice_id'},
+    {from:'inv.order_id',to:'o.order_id',side:'l'},
+    {from:'oi.order_id',to:'o.order_id'},
+    {from:'oi.product_id',to:'p.product_id'},
+    {from:'ret.order_id',to:'o.order_id'},
+    {from:'ret.product_id',to:'p.product_id'},
+    {from:'o.customer_id',to:'c.customer_id'},
+    {from:'o.employee_id',to:'e.employee_id'},
+    {from:'c.manager_id',to:'e.employee_id',opt:true},
+    {from:'e.manager_id',to:'e.employee_id',opt:true,side:'r'},
+    {from:'c.region_id',to:'r.region_id',opt:true},
+    {from:'p.category_id',to:'pc.category_id',side:'r'},
+    {from:'pc.parent_category_id',to:'pc.category_id',opt:true,side:'l'},
+    {from:'s.region_id',to:'r.region_id',opt:true},
+    {from:'po.supplier_id',to:'s.supplier_id'},
+    {from:'poi.po_id',to:'po.po_id',side:'r'},
+    {from:'poi.material_id',to:'rm.material_id'},
+    {from:'rec.product_id',to:'p.product_id'},
+    {from:'rec.material_id',to:'rm.material_id'},
+    {from:'mc.material_id',to:'rm.material_id',side:'r'},
+    {from:'mc.batch_id',to:'pb.batch_id'},
+    {from:'pb.product_id',to:'p.product_id'},
+    {from:'pb.line_id',to:'pl.line_id'},
+    {from:'ed.line_id',to:'pl.line_id'}
+  ]},
+  cartesian:{gx:90,tables:[
+    {id:'l',t:'production_lines',a:'l',n:'5',at:[0,0],cols:['line_id:pk','line_name']},
+    {id:'s',t:'VALUES',a:'s(shift)',n:'2',virtual:true,at:[1,0],cols:["'День'","'Ночь'"]}
+  ],links:[{from:'l',to:'s',k:'cross',label:'× → 10 строк'}]},
+  join2:{tables:[
+    {id:'o',t:'orders',a:'o',n:'4458',at:[0,0],cols:['order_id:pk','*customer_id:fk','…']},
+    {id:'c',t:'customers',a:'c',n:'73',at:[1,0],cols:['*customer_id:pk','customer_name']}
+  ],links:[{from:'o.customer_id',to:'c.customer_id',label:'4458 пар из 325 434'}]},
+  grid:{gx:70,gy:12,tables:[
+    {id:'d',t:'generate_series',a:'d',n:'31',virtual:true,at:[0,0],cols:['prod_date']},
+    {id:'l',t:'production_lines',a:'l',n:'5',at:[0,1],cols:['line_id:pk']},
+    {id:'s',t:'VALUES',a:'s',n:'2',virtual:true,at:[0,2],cols:['shift']},
+    {id:'b',t:'production_batches',a:'b',at:[1,0],cols:['batch_id:pk','line_id:fk','production_date','shift']}
+  ],links:[
+    {from:'d',to:'l',k:'cross',side:'l'},{from:'l',to:'s',k:'cross',side:'l'},
+    {from:'b.line_id',to:'l.line_id'},
+    {from:'b.production_date',to:'d.prod_date',k:'join'},
+    {from:'b.shift',to:'s.shift',k:'join'}
+  ]},
+  inner:{gy:16,tables:[
+    {id:'o',t:'orders',a:'o',at:[0,0],cols:['order_id:pk','order_number','order_date','customer_id:fk','employee_id:fk']},
+    {id:'c',t:'customers',a:'c',at:[1,0],cols:['customer_id:pk','customer_name']},
+    {id:'e',t:'employees',a:'e',at:[1,1],cols:['employee_id:pk','full_name']}
+  ],links:[{from:'o.customer_id',to:'c.customer_id'},{from:'o.employee_id',to:'e.employee_id'}]},
+  left_join:{tables:[
+    {id:'c',t:'customers',a:'c',n:'73',at:[0,0],cols:['customer_id:pk','customer_name','customer_type','*region_id:fk']},
+    {id:'r',t:'regions',a:'r',n:'12',at:[1,0],cols:['region_id:pk','region_name']}
+  ],links:[{from:'c.region_id',to:'r.region_id',opt:true,label:'NULL у 3 клиентов'}]},
+  right_join:{tables:[
+    {id:'c',t:'customers',a:'c',n:'73',at:[0,0],cols:['*customer_id:pk','customer_name','*manager_id:fk']},
+    {id:'e',t:'employees',a:'e',n:'35',at:[1,0],cols:['employee_id:pk','full_name','position']}
+  ],links:[{from:'c.manager_id',to:'e.employee_id',opt:true,label:'RIGHT: все e'}]},
+  full_join:{gx:60,gy:14,tables:[
+    {id:'y24',t:'2024',a:'y24',n:'25',virtual:true,at:[0,0],cols:['*product_id']},
+    {id:'y25',t:'2025',a:'y25',n:'28',virtual:true,at:[0,1],cols:['*product_id']},
+    {id:'p',t:'products',a:'p',at:[1,0],dy:24,cols:['product_id:pk','product_name']}
+  ],links:[
+    {from:'y25.product_id',to:'y24.product_id',k:'join',hl:true,side:'l',label:'FULL'},
+    {from:'y24.product_id',to:'p.product_id',k:'join'},
+    {from:'y25.product_id',to:'p.product_id',k:'join'}
+  ]},
+  quiz_downtime:{tables:[
+    {id:'l',t:'production_lines',a:'l',n:'5',at:[0,0],cols:['line_id:pk','line_name']},
+    {id:'d',t:'equipment_downtime',a:'d',n:'282',at:[1,0],cols:['downtime_id:pk','line_id:fk','…']}
+  ],links:[{from:'d.line_id',to:'l.line_id',label:'AND 1 = 0',hl:true}]},
+  on_where:{tables:[
+    {id:'c',t:'customers',a:'c',n:'73',at:[0,0],cols:['customer_id:pk','customer_name']},
+    {id:'o',t:'orders',a:'o',at:[1,0],cols:['order_id:pk','customer_id:fk','*order_date']}
+  ],links:[{from:'o.customer_id',to:'c.customer_id'}]},
+  horeca:{tables:[
+    {id:'c',t:'customers',a:'c',n:'73',at:[0,0],cols:['customer_id:pk','*customer_type']},
+    {id:'o',t:'orders',a:'o',n:'4458',at:[1,0],cols:['order_id:pk','customer_id:fk']}
+  ],links:[{from:'o.customer_id',to:'c.customer_id'}]},
+  sales_chain:{gx:50,tables:[
+    {id:'o',t:'orders',a:'o',at:[0,0],cols:['order_id:pk','order_number']},
+    {id:'oi',t:'order_items',a:'oi',at:[1,0],cols:['order_item_id:pk','order_id:fk','product_id:fk','*discount_pct']},
+    {id:'p',t:'products',a:'p',at:[2,0],cols:['product_id:pk','product_name','category_id:fk']},
+    {id:'sub',t:'product_categories',a:'sub',at:[3,0],cols:['category_id:pk','category_name','parent_category_id:fk']},
+    {id:'top',t:'product_categories',a:'top',at:[4,0],cols:['category_id:pk','category_name']}
+  ],links:[
+    {from:'oi.order_id',to:'o.order_id'},{from:'oi.product_id',to:'p.product_id'},
+    {from:'p.category_id',to:'sub.category_id'},{from:'sub.parent_category_id',to:'top.category_id',opt:true}
+  ]},
+  prod_chain:{gx:60,gy:22,tables:[
+    {id:'b',t:'production_batches',a:'b',at:[0,0],cols:['batch_id:pk','product_id:fk','produced_qty']},
+    {id:'r',t:'recipes',a:'r',at:[1,0],cols:['product_id:fk','material_id:fk','qty_per_unit']},
+    {id:'mc',t:'material_consumption',a:'mc',at:[0,1],cols:['*batch_id:fk','*material_id:fk','quantity']},
+    {id:'m',t:'raw_materials',a:'m',at:[1,1],cols:['material_id:pk','material_name']}
+  ],links:[
+    {from:'r.product_id',to:'b.product_id',k:'join'},
+    {from:'mc.batch_id',to:'b.batch_id',side:'l',hl:true},
+    {from:'mc.material_id',to:'r.material_id',k:'join',hl:true},
+    {from:'r.material_id',to:'m.material_id',side:'r'}
+  ]},
+  using:{tables:[
+    {id:'o',t:'orders',a:'o',at:[0,0],cols:['*order_id:pk','order_number']},
+    {id:'i',t:'invoices',a:'i',at:[1,0],cols:['invoice_id:pk','*order_id:fk','invoice_number']}
+  ],links:[{from:'i.order_id',to:'o.order_id',label:'USING (order_id)'}]},
+  natural:{gx:80,tables:[
+    {id:'i',t:'invoices',at:[0,0],cols:['*invoice_id:pk','order_id:fk','*amount']},
+    {id:'p',t:'payments',at:[1,0],cols:['payment_id:pk','*invoice_id:fk','*amount']}
+  ],links:[{from:'p.invoice_id',to:'i.invoice_id'},{from:'p.amount',to:'i.amount',k:'join',hl:true,label:'и это тоже!'}]},
+  anti:{gy:14,gx:70,tables:[
+    {id:'c',t:'customers',a:'c',at:[0,0],cols:['customer_id:pk','customer_name']},
+    {id:'o',t:'orders',a:'o',at:[1,0],cols:['*order_id:pk','customer_id:fk']},
+    {id:'i',t:'invoices',a:'i',at:[0,1],cols:['invoice_id:pk','amount']},
+    {id:'p',t:'payments',a:'p',at:[1,1],cols:['*payment_id:pk','invoice_id:fk']}
+  ],links:[{from:'o.customer_id',to:'c.customer_id'},{from:'p.invoice_id',to:'i.invoice_id'}]},
+  coalesce:{gx:70,tables:[
+    {id:'c',t:'customers',a:'c',at:[0,0],cols:['customer_id:pk','customer_name','*region_id:fk']},
+    {id:'r',t:'regions',a:'r',at:[1,0],cols:['region_id:pk','*region_name','*federal_district']}
+  ],links:[{from:'c.region_id',to:'r.region_id',opt:true,label:'LEFT'}]},
+  case_debt:{gx:48,gy:14,tables:[
+    {id:'i',t:'invoices',a:'i',at:[0,0],cols:['invoice_id:pk','order_id:fk','amount']},
+    {id:'o',t:'orders',a:'o',at:[1,0],cols:['order_id:pk','customer_id:fk']},
+    {id:'c',t:'customers',a:'c',at:[2,0],cols:['customer_id:pk','customer_name','credit_limit']},
+    {id:'p',t:'payments',a:'p',at:[0,1],cols:['*payment_id:pk','invoice_id:fk']}
+  ],links:[
+    {from:'i.order_id',to:'o.order_id'},{from:'o.customer_id',to:'c.customer_id'},
+    {from:'p.invoice_id',to:'i.invoice_id',side:'l',hl:true,label:'⟕ IS NULL'}
+  ]},
+  self_emp:{gx:44,tables:[
+    {id:'e',t:'employees',a:'e',at:[0,0],cols:['employee_id:pk','full_name','*manager_id:fk']},
+    {id:'m1',t:'employees',a:'m1',at:[1,0],cols:['*employee_id:pk','full_name','*manager_id:fk']},
+    {id:'m2',t:'employees',a:'m2',at:[2,0],cols:['*employee_id:pk','full_name']}
+  ],links:[{from:'e.manager_id',to:'m1.employee_id',opt:true},{from:'m1.manager_id',to:'m2.employee_id',opt:true,label:'LEFT'}]},
+  self_cat:{gx:60,tables:[
+    {id:'ch',t:'product_categories',a:'child',at:[0,0],cols:['category_id:pk','category_name','*parent_category_id:fk']},
+    {id:'pa',t:'product_categories',a:'parent',at:[1,0],cols:['*category_id:pk','category_name']}
+  ],links:[{from:'ch.parent_category_id',to:'pa.category_id',opt:true}]},
+  price_pairs:{gx:64,gy:18,tables:[
+    {id:'sa',t:'suppliers',a:'sa',at:[0,0],cols:['supplier_id:pk','supplier_name']},
+    {id:'poa',t:'purchase_orders',a:'poa',at:[1,0],cols:['po_id:pk','supplier_id:fk','order_date']},
+    {id:'a',t:'purchase_order_items',a:'a',at:[2,0],cols:['po_id:fk','*material_id:fk','*unit_price']},
+    {id:'m',t:'raw_materials',a:'m',at:[3,0],dy:20,cols:['material_id:pk','material_name']},
+    {id:'sb',t:'suppliers',a:'sb',at:[0,1],cols:['supplier_id:pk','supplier_name']},
+    {id:'pob',t:'purchase_orders',a:'pob',at:[1,1],cols:['po_id:pk','supplier_id:fk','order_date']},
+    {id:'b',t:'purchase_order_items',a:'b',at:[2,1],cols:['*material_id:fk','po_id:fk','*unit_price']}
+  ],links:[
+    {from:'poa.supplier_id',to:'sa.supplier_id'},{from:'a.po_id',to:'poa.po_id'},
+    {from:'pob.supplier_id',to:'sb.supplier_id'},{from:'b.po_id',to:'pob.po_id'},
+    {from:'a.material_id',to:'m.material_id'},
+    {from:'b.material_id',to:'a.material_id',k:'join',hl:true,side:'l'}
+  ]},
+  mult_pay:{gx:80,tables:[
+    {id:'i',t:'invoices',a:'i',at:[0,0],cols:['invoice_id:pk','*amount']},
+    {id:'p',t:'payments',a:'p',at:[1,0],cols:['payment_id:pk','invoice_id:fk','amount']}
+  ],links:[{from:'p.invoice_id',to:'i.invoice_id',label:'1 счёт → N оплат',hl:true}]},
+  mult_fan:{gx:56,tables:[
+    {id:'oi',t:'order_items',n:'7',at:[0,0],cols:['order_item_id:pk','order_id:fk']},
+    {id:'o',t:'orders',n:'1',at:[1,0],cols:['order_id:pk']},
+    {id:'r',t:'returns',n:'3',at:[2,0],cols:['return_id:pk','order_id:fk']}
+  ],links:[{from:'oi.order_id',to:'o.order_id',hl:true},{from:'r.order_id',to:'o.order_id',hl:true}]},
+  quiz_self:{gx:90,tables:[
+    {id:'a',t:'employees',a:'a',at:[0,0],cols:['employee_id:pk','full_name','*manager_id:fk']},
+    {id:'b',t:'employees',a:'b',at:[1,0],cols:['employee_id:pk','full_name','*manager_id:fk']}
+  ],links:[{from:'b.manager_id',to:'a.manager_id',k:'join',hl:true}]}
+};
+
+(function(){
+  var NS='http://www.w3.org/2000/svg', FONT="'Segoe UI',Tahoma,Geneva,Verdana,sans-serif";
+  var FS=14, HFS=14.5, RH=21, HH=27, PX=10, TAG=27, ST=16;
+  var TEAM={customers:'a',orders:'a',order_items:'a',invoices:'a',payments:'a',returns:'a',sales_plan:'a',expenses:'a',price_history:'a',
+    suppliers:'b',raw_materials:'b',recipes:'b',production_lines:'b',production_batches:'b',material_consumption:'b',
+    equipment_downtime:'b',purchase_orders:'b',purchase_order_items:'b',material_writeoffs:'b'};
+  var HEAD={a:'#4472C4',b:'#548235',s:'#44546A',v:'#8a94a6'}, LINE='#44546A', HL='#ED7D31';
+  var cv=document.createElement('canvas').getContext('2d');
+  function tw(s,w,size){cv.font=w+' '+size+'px '+FONT;return cv.measureText(s).width;}
+  function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function txt(p,x,y,s,a){a=a||{};a.x=x;a.y=y;a['font-family']=FONT;var t=el('text',a,p);if(s!=null)t.textContent=s;return t;}
+  function span(t,s,a){var e=el('tspan',a||{},t);e.textContent=s;return e;}
+  function parseCol(s){var c={hl:false,note:''};if(s.charAt(0)=='*'){c.hl=true;s=s.slice(1);}
+    var i=s.indexOf('>');if(i>=0){c.note='→ '+s.slice(i+1);s=s.slice(0,i);}
+    var p=s.split(':');c.name=p[0];c.key=(p[1]||'').toUpperCase();c.muted=(c.name=='…');return c;}
+
+  function render(box,spec){
+    var T={},list=spec.tables,gx=spec.gx||56,gy=spec.gy||22;
+    list.forEach(function(t){
+      t.c=t.cols.map(parseCol);
+      t.team=t.virtual?'v':(TEAM[t.t]||'s');
+      var hw=tw(t.t,700,HFS)+(t.a?tw(' '+t.a,400,HFS):0)+(t.n?tw(t.n,600,11.5)+22:0), cw=0;
+      t.c.forEach(function(c){cw=Math.max(cw,TAG+tw(c.name,c.hl?700:400,FS)+(c.note?tw(' '+c.note,400,12):0));});
+      t.w=Math.ceil(Math.max(hw,cw)+2*PX); t.h=HH+t.c.length*RH+4; T[t.id]=t;
+    });
+    var cw=[],rh=[],cx=[0],ry=[0],i;
+    list.forEach(function(t){var c=t.at[0],r=t.at[1];cw[c]=Math.max(cw[c]||0,t.w);rh[r]=Math.max(rh[r]||0,t.h+(t.dy||0));});
+    var need=[];   // зазор между соседними столбцами сетки должен вмещать подпись связи
+    (spec.links||[]).forEach(function(L){var lab=L.label||(L.k=='cross'?'×':'');if(!lab)return;
+      var ca=T[L.from.split('.')[0]].at[0],cb=T[L.to.split('.')[0]].at[0];
+      if(Math.abs(ca-cb)==1){var m=Math.min(ca,cb);need[m]=Math.max(need[m]||0,tw(lab,700,12)+12+2*ST+28);}});
+    for(i=1;i<cw.length;i++)cx[i]=cx[i-1]+(cw[i-1]||0)+Math.max(gx,need[i-1]||0);
+    for(i=1;i<rh.length;i++)ry[i]=ry[i-1]+(rh[i-1]||0)+gy;
+    var W=0,H=0,minX=0,maxX=0;
+    list.forEach(function(t){t.x=cx[t.at[0]]+((cw[t.at[0]]-t.w)/2);t.y=ry[t.at[1]]+(t.dy||0);
+      W=Math.max(W,t.x+t.w);H=Math.max(H,t.y+t.h);});
+    maxX=W;
+
+    var svg=el('svg',{role:'img','aria-label':spec.label||'ER-диаграмма'});
+    var gL=el('g',{},svg),gB=el('g',{},svg),gT=el('g',{},svg);
+
+    function rowY(t,name){if(!name)return t.y+HH/2;
+      for(var k=0;k<t.c.length;k++)if(t.c[k].name==name)return t.y+HH+k*RH+RH/2;
+      throw new Error('ER: нет столбца '+t.t+'.'+name);}
+
+    (spec.links||[]).forEach(function(L){
+      var fa=L.from.split('.'),fb=L.to.split('.'),A=T[fa[0]],B=T[fb[0]],k=L.k||'fk';
+      var ya=rowY(A,fa[1]),yb=rowY(B,fb[1]),sa,sb;
+      if(L.side){sa=sb=L.side;}else if(A.x+A.w<=B.x){sa='r';sb='l';}else if(B.x+B.w<=A.x){sa='l';sb='r';}else{sa=sb='r';}
+      var xa=sa=='r'?A.x+A.w:A.x,xb=sb=='r'?B.x+B.w:B.x,da=sa=='r'?1:-1,db=sb=='r'?1:-1;
+      var d=sa==sb?22+Math.abs(yb-ya)*0.16:Math.max(18,(Math.abs(xb-xa)-2*ST)*0.5);
+      var p0=[xa+da*ST,ya],p3=[xb+db*ST,yb],p1=[p0[0]+da*d,ya],p2=[p3[0]+db*d,yb];
+      var col=L.hl?HL:(k=='join'?'#4472C4':(k=='cross'?'#8a94a6':LINE)),sw=L.hl?2.4:1.6;
+      el('path',{d:'M'+xa+','+ya+' H'+p0[0]+' C'+p1.join(',')+' '+p2.join(',')+' '+p3.join(',')+' H'+xb,
+        fill:'none',stroke:col,'stroke-width':sw,'stroke-linecap':'round',
+        'stroke-dasharray':k=='join'?'2 5':(k=='cross'?'7 5':'none')},gL);
+      minX=Math.min(minX,p1[0],p2[0]);maxX=Math.max(maxX,p1[0],p2[0]);
+      var ln=function(x1,y1,x2,y2){el('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col,'stroke-width':sw},gL);};
+      if(k=='fk'){
+        ln(xa+da*13,ya,xa,ya-7);ln(xa+da*13,ya,xa,ya+7);            // «воронья лапка» — сторона «много»
+        ln(xb+db*7,yb-7,xb+db*7,yb+7);                                // сторона «один»
+        if(L.opt)el('circle',{cx:xb+db*13,cy:yb,r:4,fill:'#fff',stroke:col,'stroke-width':sw},gL);
+        else ln(xb+db*12,yb-7,xb+db*12,yb+7);
+      }else if(k=='join'){
+        el('circle',{cx:xa+da*4,cy:ya,r:3.5,fill:col},gL);el('circle',{cx:xb+db*4,cy:yb,r:3.5,fill:col},gL);
+      }
+      var lab=L.label||(k=='cross'?'×':'');
+      if(lab){
+        var mx=(p0[0]+3*p1[0]+3*p2[0]+p3[0])/8,my=(p0[1]+3*p1[1]+3*p2[1]+p3[1])/8,lw=tw(lab,700,12)+12;
+        el('rect',{x:mx-lw/2,y:my-10,width:lw,height:20,rx:10,fill:'#fff',stroke:col,'stroke-width':1.2},gT);
+        txt(gT,mx,my+4,lab,{'font-size':12,'font-weight':700,fill:L.hl?'#C55A11':(k=='cross'?'#6b7280':'#2f5597'),'text-anchor':'middle'});
+        minX=Math.min(minX,mx-lw/2);maxX=Math.max(maxX,mx+lw/2);H=Math.max(H,my+11);
+      }
+    });
+
+    list.forEach(function(t){
+      var g=el('g',{transform:'translate('+t.x+','+t.y+')'},gB),hc=HEAD[t.team];
+      el('rect',{x:0,y:0,width:t.w,height:t.h,rx:6,fill:'#fff',stroke:hc,'stroke-width':1.6,
+        'stroke-dasharray':t.virtual?'5 3':'none'},g);
+      el('path',{d:'M0,6 a6,6 0 0 1 6,-6 h'+(t.w-12)+' a6,6 0 0 1 6,6 v'+(HH-6)+' h'+(-t.w)+' z',fill:hc},g);
+      var ht=txt(g,PX,HH/2+5,null,{'font-size':HFS,fill:'#fff'});
+      span(ht,t.t,{'font-weight':700});if(t.a)span(ht,' '+t.a,{'fill-opacity':.8});
+      if(t.n)txt(g,t.w-PX,HH/2+4,t.n,{'font-size':11.5,'font-weight':600,fill:'#fff','fill-opacity':.85,'text-anchor':'end'});
+      t.c.forEach(function(c,j){
+        var y0=HH+j*RH+2;
+        if(c.hl)el('rect',{x:1.5,y:y0,width:t.w-3,height:RH,fill:'#fde9dc'},g);
+        if(c.key)txt(g,PX,y0+RH/2+4,c.key,{'font-size':10,'font-weight':700,fill:c.key=='PK'?'#C55A11':'#4472C4'});
+        var ct=txt(g,PX+TAG,y0+RH/2+5,null,{'font-size':FS,fill:c.muted?'#9aa4b2':(c.hl?'#C55A11':'#2c3e50'),'font-weight':c.hl?700:400});
+        span(ct,c.name);if(c.note)span(ct,' '+c.note,{'font-size':12,fill:'#6b7280','font-weight':400});
+      });
+    });
+
+    var vx=minX-4,vw=maxX-minX+8,vh=H+8,sc=parseFloat(box.getAttribute('data-scale')||'1');
+    svg.setAttribute('viewBox',vx+' -4 '+vw+' '+vh);
+    svg.setAttribute('width',Math.round(vw*sc));svg.setAttribute('height',Math.round(vh*sc));
+    box.appendChild(svg);
+  }
+  document.querySelectorAll('.er[data-er]').forEach(function(box){
+    var spec=ER_SPECS[box.getAttribute('data-er')];
+    if(spec)render(box,JSON.parse(JSON.stringify(spec)));
+  });
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
