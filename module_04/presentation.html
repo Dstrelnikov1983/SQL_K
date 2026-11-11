@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 4 — Группирование и агрегирование данных</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+
+/* --- слайд «Порядок выполнения SELECT» --- */
+.qo-wrap{display:flex;gap:1.2em;align-items:stretch}
+.qo-wrap>div{flex:1;min-width:0}
+.qo-h{font-size:.62em;font-weight:700;color:var(--accent1);margin:0 0 .3em 0;text-transform:uppercase;letter-spacing:.04em}
+.qo-code{background:var(--code-bg);border-radius:8px;padding:10px 14px;font-family:Consolas,'Courier New',monospace;
+  font-size:.5em;line-height:1.75;color:#d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.qo-code .ln{display:flex;align-items:center;gap:10px;border-radius:5px;padding:0 6px}
+.qo-code .kw{color:#569cd6;font-weight:700;min-width:6.2em;display:inline-block;white-space:pre}
+.qo-code .cm{color:#6a9955}
+.qo-code .n{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;
+  background:#3a3d41;color:#cfd3d8;font-size:.85em;font-weight:700;flex:none}
+.qo-code .ln.focus{background:rgba(237,125,49,.30)}
+.qo-code .ln.focus .n{background:var(--accent2);color:#fff}
+.qo-code .ln.rel{background:rgba(237,125,49,.10)}
+.qo-code .ln.rel .n{background:#8a5a36;color:#fff}
+.qo-steps{list-style:none;margin:0!important;padding:0;font-size:.52em}
+.qo-steps li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e8f2;border-left:6px solid #c9d3e6;
+  border-radius:6px;padding:3px 10px;margin:0 0 4px 0;line-height:1.3;color:var(--muted)}
+.qo-steps li .n{font-weight:800;color:#9aa4b2;width:1.2em;text-align:right;flex:none}
+.qo-steps li .k{font-family:Consolas,'Courier New',monospace;font-weight:700;color:var(--text);min-width:7.4em}
+.qo-steps li .d{flex:1}
+.qo-steps li .m{font-size:.85em;background:#eef2fa;color:var(--accent1);border-radius:10px;padding:0 8px;font-weight:700;white-space:nowrap}
+.qo-steps li.focus{border-left-color:var(--accent2);background:#fff3e8;color:var(--text);box-shadow:0 2px 6px rgba(237,125,49,.25)}
+.qo-steps li.focus .n,.qo-steps li.focus .k{color:var(--accent2)}
+.qo-steps li.focus .m{background:var(--accent2);color:#fff}
+.qo-steps li.rel{border-left-color:#f3b88f;background:#fffaf5}
+.qo-steps li.done{border-left-color:var(--accent6)}
+.qo-legend{font-size:.5em;color:var(--muted);margin-top:.3em}
+.qo-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- 1 ===================== ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 4</div>
+  <h1>Группирование и агрегирование данных</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">От отдельных строк — к цифрам для руководства: «сколько денег теряем»</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 3 ак. ч.</div>
+  <aside class="notes">В модуле 3 команды «нащупали» проблемы на уровне строк. Задача модуля 4 — превратить строки в суммы, проценты и отчёты с итогами, не исказив цифры.</aside>
+</section>
+
+<!-- 2 ===================== ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">После модуля вы сможете:</p>
+      <ul style="font-size:.76em">
+        <li>выбирать агрегат и понимать, как он обходится с NULL</li>
+        <li>использовать <code>FILTER</code>, <code>STRING_AGG</code>, медиану</li>
+        <li>группировать по нескольким столбцам и выражениям</li>
+        <li>различать <code>WHERE</code> и <code>HAVING</code> через порядок выполнения</li>
+        <li>строить отчёты с итогами: <code>ROLLUP</code>, <code>CUBE</code>, <code>GROUPING SETS</code></li>
+        <li>избегать «среднего от процентов» и размножения строк</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Агрегатные функции и NULL, функции PG, FILTER</td><td>30</td></tr>
+        <tr><td>GROUP BY, порядок выполнения, HAVING</td><td>30</td></tr>
+        <tr><td>Типичные ошибки</td><td>15</td></tr>
+        <tr><td>ROLLUP, CUBE, GROUPING SETS, GROUPING()</td><td>30</td></tr>
+        <tr><td>Кейс, групповая работа, квизы, итоги</td><td>30</td></tr>
+      </table>
+      <p class="small">Лабораторная работа — отдельное занятие (70 + 15 мин)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ПОРЯДОК ВЫПОЛНЕНИЯ SELECT (общая схема курса) ===================== -->
+<section>
+  <h2>Как выполняется SELECT … FROM: что разбираем сегодня</h2>
+  <div class="qo-wrap">
+    <div>
+      <p class="qo-h">Как мы пишем (синтаксический порядок)</p>
+      <div class="qo-code">
+        <div class="ln rel"><span class="n">6</span><span class="kw">SELECT</span><span>столбцы, выражения <span class='cm'>-- окна OVER(…) — шаг 5</span></span></div>
+        <div class="ln "><span class="n">7</span><span class="kw">DISTINCT</span><span><span class='cm'>-- необязательно</span></span></div>
+        <div class="ln "><span class="n">1</span><span class="kw">FROM</span><span>таблица t</span></div>
+        <div class="ln "><span class="n">1</span><span class="kw">  JOIN</span><span>таблица2 ON …</span></div>
+        <div class="ln "><span class="n">2</span><span class="kw">WHERE</span><span>условие на строки</span></div>
+        <div class="ln focus"><span class="n">3</span><span class="kw">GROUP BY</span><span>ключи группировки</span></div>
+        <div class="ln focus"><span class="n">4</span><span class="kw">HAVING</span><span>условие на группы</span></div>
+        <div class="ln "><span class="n">8</span><span class="kw">ORDER BY</span><span>столбцы [ASC | DESC]</span></div>
+        <div class="ln "><span class="n">9</span><span class="kw">LIMIT</span><span>n OFFSET m;</span></div>
+      </div>
+      <p class="qo-legend">цифра в кружке — номер шага выполнения</p>
+    </div>
+    <div>
+      <p class="qo-h">Как выполняет СУБД (логический порядок)</p>
+      <ul class="qo-steps">
+        <li class="done"><span class="n">1</span><span class="k">FROM / JOIN</span><span class="d">таблицы, JOIN, подзапросы</span><span class="m">М3 · М5</span></li>
+        <li class="done"><span class="n">2</span><span class="k">WHERE</span><span class="d">фильтр отдельных строк</span><span class="m">М1</span></li>
+        <li class="focus"><span class="n">3</span><span class="k">GROUP BY</span><span class="d">строки → группы <b class="orange">← сегодня</b></span><span class="m">М4</span></li>
+        <li class="focus"><span class="n">4</span><span class="k">HAVING</span><span class="d">фильтр групп <b class="orange">← сегодня</b></span><span class="m">М4</span></li>
+        <li class=""><span class="n">5</span><span class="k">OVER (…)</span><span class="d">оконные функции</span><span class="m">М8</span></li>
+        <li class="rel"><span class="n">6</span><span class="k">SELECT</span><span class="d">выражения, функции, псевдонимы</span><span class="m">М2</span></li>
+        <li class="done"><span class="n">7</span><span class="k">DISTINCT</span><span class="d">удаление дублей</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">8</span><span class="k">ORDER BY</span><span class="d">сортировка</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">9</span><span class="k">LIMIT/OFFSET</span><span class="d">отсечение строк</span><span class="m">М1</span></li>
+      </ul>
+      <p class="qo-legend"><span style="background:var(--accent2)"></span>тема модуля<span style="background:#f3b88f"></span>связано с темой<span style="background:var(--accent6)"></span>уже изучено</p>
+    </div>
+  </div>
+  <div class="box warn" style="font-size:.62em;margin-top:.5em"><b>Сегодня: шаги 3 GROUP BY и 4 HAVING</b>После шага 3 запрос работает уже не со строками, а с <b>группами</b>: в SELECT можно писать только ключи группировки и агрегаты. <code>WHERE</code> фильтрует строки <i>до</i> группировки, <code>HAVING</code> — группы <i>после</i>. Агрегат в WHERE — ошибка.</div>
+  <aside class="notes">Вопрос аудитории: где правильнее отбросить отменённые заказы — в WHERE или в HAVING? Почему результат и скорость могут отличаться?</aside>
+</section>
+
+
+<!-- 3 ===================== ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: что вы уже использовали?</h2>
+  <p>Кликайте по варианту (можно несколько раз от разных людей; Shift+клик — убрать).</p>
+  <ul class="poll">
+    <li><span style="width:15em"><code>GROUP BY</code> + <code>HAVING</code></span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em"><code>COUNT(DISTINCT …)</code></span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em"><code>ROLLUP</code> / <code>CUBE</code></span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Сводные таблицы Excel / BI</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Ничего из этого</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Если многие знают сводные таблицы Excel — опирайтесь на аналогию: GROUP BY = строки сводной, агрегат = значения, ROLLUP/CUBE = промежуточные и общие итоги.</aside>
+</section>
+
+<!-- 4 ===================== ЗАЧЕМ ===================== -->
+<section>
+  <h2>От строк к деньгам</h2>
+  <div class="two-col">
+    <div class="card"><h4>Модуль 3: «видим строки»</h4>
+      <ul>
+        <li>позиции со скидкой 12–25 %</li>
+        <li>31 неоплаченный счёт одного клиента</li>
+        <li>625 партий с браком &gt; 6 %</li>
+        <li>пары закупок с переплатой 20 %+</li>
+      </ul>
+    </div>
+    <div class="card green-top"><h4>Модуль 4: «считаем деньги»</h4>
+      <ul>
+        <li>сколько рублей скидок сверх политики?</li>
+        <li>какой долг и во сколько раз выше лимита?</li>
+        <li>какой процент брака в каждой ячейке «линия × смена»?</li>
+        <li>сколько переплачено поставщику за 2 года?</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box info"><b>Руководство мыслит итогами</b>«4 167 позиций» не убеждает. «38,8 млн руб. скидок, из них 17,3 млн — сверх политики» — убеждает.</div>
+</section>
+
+<!-- 5 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Агрегатные функции</h2>
+  <p>COUNT, SUM, AVG, MIN, MAX и их отношение к NULL</p>
+</section>
+
+<!-- 6 ===================== COUNT ===================== -->
+<section>
+  <h2>Три разных COUNT</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)                  AS customers_total,
+       COUNT(region_id)          AS with_region,
+       COUNT(email)              AS with_email,
+       COUNT(DISTINCT region_id) AS distinct_regions,
+       COUNT(DISTINCT inn)       AS distinct_inn
+FROM   customers;
+      </code></pre>
+      <table class="t">
+        <tr><th>total</th><th>with_region</th><th>with_email</th><th>regions</th><th>inn</th></tr>
+        <tr><td>73</td><td>70</td><td>52</td><td>12</td><td class="hl">69</td></tr>
+      </table>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Выражение</th><th>Считает</th></tr>
+        <tr><td><code>COUNT(*)</code></td><td>строки (включая NULL)</td></tr>
+        <tr><td><code>COUNT(col)</code></td><td>строки, где <code>col IS NOT NULL</code></td></tr>
+        <tr><td><code>COUNT(DISTINCT col)</code></td><td>различные не-NULL значения</td></tr>
+      </table>
+      <div class="box warn"><b>73 клиента, 69 ИНН</b>Значит, у части ИНН несколько карточек — дубли. Вернёмся на слайде про HAVING.</div>
+      <div class="box info"><b>Приём</b><code>COUNT(*) - COUNT(shipped_date)</code> = 216 неотгруженных заказов.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 ===================== SUM AVG NULL ===================== -->
+<section>
+  <h2>SUM, AVG и NULL</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)                           AS suppliers,
+       COUNT(rating)                      AS rated,
+       ROUND(AVG(rating), 2)              AS avg_rating,
+       ROUND(AVG(COALESCE(rating, 0)), 2) AS avg_null_as_0
+FROM   suppliers;
+-- 12 | 11 | 4.28 | 3.93
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT SUM(amount),                 -- NULL
+       COALESCE(SUM(amount), 0),    -- 0
+       COUNT(*)                     -- 0
+FROM   payments
+WHERE  payment_date > DATE '2030-01-01';
+      </code></pre>
+    </div>
+    <div>
+      <div class="box info"><b>Все агрегаты, кроме COUNT(*), игнорируют NULL</b><code>AVG = SUM(не-NULL) / COUNT(не-NULL)</code>. Новый поставщик без рейтинга не «тянет» среднее вниз.</div>
+      <div class="box warn"><b>SUM пустого набора — NULL</b>В отчётах и арифметике оборачивайте в <code>COALESCE(SUM(...), 0)</code>, иначе <code>выручка - NULL = NULL</code>.</div>
+      <div class="box ok"><b>MIN / MAX</b>Работают с числами, датами и строками: <code>MIN(order_date)</code> = 2024-01-01, <code>MAX(discount_pct)</code> = 25.00.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 ===================== КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: AVG и NULL</h2>
+  <p style="font-size:.8em">В столбце <code>rating</code> значения: 4, 5, NULL, 3. Что вернёт <code>AVG(rating)</code>?</p>
+  <ul class="quiz">
+    <li>3.00</li>
+    <li data-correct>4.00</li>
+    <li>NULL</li>
+    <li>Ошибку</li>
+  </ul>
+  <p class="explain">NULL игнорируется: (4 + 5 + 3) / 3 = 4. Если бы NULL считался нулём — получили бы 3. Если все значения NULL — AVG вернёт NULL.</p>
+</section>
+
+<!-- 9 ===================== ФУНКЦИИ PG ===================== -->
+<section>
+  <h2>Агрегаты PostgreSQL: STRING_AGG, ARRAY_AGG, BOOL_AND</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT l.line_name,
+       COUNT(DISTINCT b.product_id)                    AS products_cnt,
+       STRING_AGG(DISTINCT p.sku, ', ' ORDER BY p.sku) AS skus,
+       ARRAY_AGG(DISTINCT b.shift)                     AS shifts
+FROM   production_batches AS b
+JOIN   production_lines   AS l ON l.line_id    = b.line_id
+JOIN   products           AS p ON p.product_id = b.product_id
+GROUP  BY l.line_id, l.line_name;
+  </code></pre>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- есть ли в заказе позиция сверх политики?
+SELECT order_id,
+       BOOL_AND(discount_pct &lt;= 10) AS all_ok,
+       BOOL_OR (discount_pct &gt;  10) AS any_bad
+FROM   order_items
+GROUP  BY order_id;
+-- 1136 заказов из 4458 с нарушением
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Функция</th><th>Результат</th></tr>
+        <tr><td><code>STRING_AGG(x, ', ')</code></td><td>строка-список</td></tr>
+        <tr><td><code>ARRAY_AGG(x)</code></td><td>массив</td></tr>
+        <tr><td><code>BOOL_AND / BOOL_OR</code></td><td>«все» / «хотя бы один»</td></tr>
+      </table>
+      <p class="small">T-SQL: <code>STRING_AGG</code> есть (2017+), <code>ARRAY_AGG</code> и <code>BOOL_*</code> — нет (MIN/MAX по CASE).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10 ===================== ПЕРЦЕНТИЛИ ===================== -->
+<section>
+  <h2>Медиана, перцентили, мода — обзорно</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT ROUND(AVG(amount), 2) AS avg_invoice,
+       PERCENTILE_CONT(0.5)
+         WITHIN GROUP (ORDER BY amount) AS median,
+       PERCENTILE_CONT(0.9)
+         WITHIN GROUP (ORDER BY amount) AS p90
+FROM   invoices;
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT MODE() WITHIN GROUP (ORDER BY payment_method)
+FROM   payments;     -- 'Банковский перевод'
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Показатель</th><th>Счёт, руб.</th></tr>
+        <tr><td>Среднее</td><td>193 598</td></tr>
+        <tr><td>Медиана</td><td class="hl">163 852</td></tr>
+      </table>
+      <div class="box info"><b>Упорядоченные агрегаты</b><code>WITHIN GROUP (ORDER BY …)</code>: <code>PERCENTILE_CONT</code> — интерполяция, <code>PERCENTILE_DISC</code> — реальное значение из набора, <code>MODE()</code> — самое частое.</div>
+      <div class="box warn"><b>Среднее &gt; медианы</b>Распределение скошено вправо: несколько крупных счетов сетей «тянут» среднее вверх.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 ===================== FILTER ===================== -->
+<section>
+  <h2>FILTER (WHERE …) — условная агрегация</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT e.full_name,
+       COUNT(*)                                     AS items,
+       COUNT(*) FILTER (WHERE oi.discount_pct > 10) AS items_over_10,
+       ROUND(AVG(oi.discount_pct), 2)               AS avg_discount
+FROM   order_items AS oi
+JOIN   orders      AS o ON o.order_id    = oi.order_id
+JOIN   employees   AS e ON e.employee_id = o.employee_id
+WHERE  o.status &lt;&gt; 'Отменён'
+GROUP  BY e.employee_id, e.full_name
+ORDER  BY items_over_10 DESC;
+  </code></pre>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>full_name</th><th>items</th><th>over_10</th><th>avg</th></tr>
+        <tr><td>Соколов Игорь Андреевич</td><td>4167</td><td class="hl">4167</td><td class="hl">18.01</td></tr>
+        <tr><td>Попов Станислав Игоревич</td><td>133</td><td>53</td><td>8.29</td></tr>
+        <tr><td>Волков Денис Сергеевич</td><td>893</td><td>0</td><td>2.84</td></tr>
+      </table>
+    </div>
+    <div class="box info">
+      <b>Переносимый аналог</b>
+      <code style="display:inline-block;margin:.25em 0 .4em;white-space:nowrap">SUM(CASE WHEN cond THEN 1 ELSE 0 END)</code><br>
+      FILTER — стандарт SQL:2003, читается проще и работает с любым агрегатом:
+      <code style="white-space:nowrap">SUM(x) FILTER (…)</code>, <code style="white-space:nowrap">AVG(x) FILTER (…)</code>.
+    </div>
+  </div>
+</section>
+
+<!-- 12 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>GROUP BY и HAVING</h2>
+  <p>Группировка, порядок выполнения, фильтр групп</p>
+</section>
+
+<!-- 13 ===================== GROUP BY ===================== -->
+<section>
+  <h2>GROUP BY по нескольким столбцам</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT b.line_id,
+       b.shift,
+       COUNT(*)            AS batches,
+       SUM(b.produced_qty) AS produced,
+       SUM(b.defect_qty)   AS defects,
+       ROUND(100.0 * SUM(b.defect_qty)
+                   / SUM(b.produced_qty), 2) AS defect_pct
+FROM   production_batches AS b
+GROUP  BY b.line_id, b.shift
+ORDER  BY b.line_id, b.shift;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>line</th><th>shift</th><th>produced</th><th>defect_pct</th></tr>
+        <tr><td>1</td><td>День</td><td>665 828</td><td>1.65</td></tr>
+        <tr><td>2</td><td>День</td><td>645 865</td><td>2.34</td></tr>
+        <tr><td>3</td><td>День</td><td>986 128</td><td>1.62</td></tr>
+        <tr><td>3</td><td>Ночь</td><td>967 425</td><td class="hl">7.94</td></tr>
+        <tr><td>4</td><td>Ночь</td><td>897 035</td><td>1.65</td></tr>
+        <tr><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+      </table>
+      <p class="small">Одна строка результата = одна уникальная комбинация (line_id, shift). 10 строк.</p>
+      <div class="box warn"><b>100.0, а не 100</b>Иначе integer / integer → целочисленное деление.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 ===================== GROUP BY выражение ===================== -->
+<section>
+  <h2>Группировка по выражению: date_trunc, CASE</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT date_trunc('month', o.order_date)::date AS month,
+       COUNT(DISTINCT o.order_id)              AS orders,
+       ROUND(SUM(oi.quantity * oi.unit_price
+                 * (1 - oi.discount_pct / 100))) AS revenue
+FROM   orders      AS o
+JOIN   order_items AS oi ON oi.order_id = o.order_id
+WHERE  o.status &lt;&gt; 'Отменён'
+  AND  o.order_date >= DATE '2025-01-01'
+GROUP  BY date_trunc('month', o.order_date)
+ORDER  BY month;
+      </code></pre>
+      <p class="small">Июль 2025 — 24,7 млн (минимум), декабрь — 44,7 млн (максимум).</p>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT CASE
+         WHEN credit_limit >= 10000000 THEN 'Крупный'
+         WHEN credit_limit >=  1000000 THEN 'Средний'
+         ELSE 'Малый'
+       END      AS limit_group,
+       COUNT(*) AS customers
+FROM   customers
+GROUP  BY limit_group;   -- только PG: псевдоним в GROUP BY
+      </code></pre>
+      <div class="box info"><b>Псевдоним в GROUP BY — особенность PostgreSQL</b>По стандарту SQL нельзя; в SQL Server и Oracle (до 23ai) — ошибка. Переносимо: повторить выражение или вынести его в CTE.</div>
+      <div class="box warn"><b>COUNT(DISTINCT o.order_id)</b>После JOIN строки — позиции. <code>COUNT(*)</code> посчитал бы позиции, а не заказы.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 ===================== ПОРЯДОК ВЫПОЛНЕНИЯ ===================== -->
+<section>
+  <h2>Логический порядок выполнения запроса</h2>
+  <table class="t" style="font-size:.66em">
+    <tr><th>#</th><th>Предложение</th><th>Что происходит</th><th>Доступны псевдонимы SELECT?</th></tr>
+    <tr><td>1</td><td><code>FROM / JOIN</code></td><td>собираем строки-источники</td><td>нет</td></tr>
+    <tr><td>2</td><td><code>WHERE</code></td><td>фильтруем <b>строки</b></td><td>нет</td></tr>
+    <tr><td>3</td><td><code>GROUP BY</code></td><td>строки → группы</td><td>PG: да (расширение)</td></tr>
+    <tr><td>4</td><td><code>HAVING</code></td><td>фильтруем <b>группы</b> (по агрегатам)</td><td>нет</td></tr>
+    <tr><td>5</td><td><code>SELECT</code></td><td>вычисляем выражения и агрегаты</td><td>—</td></tr>
+    <tr><td>6</td><td><code>DISTINCT</code></td><td>удаляем дубли</td><td>—</td></tr>
+    <tr><td>7</td><td><code>ORDER BY</code></td><td>сортируем</td><td class="hl">да</td></tr>
+    <tr><td>8</td><td><code>LIMIT / OFFSET</code></td><td>отрезаем</td><td>—</td></tr>
+  </table>
+  <div class="box info"><b>Отсюда все правила</b>Агрегат нельзя в WHERE — групп ещё нет. Псевдоним SELECT нельзя в WHERE/HAVING — SELECT ещё не вычислен. В ORDER BY — можно.</div>
+</section>
+
+<!-- 16 ===================== WHERE vs HAVING ===================== -->
+<section>
+  <h2>WHERE vs HAVING</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT e.full_name,
+       ROUND(AVG(oi.discount_pct), 2)
+         AS avg_discount
+FROM   order_items AS oi
+JOIN   orders      AS o
+       ON o.order_id = oi.order_id
+JOIN   employees   AS e
+       ON e.employee_id = o.employee_id
+WHERE  o.status &lt;&gt; 'Отменён'      -- строки
+GROUP  BY e.employee_id, e.full_name
+HAVING AVG(oi.discount_pct) > 10;  -- группы
+      </code></pre>
+      <table class="t"><tr><th>full_name</th><th>avg_discount</th></tr>
+        <tr><td>Соколов Игорь Андреевич</td><td class="hl">18.01</td></tr></table>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- дубли клиентов
+SELECT inn,
+       COUNT(*) AS cards,
+       STRING_AGG(customer_name, ' | ')
+FROM   customers
+GROUP  BY inn
+HAVING COUNT(*) > 1;
+-- 3 ИНН: Ромашка ×3, Колос ×2, Свежесть ×2
+      </code></pre>
+      <div class="box ok"><b>Правило</b>Условие на <i>отдельную строку</i> — в WHERE (быстрее: меньше строк группируется). Условие на <i>агрегат</i> — только в HAVING.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 17 ===================== ОБСУЖДЕНИЕ 1 ===================== -->
+<section class="discussion-slide">
+  <h2>Средняя скидка 18 % — это много или мало?</h2>
+  <p>У менеджера Соколова средняя скидка 18,01 %, выручка 177 млн руб. — вторая в отделе. Руководитель отдела говорит: «Он лучший продавец, скидки — инструмент продаж».</p>
+  <ul>
+    <li>Какие ещё агрегаты нужны, чтобы оценить, окупаются ли скидки?</li>
+    <li>С кем и в каком разрезе сравнивать?</li>
+  </ul>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Ожидаемые идеи: сумма скидок в рублях (38,78 млн против 10,32 у Морозовой при выручке 207 млн); «сверх политики» 17,27 млн; маржа (выручка − standard_cost × qty) по менеджерам; сравнение клиентов одного типа у разных менеджеров (одинаковые ли скидки сетям); динамика по месяцам; доля возвратов и долгов у клиентов менеджера (Вектор — клиент Соколова, долг 6,9 млн). Вывод: высокая выручка не оправдывает систематического нарушения политики.</aside>
+</section>
+
+<!-- 18 ===================== ОШИБКИ ===================== -->
+<section>
+  <h2>Три сообщения об ошибке, которые надо узнавать в лицо</h2>
+  <div class="three-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT o.employee_id,
+       AVG(oi.discount_pct)
+FROM   order_items oi
+JOIN   orders o USING (order_id)
+WHERE  AVG(oi.discount_pct) > 10
+GROUP  BY o.employee_id;
+      </code></pre>
+      <p class="small orange">aggregate functions are not allowed in WHERE</p>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT o.employee_id,
+       o.customer_id,
+       COUNT(*)
+FROM   orders AS o
+GROUP  BY o.employee_id;
+      </code></pre>
+      <p class="small orange">column "o.customer_id" must appear in the GROUP BY clause or be used in an aggregate function</p>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT o.employee_id,
+       COUNT(*) AS cnt
+FROM   orders AS o
+GROUP  BY o.employee_id
+HAVING cnt > 100;
+      </code></pre>
+      <p class="small orange">column "cnt" does not exist</p>
+    </div>
+  </div>
+  <div class="box ok"><b>Исключение в PostgreSQL</b>Если в GROUP BY стоит первичный ключ таблицы, остальные её столбцы можно выводить без агрегата: <code>GROUP BY c.customer_id</code> → можно <code>c.customer_name, c.credit_limit</code> (функциональная зависимость).</div>
+</section>
+
+<!-- 19 ===================== КВИЗ 2 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: где поставить условие?</h2>
+  <p style="font-size:.8em">Нужны линии, у которых <b>в 2025 г.</b> суммарный брак превысил 30 000 шт. Как правильно?</p>
+  <ul class="quiz">
+    <li>Оба условия в WHERE</li>
+    <li>Оба условия в HAVING</li>
+    <li data-correct>Год — в WHERE, <code>SUM(defect_qty) &gt; 30000</code> — в HAVING</li>
+    <li>Год — в HAVING, сумма — в WHERE</li>
+  </ul>
+  <p class="explain">Фильтр по году относится к строкам — в WHERE (до группировки, меньше работы). Условие на сумму — к группе, только HAVING. Вариант «оба в HAVING» не сработает: <code>production_date</code> не в GROUP BY.</p>
+</section>
+
+<!-- 20 ===================== СРЕДНЕЕ ПРОЦЕНТОВ ===================== -->
+<section>
+  <h2>Типичная ошибка: среднее от процентов</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT ROUND(AVG(100.0 * defect / produced), 2)
+         AS avg_of_pct,        -- 25.50
+       ROUND(100.0 * SUM(defect) / SUM(produced), 2)
+         AS weighted_pct       -- 1.49
+FROM   (VALUES (10, 5),        -- 50 % брака
+               (1000, 10))     --  1 % брака
+       AS t (produced, defect);
+      </code></pre>
+      <p style="font-size:.7em">На данных «Питание +»: среднее по 10 ячейкам «линия × смена» — <b>2,391 %</b>, реальный процент брака — <b>2,520 %</b>.</p>
+    </div>
+    <div>
+      <div class="box warn"><b>AVG(процент) даёт каждой группе одинаковый вес</b>Партия из 10 штук влияет так же, как партия из 1000.</div>
+      <div class="box ok"><b>Правильно</b><code>SUM(часть) / SUM(целое)</code>: процент брака, доля возвратов, выполнение плана, средняя цена (<code>SUM(qty*price)/SUM(qty)</code>), средняя скидка в рублях.</div>
+      <div class="box info"><b>Где ещё</b>Средняя скидка Павлова: простая 5,23 %, взвешенная по сумме — 6,42 %. Крупным заказам он даёт бо́льшие скидки.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 20a ===================== ОБСУЖДЕНИЕ: АДДИТИВНОСТЬ ===================== -->
+<section class="discussion-slide">
+  <h2>Какие показатели можно складывать?</h2>
+  <p>Финансовый аналитик собрал отчёт по месяцам, а итог года посчитал в Excel как <b>сумму</b> (или среднее) месячных строк. Для каких показателей «Питание +» это правильно, а для каких — нет?</p>
+  <table class="t">
+    <tr><th>Показатель по месяцам</th><th>Итог года = сумма месяцев?</th></tr>
+    <tr><td>Выручка, руб.</td><td></td></tr>
+    <tr><td>Число активных клиентов (COUNT DISTINCT)</td><td></td></tr>
+    <tr><td>Процент брака</td><td></td></tr>
+    <tr><td>Средний чек</td><td></td></tr>
+    <tr><td>Дебиторская задолженность на конец месяца</td><td></td></tr>
+  </table>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Выручка — аддитивна (сумма). Активные клиенты — неаддитивны: один клиент активен в нескольких месяцах; итог — COUNT(DISTINCT) за год (в наших данных 72 клиента за период, а сумма по месяцам — сотни). Процент брака — неаддитивен: SUM(defect)/SUM(produced) за год, не сумма и не AVG месячных процентов. Средний чек — SUM(выручка)/COUNT(заказов) за год. Задолженность на дату — полуаддитивна: по клиентам складывается, по времени — нет (берётся значение на конец года). Вывод: ROLLUP в SQL пересчитывает агрегат по исходным строкам, поэтому итоги верны для любых агрегатов.</aside>
+</section>
+
+<!-- 21 ===================== РАЗМНОЖЕНИЕ ===================== -->
+<section>
+  <h2>Типичная ошибка: агрегат после «размножения» строк</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- ✘ счета × оплаты
+SELECT SUM(i.amount)
+FROM   invoices AS i
+JOIN   orders   AS o ON o.order_id = i.order_id
+LEFT   JOIN payments AS p
+       ON p.invoice_id = i.invoice_id
+WHERE  o.customer_id = 24;
+-- 55 866 923 вместо 50 091 669
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- ✔ сначала агрегируем «многие»
+SELECT SUM(i.amount)                         AS invoiced,
+       SUM(COALESCE(pay.paid, 0))            AS paid,
+       SUM(i.amount - COALESCE(pay.paid, 0)) AS debt
+FROM   invoices AS i
+JOIN   orders   AS o ON o.order_id = i.order_id
+LEFT   JOIN (SELECT invoice_id,
+                    SUM(amount) AS paid
+             FROM   payments
+             GROUP  BY invoice_id) AS pay
+       ON pay.invoice_id = i.invoice_id
+WHERE  o.customer_id = 1;
+-- долг 6 907 600 при лимите 3 000 000
+      </code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>Подзапрос в FROM</b>Производная таблица — тема модулей 5 и 9. Сейчас достаточно шаблона: «агрегировать до гранулярности соединения».</div>
+</section>
+
+<!-- 22 ===================== КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «Осень вкуса» — успешная кампания?</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Квартал</th><th>Маркетинг, млн</th><th>Выручка, млн</th><th>Доля</th></tr>
+        <tr><td>2024 Q3</td><td>1.69</td><td>98.22</td><td>1.72 %</td></tr>
+        <tr><td>2024 Q4</td><td>1.73</td><td>104.41</td><td>1.66 %</td></tr>
+        <tr><td>2025 Q2</td><td>2.08</td><td>112.40</td><td>1.85 %</td></tr>
+        <tr><td>2025 Q3</td><td class="hl">3.03</td><td>99.86</td><td>3.03 %</td></tr>
+        <tr><td>2025 Q4</td><td class="hl">7.06</td><td>125.69</td><td class="hl">5.62 %</td></tr>
+      </table>
+      <p class="small">Две агрегации (expenses и orders по кварталам), соединённые по (год, квартал)</p>
+    </div>
+    <div class="card orange-top">
+      <h4>Директор по маркетингу</h4>
+      <p style="font-size:.95em">«Выручка IV квартала — рекорд за два года: 125,7 млн! Кампания сработала».</p>
+      <ol style="font-size:.95em">
+        <li>Согласны ли вы? Какой рост выручки обычен для IV квартала?</li>
+        <li>Какие ещё группировки нужны (категории? каналы? регионы?)</li>
+        <li>Сколько выручки нужно «добавить», чтобы окупить +5,3 млн маркетинга при марже ~25 %?</li>
+      </ol>
+      <span class="timer">⏱ 7 мин</span>
+    </div>
+  </div>
+  <aside class="notes">Q4/Q3 в 2024: 104,41/98,22 = +6 %; Q4-2025 к Q4-2024: +20 %, но и Q1–Q2 2025 росли на 13–30 % к 2024 без кампании (общий рост 2025 г. +16 %). Маркетинг вырос в ~4 раза (1,73 → 7,06). Прирост сверх тренда ≈ 125,7 − 104,4×1,16 ≈ 4,6 млн выручки, при марже 25 % — ≈ 1,2 млн маржи против +5,3 млн затрат: кампания не окупилась (точка A5). Нужна разбивка по категориям, на которые была кампания, и сравнение с планом (A7 — кондитерка во 2-м полугодии 2025 выполнена на 80 %).</aside>
+</section>
+
+<!-- 23 ===================== РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>ROLLUP, CUBE, GROUPING SETS</h2>
+  <p>Отчёты с подытогами одним запросом</p>
+</section>
+
+<!-- 24 ===================== ROLLUP ===================== -->
+<section>
+  <h2>ROLLUP: иерархические итоги</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT EXTRACT(YEAR    FROM o.order_date) AS yr,
+       EXTRACT(QUARTER FROM o.order_date) AS qtr,
+       ROUND(SUM(oi.quantity * oi.unit_price
+             * (1 - oi.discount_pct / 100)) / 1e6, 2)
+         AS revenue_mln
+FROM   orders      AS o
+JOIN   order_items AS oi ON oi.order_id = o.order_id
+WHERE  o.status &lt;&gt; 'Отменён'
+GROUP  BY ROLLUP (EXTRACT(YEAR    FROM o.order_date),
+                  EXTRACT(QUARTER FROM o.order_date))
+ORDER  BY yr NULLS LAST, qtr NULLS LAST;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>yr</th><th>qtr</th><th>revenue_mln</th></tr>
+        <tr><td>2024</td><td>1</td><td>94.97</td></tr>
+        <tr><td>…</td><td>…</td><td>…</td></tr>
+        <tr><td>2024</td><td class="hl">NULL</td><td class="hl">384.01</td></tr>
+        <tr><td>2025</td><td>1</td><td>107.16</td></tr>
+        <tr><td>…</td><td>…</td><td>…</td></tr>
+        <tr><td>2025</td><td class="hl">NULL</td><td class="hl">445.11</td></tr>
+        <tr><td class="hl">NULL</td><td class="hl">NULL</td><td class="hl">829.12</td></tr>
+      </table>
+      <p class="small"><code>ROLLUP (a, b)</code> = наборы <code>(a, b)</code>, <code>(a)</code>, <code>()</code>. 8 + 2 + 1 = 11 строк.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 25 ===================== GROUPING ===================== -->
+<section>
+  <h2>GROUPING() и подписи «Итого»</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT CASE WHEN GROUPING(t.yr)  = 1 THEN 'ВСЕГО'
+            ELSE t.yr::text
+       END                              AS yr,
+       CASE WHEN GROUPING(t.yr)  = 1 THEN ''
+            WHEN GROUPING(t.qtr) = 1 THEN 'Итого за год'
+            ELSE 'Q' || t.qtr
+       END                              AS qtr,
+       ROUND(SUM(t.revenue) / 1e6, 2)   AS revenue_mln,
+       GROUPING(t.yr, t.qtr)            AS bits
+FROM   (... выручка строки с yr, qtr ...) AS t
+GROUP  BY ROLLUP (t.yr, t.qtr);
+  </code></pre>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>yr</th><th>qtr</th><th>revenue_mln</th><th>bits</th></tr>
+        <tr><td>2025</td><td>Q4</td><td>125.69</td><td>0</td></tr>
+        <tr><td>2025</td><td>Итого за год</td><td>445.11</td><td>1</td></tr>
+        <tr><td>ВСЕГО</td><td></td><td>829.12</td><td>3</td></tr>
+      </table>
+    </div>
+    <div class="box warn">
+      <b>Почему не IS NULL?</b>
+      NULL подытога и NULL в данных (клиент без региона) неразличимы.<br>
+      <code style="white-space:nowrap">GROUPING(col) = 1</code> — строка подытога по col.<br>
+      <code style="white-space:nowrap">GROUPING(a, b)</code> — битовая маска: 0, 1, 2, 3.
+    </div>
+  </div>
+</section>
+
+<!-- 26 ===================== CUBE ===================== -->
+<section>
+  <h2>CUBE: все комбинации итогов</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT CASE WHEN GROUPING(b.line_id) = 1
+            THEN 'Все линии'
+            ELSE 'Линия ' || b.line_id END AS line,
+       CASE WHEN GROUPING(b.shift) = 1
+            THEN 'Обе смены'
+            ELSE b.shift END             AS shift,
+       ROUND(100.0 * SUM(b.defect_qty)
+                   / SUM(b.produced_qty), 2) AS defect_pct
+FROM   production_batches AS b
+GROUP  BY CUBE (b.line_id, b.shift);
+      </code></pre>
+      <p class="small">18 строк = 10 + 5 (по линиям) + 2 (по сменам) + 1</p>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>line</th><th>shift</th><th>defect_pct</th></tr>
+        <tr><td>Линия 3</td><td>День</td><td>1.62</td></tr>
+        <tr><td>Линия 3</td><td>Ночь</td><td class="hl">7.94</td></tr>
+        <tr><td>Линия 3</td><td>Обе смены</td><td>4.75</td></tr>
+        <tr><td>Все линии</td><td>День</td><td>1.74</td></tr>
+        <tr><td>Все линии</td><td>Ночь</td><td>3.37</td></tr>
+        <tr><td>Все линии</td><td>Обе смены</td><td>2.52</td></tr>
+      </table>
+      <div class="box info"><b>Аналитический смысл</b>Итог «Ночь — 3,37 %» говорит «ночью плохо везде». Детальная строка показывает: проблема в одной ячейке.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 27 ===================== GROUPING SETS ===================== -->
+<section>
+  <h2>GROUPING SETS: несколько отчётов за один проход</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT o.channel,
+       c.customer_type,
+       ROUND(SUM(oi.quantity * oi.unit_price
+             * (1 - oi.discount_pct / 100)) / 1e6, 2)
+         AS revenue_mln
+FROM   orders      AS o
+JOIN   order_items AS oi ON oi.order_id   = o.order_id
+JOIN   customers   AS c  ON c.customer_id = o.customer_id
+WHERE  o.status &lt;&gt; 'Отменён'
+  AND  o.order_date >= DATE '2025-01-01'
+GROUP  BY GROUPING SETS ((o.channel),
+                         (c.customer_type),
+                         ());
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Конструкция</th><th>Наборы для (a, b)</th></tr>
+        <tr><td><code>GROUP BY a, b</code></td><td>(a, b)</td></tr>
+        <tr><td><code>ROLLUP (a, b)</code></td><td>(a, b), (a), ()</td></tr>
+        <tr><td><code>CUBE (a, b)</code></td><td>(a, b), (a), (b), ()</td></tr>
+        <tr><td><code>GROUPING SETS</code></td><td>ровно перечисленные</td></tr>
+      </table>
+      <p style="font-size:.7em">Результат: 4 канала + 6 типов клиентов + итог 445,11 млн = 11 строк.</p>
+      <div class="box ok"><b>Число строк CUBE</b>Для n столбцов — 2<sup>n</sup> наборов. CUBE из 4 столбцов = 16 группировок: используйте с осторожностью.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 28 ===================== КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: сколько строк?</h2>
+  <p style="font-size:.8em">У <code>channel</code> 4 значения, у года — 2. Сколько строк вернёт <code>GROUP BY ROLLUP (channel, yr)</code>?</p>
+  <ul class="quiz">
+    <li>8</li>
+    <li data-correct>13</li>
+    <li>15</li>
+    <li>16</li>
+  </ul>
+  <p class="explain">(channel, yr) — 8 строк + (channel) — 4 + () — 1 = 13. CUBE добавил бы ещё (yr) — 2 строки, итого 15.</p>
+</section>
+
+<!-- 29 ===================== ОБСУЖДЕНИЕ 2 ===================== -->
+<section class="discussion-slide">
+  <h2>ROLLUP в SQL или итоги в BI?</h2>
+  <p>Аналитик говорит: «Зачем ROLLUP и CUBE? Power BI / Excel сами посчитают итоги». Когда итоги нужно считать в SQL, а когда — в инструменте визуализации?</p>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">В SQL: когда отчёт выгружается «как есть» (CSV, e-mail, регламентная форма); когда итог неаддитивен и BI посчитает неверно (COUNT DISTINCT клиентов, медиана, взвешенный процент — BI может суммировать проценты); когда объёмы большие и нужно уменьшить передаваемые данные; для контроля цифр (эталонный запрос). В BI: когда нужна интерактивная детализация, срезы на лету; меры в DAX правильно пересчитываются в контексте. Важно: один источник истины для формулы показателя.</aside>
+</section>
+
+<!-- 30 ===================== ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: спроектируйте отчёт с итогами</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <p>Отчёт для финдиректора: <i>«дебиторская задолженность по типу клиента и клиенту, с итогами по типу и общим итогом; отдельно — просроченная»</i>.</p>
+      <ol>
+        <li>Какая гранулярность каждой строки?</li>
+        <li>ROLLUP, CUBE или GROUPING SETS?</li>
+        <li>Как избежать размножения счетов оплатами?</li>
+        <li>Как отфильтровать только клиентов с долгом &gt; лимита?</li>
+      </ol>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <p>Отчёт для директора по производству: <i>«выполнение плана выпуска и процент брака по цеху, линии и году с итогами»</i>.</p>
+      <ol>
+        <li>Какая гранулярность каждой строки?</li>
+        <li>ROLLUP, CUBE или GROUPING SETS?</li>
+        <li>Как правильно считать % выполнения и % брака в итогах?</li>
+        <li>Как подписать строки итогов?</li>
+      </ol>
+    </div>
+  </div>
+  <span class="timer">⏱ 12 мин</span>
+  <aside class="notes">А: ROLLUP (customer_type, customer_name); оплаты агрегировать по invoice_id в подзапросе; HAVING по долгу > credit_limit не работает в строках подытога (лимит типа не определён) — фильтровать лучше до ROLLUP или через GROUPING; просроченная — FILTER (WHERE due_date &lt; дата). Б: ROLLUP (workshop, line, year) — иерархия цех → линия; % — SUM(produced)/SUM(planned) и SUM(defect)/SUM(produced) — тогда итоги корректны автоматически; AVG по линиям — неверно. Подписи — GROUPING(). Решение близко к Б7 лабораторной.</aside>
+</section>
+
+<!-- 31 ===================== T-SQL vs PG ===================== -->
+<section>
+  <h2>Справка: T-SQL ↔ PostgreSQL</h2>
+  <table class="t">
+    <tr><th>Возможность</th><th>T-SQL</th><th>PostgreSQL</th></tr>
+    <tr><td>ROLLUP / CUBE / GROUPING SETS</td><td>есть (+ устар. <code>WITH ROLLUP</code>)</td><td>есть (стандартный синтаксис)</td></tr>
+    <tr><td><code>GROUPING(col)</code>, <code>GROUPING_ID(a, b)</code></td><td>обе</td><td><code>GROUPING(a, b)</code> — сразу битовая маска</td></tr>
+    <tr><td>Условная агрегация</td><td><code>SUM(CASE …)</code>, <code>COUNT_BIG</code></td><td><code>FILTER (WHERE …)</code> + CASE</td></tr>
+    <tr><td>Конкатенация группы</td><td><code>STRING_AGG(x, ',') WITHIN GROUP (ORDER BY …)</code></td><td><code>STRING_AGG(x, ',' ORDER BY …)</code></td></tr>
+    <tr><td>Массив / логические агрегаты</td><td>нет</td><td><code>ARRAY_AGG</code>, <code>BOOL_AND</code>, <code>BOOL_OR</code></td></tr>
+    <tr><td>Медиана</td><td><code>PERCENTILE_CONT … OVER ()</code> (оконная)</td><td><code>PERCENTILE_CONT … WITHIN GROUP</code> (агрегат)</td></tr>
+    <tr><td>Псевдоним SELECT в GROUP BY</td><td>нельзя</td><td>можно</td></tr>
+    <tr><td>Столбцы по функц. зависимости от PK</td><td>нельзя</td><td>можно</td></tr>
+  </table>
+</section>
+
+<!-- 32 ===================== ЧТО ЗАПОМНИТЬ ===================== -->
+<section>
+  <h2>Что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>Агрегаты</h4>
+      <ul><li>все, кроме COUNT(*), игнорируют NULL</li><li>SUM пустого набора — NULL</li><li><code>FILTER (WHERE …)</code> — условная агрегация</li><li>COUNT(DISTINCT) после JOIN</li></ul></div>
+    <div class="card orange-top"><h4>Группировка</h4>
+      <ul><li>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</li><li>строки — WHERE, группы — HAVING</li><li>«одна строка результата — это что?»</li></ul></div>
+    <div class="card green-top"><h4>Отчёты</h4>
+      <ul><li>ROLLUP — иерархия, CUBE — все комбинации, GROUPING SETS — свой список</li><li>подписи — через GROUPING()</li><li>проценты — SUM/SUM, не AVG</li></ul></div>
+  </div>
+</section>
+
+<!-- 33 ===================== ИТОГИ И МОСТ ===================== -->
+<section>
+  <h2>Итоги и мост к модулю 5</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">Что уже можно сказать руководству (в рублях)</p>
+      <ul style="font-size:.7em">
+        <li><span class="badge team-a">А</span> скидки сверх политики — 17,3 млн руб.</li>
+        <li><span class="badge team-a">А</span> долг клиента 6,9 млн при лимите 3 млн</li>
+        <li><span class="badge team-a">А</span> маркетинг ×4 в IV кв. 2025</li>
+        <li><span class="badge team-b">Б</span> переплата одному поставщику ≈ 3,9 млн руб.</li>
+        <li><span class="badge team-b">Б</span> брак 7,9 % в ночную смену одной линии</li>
+        <li><span class="badge team-b">Б</span> простои линии 2: 168 → 590 ч</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box info"><b>Модуль 5. Вложенные запросы</b>Мы уже «подглядывали» в подзапросы в FROM. Дальше: сравнение с агрегатом (<code>&gt; (SELECT AVG …)</code>), коррелированные подзапросы, <code>EXISTS / NOT EXISTS</code> как альтернатива anti-join.</div>
+      <div class="box ok"><b>Лабораторная работа 4</b>Вариант 1 — команда А, Вариант 2 — команда Б. Итог — таблица потерь в рублях.</div>
+    </div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
