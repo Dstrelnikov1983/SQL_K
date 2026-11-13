@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 6 — Объединение наборов</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+.reveal table.t.loss tr td{background:none}
+.reveal table.t.loss tr.total td{border-top:2px solid var(--accent1);font-weight:700}
+.reveal table.t.counts{font-size:.66em}
+.reveal table.t.counts th,.reveal table.t.counts td{text-align:center}
+.reveal table.t.counts th.src,.reveal table.t.counts td.src{background:#eef2fa}
+.reveal table.t.counts th.src{background:#2f5597}
+.reveal table.t.counts td.val{font-family:Consolas,'Courier New',monospace;font-weight:700;text-align:left}
+.reveal table.t.counts td.z{color:#b8c0cc}
+.reveal table.t.counts tr.rule td{border-top:2px solid var(--accent1);color:var(--accent2);font-weight:700;font-size:.9em}
+.reveal table.t.counts tr.res td{font-family:Consolas,'Courier New',monospace;font-size:.85em;color:var(--muted)}
+.mark{display:inline-block;width:1.35em;height:1.35em;line-height:1.35em;border-radius:50%;background:var(--accent2);
+  color:#fff;font-size:.8em;font-weight:700;text-align:center;vertical-align:middle}
+.reveal ol.loss-q{list-style:none;margin:0!important;padding:0;font-size:.62em}
+.reveal ol.loss-q li{margin-bottom:.35em}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 6</div>
+  <h1>Объединение наборов</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">UNION, UNION ALL, INTERSECT, EXCEPT · приоритет операций · LATERAL вместо CROSS / OUTER APPLY</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 2 ак. ч.</div>
+  <aside class="notes">В программе курса написано «EXEPT» — правильное ключевое слово EXCEPT. CROSS APPLY / OUTER APPLY — конструкции T-SQL, в PostgreSQL их роль играет LATERAL.</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план занятия</h2>
+  <div class="two-col">
+    <div>
+      <h3>После модуля вы сможете</h3>
+      <ul style="font-size:.78em">
+        <li>объединять результаты запросов: <code>UNION</code> / <code>UNION ALL</code></li>
+        <li>находить общее и разницу: <code>INTERSECT</code>, <code>EXCEPT</code> и их <code>ALL</code>-варианты</li>
+        <li>соблюдать требования совместимости наборов и приоритет операций</li>
+        <li>решать top-N на группу через <code>LATERAL</code> — аналог <code>CROSS/OUTER APPLY</code></li>
+        <li>собирать <span class="orange">единые журналы событий</span> для анализа потерь</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Теория множеств, UNION / UNION ALL</td><td>20</td></tr>
+        <tr><td>INTERSECT, EXCEPT, ALL, приоритет</td><td>20</td></tr>
+        <tr><td>LATERAL (CROSS / OUTER APPLY)</td><td>15</td></tr>
+        <tr><td>Кейсы, групповая работа</td><td>10</td></tr>
+        <tr><td>Лабораторная №6 (старт; защита — в начале следующего занятия)</td><td>25</td></tr>
+      </table>
+      <p class="small">Всего 90 мин. Шаги практической работы (practice.md) — по ходу лекции.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. ОБСУЖДЕНИЕ-РАЗМИНКА ===================== -->
+<section class="discussion-slide">
+  <h2>Один отчёт из трёх таблиц</h2>
+  <p>Директор по производству: «Хочу один список всех потерь — брак, простои, списания сырья — по датам и линиям».</p>
+  <ul>
+    <li>Данные лежат в <code>production_batches</code>, <code>equipment_downtime</code>, <code>material_writeoffs</code>. Поможет ли JOIN?</li>
+    <li>Чем «склеить по вертикали» отличается от «соединить по горизонтали»?</li>
+    <li>Что делать, если у таблиц разные столбцы и единицы измерения?</li>
+  </ul>
+  <span class="timer">⏱ 3 мин</span>
+  <aside class="notes">Ожидаемые ответы: JOIN здесь не нужен — события не связаны «один к одному», JOIN даст декартово произведение по датам/линиям. Нужно поставить наборы друг под другом (UNION ALL), приведя столбцы к общей структуре: тип события, дата, линия, количество, единица, сумма; там, где значения нет, — NULL. Единицы — отдельный столбец, складывать разные единицы нельзя.</aside>
+</section>
+
+<!-- ===================== 4. РАЗДЕЛ 1 ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Действия с наборами. UNION и UNION ALL</h2>
+  <p>JOIN соединяет строки «по горизонтали», операции над наборами — «по вертикали»</p>
+</section>
+
+<!-- ===================== 5. ТЕОРИЯ МНОЖЕСТВ ===================== -->
+<section>
+  <h2>Операции над множествами</h2>
+  <div class="three-col" style="text-align:center">
+    <div>
+      <svg viewBox="0 0 200 120" width="100%" height="150" role="img" aria-label="UNION">
+        <circle cx="75" cy="60" r="48" fill="#4472C4" fill-opacity=".55" stroke="#2f5597"/>
+        <circle cx="125" cy="60" r="48" fill="#4472C4" fill-opacity=".55" stroke="#2f5597"/>
+        <text x="55" y="65" font-size="16" fill="#fff" font-weight="700">A</text><text x="138" y="65" font-size="16" fill="#fff" font-weight="700">B</text>
+      </svg>
+      <h3>UNION</h3><p class="small">строки из A <b>или</b> B</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 200 120" width="100%" height="150" role="img" aria-label="INTERSECT">
+        <circle cx="75" cy="60" r="48" fill="none" stroke="#2f5597"/>
+        <circle cx="125" cy="60" r="48" fill="none" stroke="#2f5597"/>
+        <path d="M100 19 A48 48 0 0 1 100 101 A48 48 0 0 1 100 19 Z" fill="#70AD47" fill-opacity=".8"/>
+        <text x="55" y="65" font-size="16" fill="#2f5597" font-weight="700">A</text><text x="138" y="65" font-size="16" fill="#2f5597" font-weight="700">B</text>
+      </svg>
+      <h3>INTERSECT</h3><p class="small">строки, которые есть <b>и</b> в A, <b>и</b> в B</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 200 120" width="100%" height="150" role="img" aria-label="EXCEPT">
+        <circle cx="75" cy="60" r="48" fill="#ED7D31" fill-opacity=".8" stroke="#c55a11"/>
+        <circle cx="125" cy="60" r="48" fill="#fff" stroke="#2f5597"/>
+        <text x="50" y="65" font-size="16" fill="#fff" font-weight="700">A</text><text x="138" y="65" font-size="16" fill="#2f5597" font-weight="700">B</text>
+      </svg>
+      <h3>EXCEPT</h3><p class="small">строки из A, которых <b>нет</b> в B</p>
+    </div>
+  </div>
+  <div class="box info"><b>Сравниваются строки целиком</b>Две строки «равны», если равны все столбцы по позициям; NULL при этом считается равным NULL (как в DISTINCT).</div>
+</section>
+
+<!-- ===================== 6. СОВМЕСТИМОСТЬ ===================== -->
+<section>
+  <h2>Требования к совместимости наборов</h2>
+  <div class="two-col">
+    <div>
+      <ol style="font-size:.75em">
+        <li>одинаковое <b>число столбцов</b> во всех ветках</li>
+        <li><b>совместимые типы</b> по позициям (integer + numeric — да; integer + date — нет)</li>
+        <li><b>имена</b> столбцов результата берутся из <b>первого</b> запроса</li>
+        <li><code>ORDER BY</code> и <code>LIMIT</code> — один раз, <b>в конце</b>; для ветки — только в скобках</li>
+      </ol>
+      <div class="box ok"><b>Решение для типов</b>Явное приведение: <code>customer_id::text</code>, <code>'Брак'::text</code>, <code>NULL::numeric</code>.</div>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- ОЖИДАЕМАЯ ОШИБКА
+SELECT customer_id, customer_name FROM customers
+UNION
+SELECT supplier_id FROM suppliers;
+-- each UNION query must have the same number of columns
+
+-- ОЖИДАЕМАЯ ОШИБКА
+SELECT customer_id       FROM customers
+UNION
+SELECT registration_date FROM customers;
+-- UNION types integer and date cannot be matched
+
+-- Правильно: ORDER BY + LIMIT у ветки — в скобках
+(SELECT customer_name AS name FROM customers
+ ORDER BY customer_name LIMIT 3)
+UNION ALL
+(SELECT supplier_name FROM suppliers
+ ORDER BY supplier_name LIMIT 3);
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. UNION vs UNION ALL ===================== -->
+<section>
+  <h2>UNION и UNION ALL</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- регионы, где есть клиенты ИЛИ поставщики
+SELECT region_id FROM customers
+WHERE  region_id IS NOT NULL
+UNION
+SELECT region_id FROM suppliers
+ORDER  BY region_id;               -- 12 строк
+
+-- то же с UNION ALL
+SELECT COUNT(*)
+FROM  (SELECT region_id FROM customers
+       WHERE  region_id IS NOT NULL
+       UNION ALL
+       SELECT region_id FROM suppliers) AS t;  -- 82
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th></th><th>UNION</th><th>UNION ALL</th></tr>
+        <tr><td>Дубликаты</td><td>удаляет</td><td>сохраняет</td></tr>
+        <tr><td>План</td><td>Append + HashAggregate / Sort + Unique</td><td>только Append</td></tr>
+        <tr><td>Скорость</td><td>медленнее</td><td class="hl">быстрее</td></tr>
+        <tr><td>Для сумм и лент событий</td><td class="hl">опасен</td><td>правильно</td></tr>
+      </table>
+      <div class="box warn"><b>Правило</b>По умолчанию пишите <code>UNION ALL</code>. <code>UNION</code> — только когда дубликаты действительно нужно убрать и вы понимаете, какие строки «совпадут».</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8. КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: имена и порядок</h2>
+  <p>Как будет называться второй столбец результата и можно ли отсортировать по нему?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT 'Клиент'    AS contact_type, customer_name AS name, phone FROM customers
+UNION ALL
+SELECT 'Поставщик',                 supplier_name,         phone FROM suppliers
+ORDER  BY ???;
+  </code></pre>
+  <ul class="quiz">
+    <li>customer_name; сортировать можно только по номеру столбца</li>
+    <li>supplier_name — берётся из последнего запроса</li>
+    <li data-correct>name; можно <code>ORDER BY name</code> или <code>ORDER BY 2</code></li>
+    <li>Столбец не получит имени, сортировать нельзя</li>
+  </ul>
+  <p class="explain">Имена результата задаёт первый запрос. ORDER BY в конце применяется ко всему объединённому набору и видит эти имена (или позиции).</p>
+</section>
+
+<!-- ===================== 9. КОНТАКТЫ С ПРИЗНАКОМ ===================== -->
+<section>
+  <h2>Приём: столбец-признак источника</h2>
+  <div class="two-col">
+    <div style="flex:1.3">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT contact_type,
+       COUNT(*)     AS cnt,
+       COUNT(phone) AS with_phone
+FROM  (SELECT 'Сотрудник' AS contact_type, phone FROM employees
+       UNION ALL
+       SELECT 'Клиент',                     phone FROM customers
+       UNION ALL
+       SELECT 'Поставщик',                  phone FROM suppliers) AS c
+GROUP  BY contact_type
+ORDER  BY contact_type;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>contact_type</th><th>cnt</th><th>with_phone</th></tr>
+        <tr><td>Клиент</td><td>73</td><td>73</td></tr>
+        <tr><td>Поставщик</td><td>12</td><td>11</td></tr>
+        <tr><td>Сотрудник</td><td>35</td><td class="hl">23</td></tr>
+      </table>
+      <div class="box info"><b>Зачем признак</b>Позволяет после объединения группировать и фильтровать по источнику, а заодно гарантирует, что строки разных источников не «схлопнутся» в UNION.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10. КЕЙС: UNION СЪЕДАЕТ СТРОКИ ===================== -->
+<section class="case-slide">
+  <h2>Кейс: куда пропали 58 строк? <span class="badge team-a">Команда А</span></h2>
+  <p style="font-size:.8em">Стажёр собрал ленту «счета + оплаты» для сверки с бухгалтерией. Итог не сошёлся.</p>
+  <div class="two-col">
+    <div style="flex:1.3">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT o.customer_id, i.invoice_date AS d, i.amount
+FROM   invoices i
+JOIN   orders   o ON o.order_id = i.order_id
+UNION                                   -- ← здесь
+SELECT o.customer_id, p.payment_date, p.amount
+FROM   payments p
+JOIN   invoices i ON i.invoice_id = p.invoice_id
+JOIN   orders   o ON o.order_id   = i.order_id;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Вариант</th><th>Строк</th></tr>
+        <tr><td>UNION ALL</td><td>8 761</td></tr>
+        <tr><td>UNION</td><td class="hl">8 703</td></tr>
+      </table>
+      <p style="font-size:.7em"><b>Вопросы:</b> какие строки стали «одинаковыми»? Как изменить запрос, чтобы этого не было, даже если оставить UNION? Почему для сверки сумм это критично?</p>
+    </div>
+  </div>
+  <aside class="notes">Счёт и его полная оплата в тот же день у того же клиента дают одинаковые тройки (customer_id, дата, сумма); также совпадают одинаковые оплаты. Решение — UNION ALL + столбец-признак типа операции ('Счёт'/'Оплата') и/или идентификатор документа. Сумма «оплат» и «счетов» при UNION занижается. Это задание А-7★ лабораторной.</aside>
+</section>
+
+<!-- ===================== 11. РАЗДЕЛ 2 ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>INTERSECT и EXCEPT</h2>
+  <p>«И там, и там» и «здесь есть, а там нет»</p>
+</section>
+
+<!-- ===================== 12. INTERSECT ===================== -->
+<section>
+  <h2>INTERSECT: общие элементы</h2>
+  <div class="two-col">
+    <div style="flex:1.2">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- материалы, которые поставляют
+-- и АгроСнаб-М (3), и Специи и Ко (12)
+SELECT poi.material_id
+FROM   purchase_order_items poi
+JOIN   purchase_orders po ON po.po_id = poi.po_id
+WHERE  po.supplier_id = 3
+INTERSECT
+SELECT poi.material_id
+FROM   purchase_order_items poi
+JOIN   purchase_orders po ON po.po_id = poi.po_id
+WHERE  po.supplier_id = 12
+ORDER  BY 1;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>material_id</th><th>Материал</th><th>АгроСнаб-М, руб.</th><th>Специи и Ко, руб.</th></tr>
+        <tr><td>15</td><td>Соль</td><td class="hl">18.12</td><td>14.89</td></tr>
+        <tr><td>16</td><td>Ванилин</td><td class="hl">3 733.60</td><td>3 102.66</td></tr>
+        <tr><td>18</td><td>Желатин</td><td class="hl">1 259.50</td><td>1 049.37</td></tr>
+        <tr><td>24</td><td>Чеснок</td><td class="hl">823.13</td><td>678.46</td></tr>
+      </table>
+      <p class="small">Средние цены закупок 2024–2025 гг.</p>
+      <div class="box ok"><b>Аналог</b><code>IN</code> / <code>EXISTS</code>; INTERSECT удобнее, когда сравниваются наборы из нескольких столбцов.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 13. EXCEPT ===================== -->
+<section>
+  <h2>EXCEPT: что исчезло</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- клиенты: 2024 минус 2025
+SELECT customer_id FROM orders
+WHERE  order_date &lt; DATE '2025-01-01'
+  AND  status &lt;&gt; 'Отменён'
+EXCEPT
+SELECT customer_id FROM orders
+WHERE  order_date &gt;= DATE '2025-01-01'
+  AND  status &lt;&gt; 'Отменён';
+-- 0 строк
+      </code></pre>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- пары «клиент — товар»: 2024 минус 2025
+SELECT COUNT(*)
+FROM  (SELECT o.customer_id, oi.product_id
+       FROM   orders o
+       JOIN   order_items oi ON oi.order_id = o.order_id
+       WHERE  o.order_date &lt; DATE '2025-01-01'
+         AND  o.status &lt;&gt; 'Отменён'
+       EXCEPT
+       SELECT o.customer_id, oi.product_id
+       FROM   orders o
+       JOIN   order_items oi ON oi.order_id = o.order_id
+       WHERE  o.order_date &gt;= DATE '2025-01-01'
+         AND  o.status &lt;&gt; 'Отменён') AS t;
+-- 127
+      </code></pre>
+    </div>
+  </div>
+  <div class="box warn"><b>EXCEPT несимметричен</b>Пары «поставщик — материал» 2025 EXCEPT 2024 — 4 строки (новый поставщик «Специи и Ко»), 2024 EXCEPT 2025 — 0.</div>
+</section>
+
+<!-- ===================== 14. ОБСУЖДЕНИЕ: ПУСТОЙ РЕЗУЛЬТАТ ===================== -->
+<section class="discussion-slide">
+  <h2>Пустой результат — это хорошая новость?</h2>
+  <p>EXCEPT «клиенты 2024 минус клиенты 2025» вернул <b>0 строк</b>. Команда Б: «закупаемые материалы минус материалы рецептур» — тоже 0.</p>
+  <ul>
+    <li>Как убедиться, что запрос корректен, а не «сломан»?</li>
+    <li>Что именно сообщать руководству: «оттока нет» или «на этом уровне оттока не видно»?</li>
+    <li>Куда «копнуть глубже», если гипотеза не подтвердилась?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: проверить на заведомо непустом случае (поменять ветки, сузить период, проверить пары «клиент — товар» — там 127 строк); проверить фильтры статусов и дат. Формулировка: на уровне клиентов отток не обнаружен, но 127 пар «клиент — товар» исчезли (выручка 2024 г. по ним 8,2 млн руб.), а клиент 50 полностью перестал брать бакалею. Для команды Б пустой результат = справочники согласованы — это тоже вывод контроля качества данных.</aside>
+</section>
+
+<!-- ===================== 15a. ALL-ВАРИАНТЫ: ТАБЛИЦА ПОДСЧЁТА ===================== -->
+<section>
+  <h2>ALL-варианты: сколько раз значение попадёт в результат</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT x FROM (VALUES (1), (1), (1), (2), (NULL)) AS a(x)   -- набор A
+&lt;операция&gt;
+SELECT x FROM (VALUES (1), (1), (3), (NULL))      AS b(x);  -- набор B
+  </code></pre>
+  <table class="t counts">
+    <tr>
+      <th>Значение</th><th class="src">раз в A</th><th class="src">раз в B</th>
+      <th class="fragment" data-fragment-index="1">UNION ALL</th>
+      <th class="fragment" data-fragment-index="2">UNION</th>
+      <th class="fragment" data-fragment-index="3">INTERSECT ALL</th>
+      <th class="fragment" data-fragment-index="4">INTERSECT</th>
+      <th class="fragment" data-fragment-index="5">EXCEPT ALL</th>
+      <th class="fragment" data-fragment-index="6">EXCEPT</th>
+    </tr>
+    <tr>
+      <td class="val">1</td><td class="src">3</td><td class="src">2</td>
+      <td class="fragment" data-fragment-index="1">5</td>
+      <td class="fragment" data-fragment-index="2">1</td>
+      <td class="fragment" data-fragment-index="3">2</td>
+      <td class="fragment" data-fragment-index="4">1</td>
+      <td class="fragment" data-fragment-index="5">1</td>
+      <td class="fragment z" data-fragment-index="6">0</td>
+    </tr>
+    <tr>
+      <td class="val">2</td><td class="src">1</td><td class="src z">0</td>
+      <td class="fragment" data-fragment-index="1">1</td>
+      <td class="fragment" data-fragment-index="2">1</td>
+      <td class="fragment z" data-fragment-index="3">0</td>
+      <td class="fragment z" data-fragment-index="4">0</td>
+      <td class="fragment" data-fragment-index="5">1</td>
+      <td class="fragment" data-fragment-index="6">1</td>
+    </tr>
+    <tr>
+      <td class="val">3</td><td class="src z">0</td><td class="src">1</td>
+      <td class="fragment" data-fragment-index="1">1</td>
+      <td class="fragment" data-fragment-index="2">1</td>
+      <td class="fragment z" data-fragment-index="3">0</td>
+      <td class="fragment z" data-fragment-index="4">0</td>
+      <td class="fragment z" data-fragment-index="5">0</td>
+      <td class="fragment z" data-fragment-index="6">0</td>
+    </tr>
+    <tr>
+      <td class="val">NULL</td><td class="src">1</td><td class="src">1</td>
+      <td class="fragment" data-fragment-index="1">2</td>
+      <td class="fragment" data-fragment-index="2">1</td>
+      <td class="fragment" data-fragment-index="3">1</td>
+      <td class="fragment" data-fragment-index="4">1</td>
+      <td class="fragment z" data-fragment-index="5">0</td>
+      <td class="fragment z" data-fragment-index="6">0</td>
+    </tr>
+    <tr class="rule">
+      <td>правило</td><td class="src">m</td><td class="src">n</td>
+      <td class="fragment" data-fragment-index="1">m + n</td>
+      <td class="fragment" data-fragment-index="2">1</td>
+      <td class="fragment" data-fragment-index="3">min(m, n)</td>
+      <td class="fragment" data-fragment-index="4">1, если m&gt;0 и n&gt;0</td>
+      <td class="fragment" data-fragment-index="5">max(m − n, 0)</td>
+      <td class="fragment" data-fragment-index="6">1, если m&gt;0 и n=0</td>
+    </tr>
+    <tr class="res">
+      <td>результат</td><td class="src">5 строк</td><td class="src">4 строки</td>
+      <td class="fragment" data-fragment-index="1">9 строк</td>
+      <td class="fragment" data-fragment-index="2">1, 2, 3, NULL</td>
+      <td class="fragment" data-fragment-index="3">1, 1, NULL</td>
+      <td class="fragment" data-fragment-index="4">1, NULL</td>
+      <td class="fragment" data-fragment-index="5">1, 2</td>
+      <td class="fragment" data-fragment-index="6">2</td>
+    </tr>
+  </table>
+  <div class="box info fragment" data-fragment-index="7"><b>Как читать</b>Без <code>ALL</code> каждое значение выводится не больше одного раза: важно только, есть оно или нет. С <code>ALL</code> строки «сокращаются» попарно, как экземпляры. Обратите внимание на строку NULL: два NULL совпали. Почему так, разберём на следующем слайде.</div>
+  <aside class="notes">Перед каждым столбцом спрашивать аудиторию: «Сколько раз попадёт единица? А двойка?» — и только потом открывать столбец (стрелка вправо). Пары удобно сравнивать: UNION ALL / UNION, INTERSECT ALL / INTERSECT, EXCEPT ALL / EXCEPT. Самый частый вопрос — EXCEPT для единицы: 0, потому что без ALL единица просто «есть» справа и вычитается целиком; EXCEPT ALL вычитает две единицы из трёх, одна остаётся. Все результаты проверены на БД. T-SQL поддерживает только INTERSECT / EXCEPT без ALL; PostgreSQL — оба варианта.</aside>
+</section>
+
+<!-- ===================== 15b. NULL: EXCEPT vs NOT IN ===================== -->
+<section>
+  <h2>NULL в наборах: EXCEPT против NOT IN</h2>
+  <p style="font-size:.7em">Задача: найти продукты <b>без возвратов</b>. В журнале возвратов одна строка с неизвестным продуктом (<code>NULL</code>). Сколько строк вернёт каждый запрос?</p>
+  <div class="two-col">
+    <div>
+      <h3 class="orange">① NOT IN</h3>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT product_id
+FROM   (VALUES (1), (2), (3)) AS p(product_id)
+WHERE  product_id NOT IN (
+         SELECT product_id
+         FROM   (VALUES (2), (NULL)) AS r(product_id)
+       );
+      </code></pre>
+      <div class="box warn fragment" data-fragment-index="1"><b>0 строк</b><code>1 NOT IN (2, NULL)</code> = <code>1 &lt;&gt; 2 AND 1 &lt;&gt; NULL</code> = TRUE AND UNKNOWN = <b>UNKNOWN</b>. WHERE пропускает только TRUE, поэтому отбрасываются все строки.</div>
+    </div>
+    <div>
+      <h3 class="green">② EXCEPT</h3>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT product_id
+FROM   (VALUES (1), (2), (3)) AS p(product_id)
+EXCEPT
+SELECT product_id
+FROM   (VALUES (2), (NULL)) AS r(product_id);
+      </code></pre>
+      <div class="box ok fragment" data-fragment-index="1"><b>2 строки: 1, 3</b>Операции над наборами сравнивают строки как <code>IS NOT DISTINCT FROM</code>: NULL не отличается от NULL, и никакого UNKNOWN не возникает.</div>
+    </div>
+  </div>
+  <div class="box info fragment" data-fragment-index="2"><b>Правило</b>Для «есть в A, нет в B» используйте <code>EXCEPT</code> или <code>NOT EXISTS</code> (тоже вернёт 1, 3). <code>NOT IN</code> — только если подзапрос гарантированно без NULL.</div>
+  <aside class="notes">Сначала дать 30 секунд на прогноз и голосование руками: «Кто считает, что ① вернёт 2 строки? 0? 3?». Большинство ответит «1 и 3» для обоих. Затем открыть ответы. Связать с модулем про трёхзначную логику: NULL в сравнении даёт UNKNOWN, но операции над наборами — особый случай, там строки сравниваются «на неразличимость». Практический смысл: один битый NULL в справочнике возвратов обнуляет отчёт, и ошибку никто не замечает — пустой результат выглядит как «возвратов нет». Результаты проверены на БД.</aside>
+</section>
+
+<!-- ===================== 16. КВИЗ 2 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: EXCEPT ALL на реальных данных</h2>
+  <p>В <code>returns</code> 308 строк, из них 206 — с причиной «Истёк срок годности». Сколько строк вернёт запрос?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT product_id FROM returns
+EXCEPT ALL
+SELECT product_id FROM returns WHERE reason = 'Истёк срок годности';
+  </code></pre>
+  <ul class="quiz">
+    <li>0</li>
+    <li data-correct>102</li>
+    <li>206</li>
+    <li>Столько, сколько различных продуктов без возвратов по сроку</li>
+  </ul>
+  <p class="explain">EXCEPT ALL вычитает «экземпляры»: для каждого product_id остаётся m − n строк. В сумме 308 − 206 = 102 (проверено на БД). Обычный EXCEPT вернул бы только продукты, у которых вообще не было возвратов по сроку.</p>
+</section>
+
+<!-- ===================== 17. ПРИОРИТЕТ ===================== -->
+<section>
+  <h2>Приоритет операций и скобки</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT x FROM (VALUES (1),(2)) a(x)    -- A
+UNION
+SELECT x FROM (VALUES (3)) b(x)        -- B
+INTERSECT
+SELECT x FROM (VALUES (1)) c(x)        -- C
+ORDER  BY x;
+-- 1, 2  ←  A UNION (B INTERSECT C)
+
+(SELECT x FROM (VALUES (1),(2)) a(x)
+ UNION
+ SELECT x FROM (VALUES (3)) b(x))
+INTERSECT
+SELECT x FROM (VALUES (1)) c(x);
+-- 1     ←  (A UNION B) INTERSECT C
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Приоритет</th><th>Операции</th></tr>
+        <tr><td>высший</td><td><code>INTERSECT [ALL]</code></td></tr>
+        <tr><td>ниже, слева направо</td><td><code>UNION [ALL]</code>, <code>EXCEPT [ALL]</code></td></tr>
+      </table>
+      <div class="box warn"><b>Правило команды</b>Если в запросе больше одного вида операции над наборами — ставим скобки, даже когда «и так правильно». Читатель не обязан помнить приоритеты.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: приоритет</h2>
+  <p>A = {1, 2}, B = {2}, C = {2}. Что вернёт <code>A EXCEPT B UNION C</code>?</p>
+  <ul class="quiz">
+    <li>{1} — сначала B UNION C, потом вычитание</li>
+    <li data-correct>{1, 2} — (A EXCEPT B) UNION C</li>
+    <li>{2}</li>
+    <li>Ошибка: нельзя смешивать EXCEPT и UNION без скобок</li>
+  </ul>
+  <p class="explain">UNION и EXCEPT одного приоритета и выполняются слева направо: {1, 2} − {2} = {1}, затем ∪ {2} = {1, 2}. Проверено на БД (examples.sql, 5.3).</p>
+</section>
+
+<!-- ===================== 19. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос аудитории</h2>
+  <p>Какая задача из вашей практики (учёба, стажировка) лучше всего решается операциями над наборами? Кликайте по варианту (Shift+клик — убрать).</p>
+  <ul class="poll">
+    <li><span style="width:16em">Сведение данных из разных источников</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Сравнение периодов «было / стало»</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Сверка двух выгрузок (контроль качества)</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Единый журнал событий / аудит</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">Пока не сталкивался</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Попросить 1–2 человек рассказать пример. Сверка выгрузок (A EXCEPT B и B EXCEPT A) — классика системного аналитика при миграции данных.</aside>
+</section>
+
+<!-- ===================== 20. РАЗДЕЛ 3 ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>CROSS APPLY и OUTER APPLY → LATERAL</h2>
+  <p>Подзапрос в FROM, который «видит» строки таблиц слева от него</p>
+</section>
+
+<!-- ===================== 21. ЗАЧЕМ LATERAL ===================== -->
+<section>
+  <h2>Зачем нужен LATERAL</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- ОЖИДАЕМАЯ ОШИБКА
+SELECT c.customer_name, t.order_number
+FROM   customers AS c
+CROSS  JOIN (SELECT o.order_number
+             FROM   orders o
+             WHERE  o.customer_id = c.customer_id
+             LIMIT  3) AS t;
+-- ERROR: invalid reference to FROM-clause
+--        entry for table "c"
+-- HINT:  ... you must mark this subquery
+--        with LATERAL.
+      </code></pre>
+      <p style="font-size:.7em">Обычный подзапрос в FROM вычисляется независимо от соседей. <code>LATERAL</code> разрешает ссылаться на таблицы <b>левее</b> — подзапрос выполняется для каждой их строки.</p>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>T-SQL</th><th>PostgreSQL</th></tr>
+        <tr><td><code>CROSS APPLY (…)</code></td><td><code>CROSS JOIN LATERAL (…)</code><br>или <code>JOIN LATERAL (…) ON TRUE</code></td></tr>
+        <tr><td><code>OUTER APPLY (…)</code></td><td><code>LEFT JOIN LATERAL (…) ON TRUE</code></td></tr>
+        <tr><td><code>SELECT TOP 3 …</code></td><td><code>… LIMIT 3</code> / <code>FETCH FIRST 3 ROWS ONLY</code></td></tr>
+        <tr><td><code>CROSS APPLY STRING_SPLIT(s, ',')</code></td><td><code>CROSS JOIN LATERAL unnest(string_to_array(s, ','))</code></td></tr>
+        <tr><td>табличная функция в APPLY</td><td>функция в FROM (LATERAL подразумевается)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 22. TOP-3 ЗАКАЗОВ ===================== -->
+<section>
+  <h2>CROSS JOIN LATERAL: 3 крупнейших заказа каждого клиента</h2>
+  <div class="two-col">
+    <div style="flex:1.2">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT c.customer_name,
+       t.order_number,
+       t.order_date,
+       t.amount
+FROM   customers AS c
+CROSS  JOIN LATERAL (
+         SELECT o.order_number, o.order_date, i.amount
+         FROM   orders   AS o
+         JOIN   invoices AS i ON i.order_id = o.order_id
+         WHERE  o.customer_id = c.customer_id
+         ORDER  BY i.amount DESC
+         LIMIT  3) AS t
+ORDER  BY c.customer_name, t.amount DESC;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Клиент</th><th>Заказ</th><th>Сумма</th></tr>
+        <tr><td>АО "Альфа"</td><td>ЗК-2024-00094</td><td>454 205.70</td></tr>
+        <tr><td>АО "Альфа"</td><td>ЗК-2024-00096</td><td>449 481.55</td></tr>
+        <tr><td>АО "Альфа"</td><td>ЗК-2025-02210</td><td>432 553.60</td></tr>
+        <tr><td>АО "Берёзка"</td><td>ЗК-2025-04357</td><td>354 271.62</td></tr>
+        <tr><td>…</td><td></td><td></td></tr>
+      </table>
+      <div class="box info"><b>216 строк, 72 клиента</b>Клиент без заказов исчез — как в CROSS APPLY. В LATERAL можно вернуть несколько столбцов и N строк — чего не умеет скалярный подзапрос.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 23. OUTER APPLY ===================== -->
+<section>
+  <h2>LEFT JOIN LATERAL … ON TRUE = OUTER APPLY</h2>
+  <div class="two-col">
+    <div style="flex:1.2">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT e.employee_id,
+       e.full_name,
+       lo.order_number,
+       lo.order_date
+FROM   employees AS e
+LEFT   JOIN LATERAL (
+         SELECT o.order_number, o.order_date
+         FROM   orders AS o
+         WHERE  o.employee_id = e.employee_id
+         ORDER  BY o.order_date DESC, o.order_id DESC
+         LIMIT  1) AS lo ON TRUE
+WHERE  e.department = 'Продажи'
+ORDER  BY e.employee_id;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>id</th><th>Сотрудник</th><th>Последний заказ</th></tr>
+        <tr><td>3</td><td>Громов А. И.</td><td class="hl">NULL</td></tr>
+        <tr><td>9</td><td>Ершова Т. Ю.</td><td class="hl">NULL</td></tr>
+        <tr><td>10</td><td>Соколов И. А.</td><td>2025-12-31</td></tr>
+        <tr><td>…</td><td></td><td></td></tr>
+        <tr><td>60</td><td>Попов С. И.</td><td>2024-06-28</td></tr>
+      </table>
+      <div class="box ok"><b>ON TRUE</b>Условие соединения уже внутри подзапроса, поэтому снаружи — «всегда истинно». Без LEFT руководители без заказов пропали бы.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 24. LATERAL + ФУНКЦИИ ===================== -->
+<section>
+  <h2>LATERAL с generate_series и unnest</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- массив смен → строки, брак по каждой
+SELECT l.line_id,
+       sh.shift,
+       (SELECT ROUND(100.0 * SUM(b.defect_qty)
+                     / SUM(b.produced_qty), 2)
+        FROM   production_batches b
+        WHERE  b.line_id = l.line_id
+          AND  b.shift   = sh.shift) AS defect_pct
+FROM   production_lines AS l
+CROSS  JOIN LATERAL
+       unnest(ARRAY['День', 'Ночь']) AS sh(shift)
+ORDER  BY l.line_id, sh.shift;
+      </code></pre>
+      <p class="small">Линия 3: День 1.62 · <span class="orange">Ночь 7.94</span>; у других линий смены одинаковы (1.55–2.34).</p>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- календарь месяцев + выручка месяца
+SELECT to_char(m.month, 'YYYY-MM') AS month,
+       r.revenue
+FROM   generate_series(DATE '2025-01-01',
+                       DATE '2025-12-01',
+                       INTERVAL '1 month') AS m(month)
+CROSS  JOIN LATERAL (
+         SELECT ROUND(SUM(oi.quantity * oi.unit_price
+                          * (1 - oi.discount_pct / 100))) AS revenue
+         FROM   orders o
+         JOIN   order_items oi ON oi.order_id = o.order_id
+         WHERE  o.status &lt;&gt; 'Отменён'
+           AND  o.order_date &gt;= m.month
+           AND  o.order_date &lt;  m.month + INTERVAL '1 month') AS r;
+-- 12 строк; минимум 2025-07: 24,7 млн
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 25. КЕЙС: ЖУРНАЛ ПОТЕРЬ ===================== -->
+<section class="case-slide">
+  <h2>Кейс: единый журнал потерь производства <span class="badge team-b">Команда Б</span></h2>
+  <div class="two-col">
+    <div style="flex:1.15">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT 'Брак'::text AS event_type, b.production_date AS event_date,
+       b.line_id, b.defect_qty::numeric AS qty, 'шт/кг'::text AS unit,
+       b.defect_qty * p.standard_cost AS amount_rub
+FROM   production_batches b JOIN products p ON p.product_id = b.product_id
+WHERE  b.defect_qty &gt; 0
+UNION ALL
+SELECT 'Простой', d.start_time::date, d.line_id,
+       ROUND(EXTRACT(EPOCH FROM (d.end_time - d.start_time)) / 3600, 2),
+       'ч', NULL
+FROM   equipment_downtime d
+WHERE  d.end_time IS NOT NULL
+UNION ALL
+SELECT 'Списание', w.writeoff_date, NULL, w.quantity, m.unit, w.amount
+FROM   material_writeoffs w
+JOIN   raw_materials m ON m.material_id = w.material_id
+WHERE  w.quantity &gt; 0;
+      </code></pre>
+    </div>
+    <div>
+      <p class="small" style="margin:0">Свод по журналу за 2025 г. — <code>GROUP BY event_type, unit</code></p>
+      <table class="t loss">
+        <tr><th>event_type</th><th>qty</th><th>unit</th><th>amount_rub</th><th>к 2024</th></tr>
+        <tr><td>Брак</td><td>107 399</td><td>шт/кг</td><td>7 650 249</td><td>+25%</td></tr>
+        <tr><td>Простой</td><td>796</td><td>ч</td><td class="hl">NULL <span class="mark">1</span></td><td class="hl">×2,3 <span class="mark">3</span></td></tr>
+        <tr><td rowspan="3">Списание</td><td>2 145</td><td>кг</td><td>690 192</td><td rowspan="3">+17%</td></tr>
+        <tr><td>3 190</td><td>л</td><td>177 331</td></tr>
+        <tr><td>994</td><td>шт</td><td>8 041</td></tr>
+        <tr class="total"><td>Итого</td><td class="hl">? <span class="mark">2</span></td><td>—</td><td class="hl">8,53 млн + ? <span class="mark">1</span></td><td></td></tr>
+      </table>
+      <p class="small" style="margin:.2em 0 .5em">Простои: 102 → 176 случаев, в среднем 3,4 → 4,5 ч</p>
+      <ol class="loss-q">
+        <li><span class="mark">1</span> Почему у простоя <code>amount_rub</code> = NULL? Как перевести часы в рубли и насколько «итого» занижено?</li>
+        <li><span class="mark">2</span> Можно ли сложить <code>qty</code>, если в столбце кг, л, шт и часы?</li>
+        <li><span class="mark">3</span> Простои растут быстрее всего. Какой срез журнала найдёт «виновника»?</li>
+      </ol>
+    </div>
+  </div>
+  <aside class="notes">Таблица — результат запроса SELECT event_type, unit, SUM(qty), SUM(amount_rub) FROM (журнал) WHERE event_date в 2025 г. GROUP BY event_type, unit. Цифры проверены на БД. Начать с вопроса: «Руководство просит одну цифру — сколько мы потеряли в 2025-м. Что ответите?» Простой в рублях можно оценить как часы × capacity_per_hour × маржа продукта — но это модель, а не факт, её нужно согласовать с бизнесом. Сложить qty нельзя: штуки, кг, литры, часы. Следующий срез — простои по линиям: Линия 2 (2009 г.) 168 ч → 590 ч (точка B4). Это Б-1/Б-2 лабораторной.</aside>
+</section>
+
+<!-- ===================== 26. ОБСУЖДЕНИЕ: LATERAL vs ... ===================== -->
+<section class="discussion-slide">
+  <h2>LATERAL, коррелированный подзапрос или окно?</h2>
+  <p>«Последний заказ каждого клиента» можно получить тремя способами:</p>
+  <ol>
+    <li>коррелированный подзапрос <code>WHERE order_date = (SELECT MAX(...))</code> (модуль 5);</li>
+    <li><code>LEFT JOIN LATERAL (... ORDER BY ... LIMIT 1) ON TRUE</code>;</li>
+    <li><code>ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY ...)</code> (модуль 8).</li>
+  </ol>
+  <p>Чем они отличаются при «ничьих», при необходимости вернуть 3 строки, при наличии индекса <code>(customer_id, order_date)</code>?</p>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Ожидаемые ответы: (1) при равных датах — несколько строк, только одна строка «вверх», плохо обобщается на top-N; (2) ровно N строк, детерминированность через доп. ключ сортировки, отлично работает с индексом (customer_id, order_date) — по индексу для каждого клиента читаются N строк; удобно, когда внешних строк мало, а детальных много; (3) один проход по всей таблице, хорошо, когда нужны почти все группы и сравнение внутри окна. Нет единственно правильного — выбор по объёму и индексам.</aside>
+</section>
+
+<!-- ===================== 27. ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: спроектируйте набор</h2>
+  <p style="font-size:.75em">Опишите на доске структуру итогового набора (столбцы, типы, источник каждой ветки) и операцию — до написания кода.</p>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      Лента «движения денег» клиента: счета, оплаты, возвраты.
+      <ul><li>какие столбцы общие, какие — NULL?</li><li>как посчитать сумму возврата, если в <code>returns</code> нет цены?</li><li>UNION или UNION ALL — и почему?</li><li>как получить из ленты долг на конец месяца?</li></ul></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      «Последние 3 поставки каждого поставщика и лучшая цена конкурента на ту же дату».
+      <ul><li>сколько LATERAL-подзапросов нужно и на что ссылается каждый?</li><li>что вернуть, если конкурентов по материалу нет?</li><li>за какой период брать цену конкурента?</li></ul></div>
+  </div>
+  <span class="timer">⏱ 8 мин</span>
+  <aside class="notes">Команда А: (тип, клиент, дата, сумма); сумма возврата = returns.quantity × цена со скидкой из order_items по (order_id, product_id); только UNION ALL; долг = накопленная сумма (счета − оплаты) — оконная функция в модуле 8, пока можно GROUP BY месяц. Команда Б: два LATERAL — первый на s (последние 3 позиции), второй на s и первый LATERAL (min цена других поставщиков за 90 дней); второй — LEFT JOIN LATERAL ... ON TRUE, иначе пропадут материалы без конкурентов (упаковка, какао-масло).</aside>
+</section>
+
+<!-- ===================== 28. ЛАБОРАТОРНАЯ ===================== -->
+<section>
+  <h2>Лабораторная работа №6</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ul><li>единая лента «движения денег» (UNION ALL)</li><li>помесячная лента проблемного клиента</li><li>покупали в 2024, но не в 2025 (EXCEPT)</li><li>топ-10 по выручке ∩ топ-10 по возвратам (INTERSECT)</li><li>top-3 скидки каждого менеджера (LATERAL)</li></ul></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ul><li>единый журнал потерь (UNION ALL)</li><li>простои по линиям</li><li>закупки vs рецептуры, новые пары «поставщик — материал» (EXCEPT)</li><li>поставщики одних и тех же материалов (INTERSECT)</li><li>последние 3 поставки и цена конкурента (LATERAL)</li></ul></div>
+  </div>
+  <p class="small">Инструкция: <code>module_06/lab.md</code> · 25 мин в аудитории + 25 мин самостоятельно · защита 10 мин · итог — «Вывод для руководства».</p>
+</section>
+
+<!-- ===================== 29. ИТОГИ ===================== -->
+<section>
+  <h2>Что запомнить</h2>
+  <div class="two-col">
+    <div>
+      <ul style="font-size:.76em">
+        <li>Наборы совместимы: число столбцов, типы по позициям; имена — из первого запроса; <code>ORDER BY</code> — в конце</li>
+        <li><span class="orange">По умолчанию — UNION ALL</span>; UNION удаляет дубли и может «съесть» данные</li>
+        <li>Столбец-признак источника — обязательный приём для лент событий</li>
+        <li><code>INTERSECT</code> — сильнее <code>UNION</code>/<code>EXCEPT</code>; при смешении — скобки</li>
+        <li><code>EXCEPT</code> несимметричен; пустой результат — тоже результат, но его надо проверить</li>
+        <li><code>CROSS/OUTER APPLY</code> = <code>CROSS JOIN LATERAL</code> / <code>LEFT JOIN LATERAL … ON TRUE</code></li>
+      </ul>
+    </div>
+    <div>
+      <div class="box ok"><b>Инструмент аналитика</b>Единый журнал событий и сравнение периодов «было / стало» — основа отчёта о потерях: всё в одном наборе, в одних единицах, с типом события.</div>
+      <div class="box info"><b>Следующий модуль — 7 «Модификация данных»</b>До сих пор мы только читали данные. Дальше — INSERT, UPDATE, DELETE и MERGE в личной схеме: исправим найденные дубли клиентов и пересчитаем цены.</div>
+    </div>
+  </div>
+  <aside class="notes">Попросить команды сохранить журналы из лабораторной: в модуле 9 они станут представлениями, в модуле 12 — источником итогового доклада.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
