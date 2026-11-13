@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 8 — Использование оконных функций</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+
+/* --- слайд «Порядок выполнения SELECT» --- */
+.qo-wrap{display:flex;gap:1.2em;align-items:stretch}
+.qo-wrap>div{flex:1;min-width:0}
+.qo-h{font-size:.62em;font-weight:700;color:var(--accent1);margin:0 0 .3em 0;text-transform:uppercase;letter-spacing:.04em}
+.qo-code{background:var(--code-bg);border-radius:8px;padding:10px 14px;font-family:Consolas,'Courier New',monospace;
+  font-size:.5em;line-height:1.75;color:#d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.qo-code .ln{display:flex;align-items:center;gap:10px;border-radius:5px;padding:0 6px}
+.qo-code .kw{color:#569cd6;font-weight:700;min-width:6.2em;display:inline-block;white-space:pre}
+.qo-code .cm{color:#6a9955}
+.qo-code .n{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;
+  background:#3a3d41;color:#cfd3d8;font-size:.85em;font-weight:700;flex:none}
+.qo-code .ln.focus{background:rgba(237,125,49,.30)}
+.qo-code .ln.focus .n{background:var(--accent2);color:#fff}
+.qo-code .ln.rel{background:rgba(237,125,49,.10)}
+.qo-code .ln.rel .n{background:#8a5a36;color:#fff}
+.qo-steps{list-style:none;margin:0!important;padding:0;font-size:.52em}
+.qo-steps li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e8f2;border-left:6px solid #c9d3e6;
+  border-radius:6px;padding:3px 10px;margin:0 0 4px 0;line-height:1.3;color:var(--muted)}
+.qo-steps li .n{font-weight:800;color:#9aa4b2;width:1.2em;text-align:right;flex:none}
+.qo-steps li .k{font-family:Consolas,'Courier New',monospace;font-weight:700;color:var(--text);min-width:7.4em}
+.qo-steps li .d{flex:1}
+.qo-steps li .m{font-size:.85em;background:#eef2fa;color:var(--accent1);border-radius:10px;padding:0 8px;font-weight:700;white-space:nowrap}
+.qo-steps li.focus{border-left-color:var(--accent2);background:#fff3e8;color:var(--text);box-shadow:0 2px 6px rgba(237,125,49,.25)}
+.qo-steps li.focus .n,.qo-steps li.focus .k{color:var(--accent2)}
+.qo-steps li.focus .m{background:var(--accent2);color:#fff}
+.qo-steps li.rel{border-left-color:#f3b88f;background:#fffaf5}
+.qo-steps li.done{border-left-color:var(--accent6)}
+.qo-legend{font-size:.5em;color:var(--muted);margin-top:.3em}
+.qo-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+/* --- схемы работы оконных функций (wd-) --- */
+.wd-flow{display:flex;align-items:stretch;gap:.5em}
+.wd-panel{flex:1;min-width:0;background:#fff;border:1px solid #e3e8f2;border-radius:8px;padding:8px 10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.wd-arrow{display:flex;align-items:center;font-size:1.3em;color:var(--accent1);font-weight:800}
+.wd-h{font-size:.5em;font-weight:700;color:var(--accent1);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .25em}
+.wd-chip{display:inline-block;font-family:Consolas,'Courier New',monospace;font-size:.46em;background:var(--code-bg);
+  color:#d4d4d4;border-radius:5px;padding:2px 8px;margin:0 0 .4em}
+.wd-chip .kw{color:#569cd6;font-weight:700}
+.wd-cap{font-size:.46em;color:var(--muted);margin:.4em 0 0;line-height:1.35}
+.reveal table.wd-tbl{border-collapse:separate;border-spacing:0 2px;font-size:.44em;width:100%;margin:0}
+.reveal table.wd-tbl th{color:var(--muted);font-weight:600;text-align:left;padding:2px 6px;border:none;
+  border-bottom:1px solid #e3e8f2}
+.reveal table.wd-tbl td{padding:3px 6px;border:none;background:#f7f8fa;transition:background .25s,color .25s}
+.reveal table.wd-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.reveal table.wd-tbl tr.p1 td{background:#eaf0fb}.reveal table.wd-tbl tr.p1 td:first-child{border-left:5px solid var(--accent1)}
+.reveal table.wd-tbl tr.p2 td{background:#edf7e8}.reveal table.wd-tbl tr.p2 td:first-child{border-left:5px solid var(--accent6)}
+.reveal table.wd-tbl tr.p3 td{background:#f3eefb}.reveal table.wd-tbl tr.p3 td:first-child{border-left:5px solid #8e6cc8}
+.reveal table.wd-tbl tr.ph td{background:none;color:var(--muted);font-weight:700;font-size:.9em;padding:4px 2px 0}
+.reveal table.wd-tbl tr.gap td{border-top:6px solid #fff}
+.reveal table.wd-tbl tr.out td{color:#b3bac5}
+.reveal table.wd-tbl tr.inf td{background:#fde3cf!important;color:var(--text)}
+.reveal table.wd-tbl tr.cur td{background:#f9c49c!important;color:var(--text);font-weight:700}
+.reveal table.wd-tbl tr.cur td:first-child,.reveal table.wd-tbl tr.inf td:first-child{border-left:5px solid var(--accent2)}
+.reveal table.wd-tbl td.res{color:var(--accent2);font-weight:700}
+.reveal table.wd-tbl td.dim{color:#b3bac5;font-weight:400}
+.wd-total{font-size:.5em;margin-top:.35em;font-weight:700;color:var(--accent2)}
+.wd-ptr{display:inline-block;border-radius:12px;padding:0 10px;font-weight:700;color:#fff;white-space:nowrap}
+.wd-ptr.b{background:var(--accent1)}.wd-ptr.g{background:var(--accent6)}.wd-ptr.o{background:var(--accent2)}
+.wd-legend{font-size:.44em;color:var(--muted);margin-top:.4em}
+.wd-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+.wd-step{position:absolute;width:0;height:0;overflow:hidden}
+.reveal table.wd-tbl tr td.ptr{background:none!important;border-left:none!important;padding-left:10px}
+/* --- полный код запроса на схемах (как в модуле 5) --- */
+.sd-code{display:block;background:var(--code-bg);color:#d4d4d4;border-radius:8px;padding:8px 16px;font-family:Consolas,'Courier New',monospace;font-size:.42em;line-height:1.45;white-space:pre;text-align:left;box-shadow:0 3px 12px rgba(0,0,0,.18);margin:0 0 .4em;overflow:hidden}
+.sd-code .k{color:#569cd6;font-weight:700}.sd-code .f{color:#dcdcaa}.sd-code .s{color:#ce9178}.sd-code .n{color:#b5cea8}.sd-code .c{color:#6a9955;font-style:italic}
+.sd-code .h{background:rgba(237,125,49,.38);border-radius:3px}
+.sd-code .m{color:#f9c49c;font-weight:700;font-style:normal;font-family:'Segoe UI Symbol','Segoe UI',sans-serif;font-size:1.15em;line-height:1}
+.sd-top{display:flex;gap:.6em;align-items:stretch;margin:0 0 .4em}
+.sd-top>*{margin:0!important}
+.reveal table.wd-tbl td.fc{background:#fde3cf!important;text-align:right;color:var(--text)}
+.reveal table.wd-tbl td.fx{text-align:center;color:#c9ced6}
+.reveal table.wd-tbl tr.sum td{background:none!important;font-weight:700;color:var(--accent2);text-align:right;border-top:2px solid #e3e8f2}
+/* --- блок «Анатомия окна по шагам: элеватор» (an-) --- */
+.an-grid{display:flex;gap:.7em;align-items:flex-start}
+.an-l{flex:0 0 47%;min-width:0}.an-r{flex:1;min-width:0}
+.reveal .an-slide h2{margin-bottom:.3em}
+.an-num{display:inline-flex;align-items:center;justify-content:center;width:1.25em;height:1.25em;border-radius:50%;background:var(--accent2);color:#fff;font-size:.85em;vertical-align:.05em}
+.sd-code.an-code{font-size:.44em;margin:0 0 .35em}
+.box.an-what{font-size:.5em;margin:.2em 0}
+.box.an-main{font-size:.5em;margin:.4em 0 0}
+.an-tools{gap:.6em;margin-top:.4em}.an-tools .card{font-size:.46em;padding:8px 12px}
+.reveal table.t.an-map{font-size:.46em;margin:.3em 0}
+.reveal table.wd-tbl.an-res{font-size:.46em}
+.m8svg{width:100%;height:auto;display:block}
+.m8svg text{font-family:'Segoe UI',Tahoma,sans-serif}
+.m8svg .lbl{font-size:12px;fill:#2c3e50}
+.m8svg .mut{font-size:11px;fill:#6b7280}
+.m8svg .hd{font-size:15px;font-weight:700;fill:#4472C4}
+.m8svg .in{fill:#fff;font-weight:700;text-anchor:middle}
+.m8svg .tg{font-size:10.5px;text-anchor:middle}
+.m8svg .r{fill:#ED7D31;font-weight:700}
+.an-strip{display:flex;align-items:center;gap:.25em;margin:0 0 .45em;font-size:.44em}
+.an-strip .ar{color:var(--accent1);font-weight:800;font-size:1.3em}
+.an-chip{flex:1;display:flex;align-items:center;gap:.45em;background:#fff;border:2px solid #e3e8f2;border-radius:8px;padding:4px 8px;line-height:1.25;color:var(--muted)}
+.an-chip b{color:var(--text)}.an-chip .i{font-size:1.6em}
+.an-chip.on{border-color:var(--accent2);background:#fff3e8}
+.an-chip.done{border-color:var(--accent6)}
+</style>
+</head>
+<body>
+<!-- общие элементы SVG-иллюстраций «Анатомия окна» -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="m8-sack" viewBox="0 0 40 50">
+      <path d="M14 1 H26 L23.5 9 H16.5 Z"/>
+      <path d="M16 9 C5 13 2 25 2 34 C2 45 10 49 20 49 C30 49 38 45 38 34 C38 25 35 13 24 9 Z"/>
+      <path d="M15 10.5 H25" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+    </symbol>
+    <marker id="m8-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#6b7280"/></marker>
+    <marker id="m8-arro" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#ED7D31"/></marker>
+  </defs>
+</svg>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 8</div>
+  <h1>Использование оконных функций</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">Рейтинги, нарастающие итоги, скользящие средние и сравнение с прошлым — без потери деталей</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 2 ак. ч.</div>
+  <aside class="notes">Модуль только читает данные: работаем в pitanie. Ключевая мысль: окно добавляет к каждой строке агрегат по «соседям», не схлопывая строки.</aside>
+</section>
+
+<!-- ===================== ПОРЯДОК ВЫПОЛНЕНИЯ SELECT (общая схема курса) ===================== -->
+<section>
+  <h2>Как выполняется SELECT … FROM: что разбираем сегодня</h2>
+  <div class="qo-wrap">
+    <div>
+      <p class="qo-h">Как мы пишем (синтаксический порядок)</p>
+      <div class="qo-code">
+        <div class="ln focus"><span class="n">6</span><span class="kw">SELECT</span><span>столбцы, выражения <span class='cm'>-- окна OVER(…) — шаг 5</span></span></div>
+        <div class="ln "><span class="n">7</span><span class="kw">DISTINCT</span><span><span class='cm'>-- необязательно</span></span></div>
+        <div class="ln "><span class="n">1</span><span class="kw">FROM</span><span>таблица t</span></div>
+        <div class="ln "><span class="n">1</span><span class="kw">  JOIN</span><span>таблица2 ON …</span></div>
+        <div class="ln "><span class="n">2</span><span class="kw">WHERE</span><span>условие на строки</span></div>
+        <div class="ln "><span class="n">3</span><span class="kw">GROUP BY</span><span>ключи группировки</span></div>
+        <div class="ln "><span class="n">4</span><span class="kw">HAVING</span><span>условие на группы</span></div>
+        <div class="ln rel"><span class="n">8</span><span class="kw">ORDER BY</span><span>столбцы [ASC | DESC]</span></div>
+        <div class="ln "><span class="n">9</span><span class="kw">LIMIT</span><span>n OFFSET m;</span></div>
+      </div>
+      <p class="qo-legend">цифра в кружке — номер шага выполнения</p>
+    </div>
+    <div>
+      <p class="qo-h">Как выполняет СУБД (логический порядок)</p>
+      <ul class="qo-steps">
+        <li class="done"><span class="n">1</span><span class="k">FROM / JOIN</span><span class="d">таблицы, JOIN, подзапросы</span><span class="m">М3 · М5</span></li>
+        <li class="done"><span class="n">2</span><span class="k">WHERE</span><span class="d">фильтр отдельных строк</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">3</span><span class="k">GROUP BY</span><span class="d">строки → группы</span><span class="m">М4</span></li>
+        <li class="done"><span class="n">4</span><span class="k">HAVING</span><span class="d">фильтр групп</span><span class="m">М4</span></li>
+        <li class="focus"><span class="n">5</span><span class="k">OVER (…)</span><span class="d">оконные функции <b class="orange">← сегодня</b></span><span class="m">М8</span></li>
+        <li class="rel"><span class="n">6</span><span class="k">SELECT</span><span class="d">выражения, функции, псевдонимы</span><span class="m">М2</span></li>
+        <li class="done"><span class="n">7</span><span class="k">DISTINCT</span><span class="d">удаление дублей</span><span class="m">М1</span></li>
+        <li class="rel"><span class="n">8</span><span class="k">ORDER BY</span><span class="d">сортировка</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">9</span><span class="k">LIMIT/OFFSET</span><span class="d">отсечение строк</span><span class="m">М1</span></li>
+      </ul>
+      <p class="qo-legend"><span style="background:var(--accent2)"></span>тема модуля<span style="background:#f3b88f"></span>связано с темой<span style="background:var(--accent6)"></span>уже изучено</p>
+    </div>
+  </div>
+  <div class="box warn" style="font-size:.62em;margin-top:.5em"><b>Сегодня: шаг 5 — оконные функции</b>Окна вычисляются <b>после</b> GROUP BY и HAVING, но <b>до</b> DISTINCT, ORDER BY и LIMIT. Поэтому окно «видит» уже отфильтрованные строки и готовые группы (можно <code>SUM(SUM(x)) OVER ()</code>), но фильтровать по окну в WHERE нельзя — только во внешнем запросе или CTE.</div>
+  <aside class="notes">Вопрос аудитории: почему rank() OVER (...) нельзя использовать в WHERE, но можно в ORDER BY? Ответ — по номерам шагов на схеме. Подробно вернёмся к этому на слайде «Логический порядок».</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план занятия</h2>
+  <div class="two-col">
+    <div>
+      <h3>После модуля вы сможете</h3>
+      <ul>
+        <li>объяснить разницу между окном и <code>GROUP BY</code>, место окон в порядке выполнения</li>
+        <li>ранжировать: <code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code>, <code>NTILE</code>, <code>PERCENT_RANK</code></li>
+        <li>считать нарастающие итоги, доли, скользящие средние; управлять рамкой <code>ROWS / RANGE / GROUPS</code></li>
+        <li>сравнивать с прошлым: <code>LAG</code>, <code>LEAD</code>, <code>FIRST_VALUE</code>, <code>LAST_VALUE</code>, <code>NTH_VALUE</code></li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Время</th><th>Блок</th></tr>
+        <tr><td>0–5</td><td>Опрос, мотивация</td></tr>
+        <tr><td>5–20</td><td>Введение: анатомия окна по шагам («элеватор»), порядок</td></tr>
+        <tr><td>20–27</td><td>Функции ранжирования</td></tr>
+        <tr><td>27–36</td><td>Агрегатные окна и рамки</td></tr>
+        <tr><td>36–43</td><td>Функции смещения, WINDOW</td></tr>
+        <tr><td>43–46</td><td>Кейс план-факт</td></tr>
+        <tr><td>46–80</td><td class="hl">Лабораторная работа (А / Б)</td></tr>
+        <tr><td>80–90</td><td>Защита выводов, итоги</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== 3. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: как вы считаете нарастающий итог?</h2>
+  <p>Нужна выручка по месяцам и выручка с начала года рядом. Как вы сделали бы это сейчас?</p>
+  <ul class="poll">
+    <li><span style="width:17em">Выгружу в Excel и протяну формулу</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:17em">Коррелированный подзапрос</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:17em">Self-join с условием «≤ месяц»</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:17em">SUM() OVER (ORDER BY …)</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Подзапрос и self-join дают O(n²) и громоздкий код. Окно — один проход после сортировки. К концу модуля все должны выбирать последний вариант.</aside>
+</section>
+
+<!-- ===================== 4. МОТИВАЦИЯ ===================== -->
+<section>
+  <h2>Зачем окна: задача «доля от итога»</h2>
+  <div class="two-col">
+    <div>
+      <p class="small">Без окна — подзапрос для итога:</p>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT r.region_name,
+       count(*) AS returns_cnt,
+       round(100.0 * count(*) /
+             (SELECT count(*) FROM returns), 1)
+                AS share_pct
+FROM   returns   AS rt
+JOIN   orders    AS o ON o.order_id = rt.order_id
+JOIN   customers AS c ON c.customer_id = o.customer_id
+LEFT   JOIN regions AS r ON r.region_id = c.region_id
+GROUP  BY r.region_name;
+      </code></pre>
+    </div>
+    <div>
+      <p class="small">С окном — итог «из того же результата»:</p>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT r.region_name,
+       count(*) AS returns_cnt,
+       round(100.0 * count(*) /
+             sum(count(*)) OVER (), 1)
+                AS share_pct
+FROM   …
+GROUP  BY r.region_name
+ORDER  BY returns_cnt DESC;
+      </code></pre>
+      <table class="t">
+        <tr><th>region_name</th><th>cnt</th><th>%</th></tr>
+        <tr><td>Новосибирская обл.</td><td>106</td><td class="hl">34.4</td></tr>
+        <tr><td>Красноярский край</td><td>75</td><td class="hl">24.4</td></tr>
+        <tr><td>Москва и МО</td><td>32</td><td>10.4</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box info"><b>Окно поверх GROUP BY</b><code>sum(count(*)) OVER ()</code> — сумма групповых count: сначала группировка, потом окно. Если добавить WHERE, итог подзапроса и окна разойдутся — окно «видит» только отфильтрованное.</div>
+</section>
+
+<!-- ===================== 5. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Введение в оконные функции</h2>
+  <p>OVER · PARTITION BY · ORDER BY · рамка · порядок выполнения</p>
+</section>
+
+<!-- ===================== 5a. СХЕМА: GROUP BY vs ОКНО ===================== -->
+<section>
+  <h2>Схема: GROUP BY схлопывает строки, окно — нет</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:1"><span class="c">-- <span class="m">①</span> GROUP BY: одна строка на группу</span>
+<span class="k">SELECT</span> line_id,
+       <span class="f">round</span>(<span class="f">avg</span>(<span class="n">100.0</span> * defect_qty / produced_qty), <span class="n">2</span>) <span class="k">AS</span> avg_pct
+<span class="k">FROM</span>   production_batches
+<span class="k">WHERE</span>  production_date = <span class="k">DATE</span> <span class="s">'2025-06-02'</span>
+  <span class="k">AND</span>  line_id &lt;= <span class="n">3</span>
+<span class="h"><span class="k">GROUP</span>  <span class="k">BY</span> line_id</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> line_id;</div><div class="sd-code" style="flex:1.15"><span class="c">-- <span class="m">②</span> Окно: строки сохраняются</span>
+<span class="k">SELECT</span> batch_id, line_id, shift,
+       <span class="f">round</span>(<span class="n">100.0</span> * defect_qty / produced_qty, <span class="n">2</span>) <span class="k">AS</span> defect_pct,
+       <span class="f">round</span>(<span class="f">avg</span>(<span class="n">100.0</span> * defect_qty / produced_qty)
+               <span class="h"><span class="k">OVER</span> (<span class="k">PARTITION</span> <span class="k">BY</span> line_id)</span>, <span class="n">2</span>)     <span class="k">AS</span> line_avg
+<span class="k">FROM</span>   production_batches
+<span class="k">WHERE</span>  production_date = <span class="k">DATE</span> <span class="s">'2025-06-02'</span>
+  <span class="k">AND</span>  line_id &lt;= <span class="n">3</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> line_id, shift;</div></div>
+  <div class="wd-flow">
+    <div class="wd-panel">
+      <p class="wd-h">Строки после WHERE</p>
+      <table class="wd-tbl">
+        <tr><th>batch</th><th>line</th><th>shift</th><th>defect_pct</th></tr>
+        <tr class="p1"><td>4293</td><td>1</td><td>День</td><td class="num">1.66</td></tr>
+        <tr class="p1"><td>4294</td><td>1</td><td>Ночь</td><td class="num">2.25</td></tr>
+        <tr class="p2"><td>4295</td><td>2</td><td>День</td><td class="num">2.10</td></tr>
+        <tr class="p2"><td>4296</td><td>2</td><td>Ночь</td><td class="num">3.22</td></tr>
+        <tr class="p3"><td>4297</td><td>3</td><td>День</td><td class="num">2.07</td></tr>
+        <tr class="p3"><td>4298</td><td>3</td><td>Ночь</td><td class="num">6.25</td></tr>
+      </table>
+      <p class="wd-cap">6 партий за 02.06.2025, цвет — линия</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1">
+      <p class="wd-h">① GROUP BY line_id</p>
+      <table class="wd-tbl">
+        <tr><th>line</th><th>avg_pct</th></tr>
+        <tr class="p1"><td>1</td><td class="num res">1.95</td></tr>
+        <tr class="p2"><td>2</td><td class="num res">2.66</td></tr>
+        <tr class="p3"><td>3</td><td class="num res">4.16</td></tr>
+      </table>
+      <p class="wd-cap"><b>3 строки</b>: одна на группу. batch и shift пропали — их нельзя вывести без агрегата.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2" style="flex:1.25">
+      <p class="wd-h">② OVER (PARTITION BY line_id)</p>
+      <table class="wd-tbl">
+        <tr><th>batch</th><th>line</th><th>shift</th><th>defect_pct</th><th>line_avg</th></tr>
+        <tr class="p1"><td>4293</td><td>1</td><td>День</td><td class="num">1.66</td><td class="num res">1.95</td></tr>
+        <tr class="p1"><td>4294</td><td>1</td><td>Ночь</td><td class="num">2.25</td><td class="num res">1.95</td></tr>
+        <tr class="p2"><td>4295</td><td>2</td><td>День</td><td class="num">2.10</td><td class="num res">2.66</td></tr>
+        <tr class="p2"><td>4296</td><td>2</td><td>Ночь</td><td class="num">3.22</td><td class="num res">2.66</td></tr>
+        <tr class="p3"><td>4297</td><td>3</td><td>День</td><td class="num">2.07</td><td class="num res">4.16</td></tr>
+        <tr class="p3"><td>4298</td><td>3</td><td>Ночь</td><td class="num">6.25</td><td class="num res">4.16</td></tr>
+      </table>
+      <p class="wd-cap"><b>6 строк</b>: каждая осталась на месте и получила среднее своей линии.</p>
+    </div>
+  </div>
+  <div class="box info fragment" data-fragment-index="3" style="font-size:.54em;margin-top:.5em"><b>Главная мысль</b>Окно считает агрегат по «соседям» строки, но не схлопывает строки. Поэтому в одном SELECT видны и деталь (партия), и контекст (среднее по линии).</div>
+  <aside class="notes">Покажите по кликам: исходные строки → результат запроса ① → результат запроса ②. Запросы отличаются только подсвеченной частью. Вопрос: как получить таблицу ② без оконной функции? (JOIN с подзапросом GROUP BY — длиннее и требует второго прохода по таблице.)</aside>
+</section>
+
+<!-- ===================== 6. ОКНО vs GROUP BY ===================== -->
+<section>
+  <h2>Окно сохраняет строки</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT batch_id,
+       line_id,
+       shift,
+       round(100.0 * defect_qty / produced_qty, 2) AS defect_pct,
+       round(avg(100.0 * defect_qty / produced_qty)
+               OVER (PARTITION BY line_id), 2)     AS line_avg_pct
+FROM   production_batches
+WHERE  production_date = DATE '2025-06-02'
+ORDER  BY line_id, shift;
+  </code></pre>
+  <div class="two-col" style="align-items:center">
+    <div>
+    <table class="t" style="font-size:.55em;margin:0">
+      <tr><th>batch_id</th><th>line</th><th>shift</th><th>defect_pct</th><th>line_avg_pct</th></tr>
+      <tr><td>4295</td><td>2</td><td>День</td><td>2.10</td><td>2.66</td></tr>
+      <tr><td>4296</td><td>2</td><td>Ночь</td><td>3.22</td><td>2.66</td></tr>
+      <tr><td>4297</td><td>3</td><td>День</td><td>2.07</td><td>4.16</td></tr>
+      <tr><td>4298</td><td>3</td><td>Ночь</td><td class="hl">6.25</td><td>4.16</td></tr>
+    </table>
+    <div class="small" style="font-size:.45em;margin-top:.3em">фрагмент: 4 из 10 строк</div>
+    </div>
+    <div class="box info" style="font-size:.62em;margin:0"><b>GROUP BY line_id</b>вернул бы 5 строк — по одной на линию. Окно вернуло все 10 партий и добавило к каждой среднее её линии.</div>
+  </div>
+</section>
+
+<!-- ===================== 7. СИНТАКСИС ===================== -->
+<section>
+  <h2>Анатомия оконной функции</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+функция(аргументы) OVER (
+    PARTITION BY  line_id                       -- на какие группы делим (необязательно)
+    ORDER BY      production_date, shift        -- порядок внутри группы (для ранга, итога, LAG)
+    ROWS BETWEEN  6 PRECEDING AND CURRENT ROW   -- рамка: какие строки группы видит функция
+)
+  </code></pre>
+  <table class="t">
+    <tr><th>Часть</th><th>Без неё</th></tr>
+    <tr><td><code>PARTITION BY</code></td><td>окно — весь результат запроса</td></tr>
+    <tr><td><code>ORDER BY</code></td><td>все строки окна равноправны; рамка = всё окно</td></tr>
+    <tr><td>рамка</td><td>с ORDER BY: <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> (ловушка — дальше)</td></tr>
+  </table>
+  <div class="three-col">
+    <div class="card"><h4>Ранжирование</h4>ROW_NUMBER, RANK, DENSE_RANK, NTILE, PERCENT_RANK, CUME_DIST</div>
+    <div class="card orange-top"><h4>Агрегатные</h4>SUM, AVG, COUNT, MIN, MAX … + FILTER</div>
+    <div class="card green-top"><h4>Смещения</h4>LAG, LEAD, FIRST_VALUE, LAST_VALUE, NTH_VALUE</div>
+  </div>
+</section>
+
+
+<!-- ===================== 7.1–7.10 АНАТОМИЯ ОКНА ПО ШАГАМ: ЭЛЕВАТОР ===================== -->
+<section class="an-slide">
+  <h2>Анатомия окна по шагам: приёмка сырья на элеваторе</h2>
+<div class="an-strip"><div class="an-chip"><span class="i">🏷️</span><span><b>① OVER</b><br>бирка, а не бункер</span></div><span class="ar">→</span><div class="an-chip"><span class="i">🗄️</span><span><b>② PARTITION BY</b><br>закрома</span></div><span class="ar">→</span><div class="an-chip"><span class="i">➡️</span><span><b>③ ORDER BY</b><br>лента</span></div><span class="ar">→</span><div class="an-chip"><span class="i">🪟</span><span><b>④ ROWS / RANGE</b><br>смотровое окно</span></div><span class="ar">→</span><div class="an-chip"><span class="i">🧑‍🔬</span><span><b>⑤ функция</b><br>лаборант</span></div></div>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="f">avg</span>(poi.unit_price)                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="k">OVER</span> (                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="k">PARTITION BY</span> poi.material_id              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="k">ORDER BY</span> poi.received_date,               <span class="c">-- <span class="m">③</span> лента</span>
+                          poi.po_item_id
+                 <span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span>  <span class="c">-- <span class="m">④</span> окно</span>
+             ), <span class="n">2</span>) <span class="k">AS</span> avg3_price
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+    </div>
+    <div class="an-r">
+      <div class="box info" style="font-size:.5em;margin-top:0"><b>Кейс команды Б <span class="badge team-b">Производство и закупки</span></b>Не переплачиваем ли мы за сыпучее сырьё? Сравним цену каждой поставки января 2025 со <b>скользящей средней последних 3 поставок</b> того же сырья. Одна строка — один «мешок»: позиция приёмки из <code>purchase_order_items</code>.</div>
+      <table class="t an-map">
+        <tr><th>Шаг</th><th>На элеваторе</th><th>Вопрос к окну</th></tr>
+        <tr><td>① <code>OVER</code></td><td>на мешок вешают бирку, а не высыпают в бункер</td><td>строки сохраняются?</td></tr>
+        <tr><td>② <code>PARTITION BY</code></td><td>сортировка по закромам</td><td>с кем сравниваем?</td></tr>
+        <tr><td>③ <code>ORDER BY</code></td><td>очередь мешков на ленте</td><td>в каком порядке?</td></tr>
+        <tr><td>④ <code>ROWS</code></td><td>смотровое окно над лентой</td><td>сколько соседей видно?</td></tr>
+        <tr><td>⑤ функция</td><td>лаборант у окна</td><td>что считаем?</td></tr>
+      </table>
+      <div class="box warn" style="font-size:.48em"><b>Пишем в одном порядке, выполняем в другом</b>Функция <code>avg()</code> стоит в тексте <b>первой</b>, а срабатывает <b>последней</b>: сначала СУБД строит окно (①–④), потом лаборант считает (⑤).</div>
+    </div>
+  </div>
+  <aside class="notes">Сквозная метафора на весь блок: каждая строка — мешок сырья с биркой (дата, цена). Вопрос аудитории до разбора: «Прочитайте запрос вслух — в каком порядке, по-вашему, СУБД выполняет его части?» Обычно отвечают «слева направо, с avg». Цель блока — переучить читать изнутри OVER наружу. Данные реальные: 13 позиций приёмки сахара, муки и хлопьев за январь 2025.</aside>
+</section>
+<section class="an-slide">
+  <h2><span class="an-num">①</span> OVER — повесить бирку, а не высыпать в бункер</h2>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="f">avg</span>(poi.unit_price)                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="h"><span class="k">OVER</span> (</span>                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="k">PARTITION BY</span> poi.material_id              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="k">ORDER BY</span> poi.received_date,               <span class="c">-- <span class="m">③</span> лента</span>
+                          poi.po_item_id
+                 <span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span>  <span class="c">-- <span class="m">④</span> окно</span>
+             <span class="h">)</span>, <span class="n">2</span>) <span class="k">AS</span> avg3_price
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+      <div class="box info an-what"><b>Что делает СУБД</b>Слово <code>OVER</code> превращает обычный агрегат в оконный. Без него <code>avg(unit_price)</code> схлопнул бы строки: в 1 итог, а с <code>GROUP BY</code> — в 3. С <code>OVER</code> строки остаются, у каждой появляется новый столбец-бирка <code>avg3_price</code>.</div>
+    </div>
+    <div class="an-r"><svg class="m8svg" viewBox="0 0 640 300" role="img" aria-label="GROUP BY ссыпает мешки в бункер, OVER оставляет мешки и вешает бирку" xmlns="http://www.w3.org/2000/svg"><text x="150" y="18" class="hd" text-anchor="middle">GROUP BY material_id</text><text x="490" y="18" class="hd" text-anchor="middle" style="fill:#ED7D31">avg(…) OVER (…)</text><line x1="320" y1="8" x2="320" y2="300" stroke="#d5dbe6" stroke-width="2" stroke-dasharray="6 5"/><circle cx="320" cy="150" r="17" fill="#fff" stroke="#d5dbe6" stroke-width="2"/><text x="320" y="156" class="hd" text-anchor="middle" style="font-size:14px;fill:#6b7280">vs</text><use href="#m8-sack" x="23" y="30" width="26" height="32.5" fill="#8e6cc8"/><use href="#m8-sack" x="61" y="30" width="26" height="32.5" fill="#4472C4"/><use href="#m8-sack" x="99" y="30" width="26" height="32.5" fill="#70AD47"/><use href="#m8-sack" x="137" y="30" width="26" height="32.5" fill="#8e6cc8"/><use href="#m8-sack" x="175" y="30" width="26" height="32.5" fill="#4472C4"/><use href="#m8-sack" x="213" y="30" width="26" height="32.5" fill="#70AD47"/><use href="#m8-sack" x="251" y="30" width="26" height="32.5" fill="#8e6cc8"/><use href="#m8-sack" x="42" y="70" width="26" height="32.5" fill="#4472C4"/><use href="#m8-sack" x="80" y="70" width="26" height="32.5" fill="#70AD47"/><use href="#m8-sack" x="118" y="70" width="26" height="32.5" fill="#8e6cc8"/><use href="#m8-sack" x="156" y="70" width="26" height="32.5" fill="#4472C4"/><use href="#m8-sack" x="194" y="70" width="26" height="32.5" fill="#70AD47"/><use href="#m8-sack" x="232" y="70" width="26" height="32.5" fill="#8e6cc8"/><path d="M150 108 V126" stroke="#6b7280" stroke-width="2.5" marker-end="url(#m8-arr)"/><path d="M22 136 H98 L73 176 H47 Z" fill="#dbe5f6" stroke="#4472C4" stroke-width="2"/><text x="60" y="154" class="mut" text-anchor="middle" style="font-size:10px">бункер</text><path d="M60 178 V192" stroke="#4472C4" stroke-width="2" marker-end="url(#m8-arr)"/><rect x="20" y="198" width="80" height="40" rx="6" fill="#fff" stroke="#4472C4" stroke-width="2"/><text x="60" y="214" class="lbl" text-anchor="middle" style="font-size:11px;fill:#4472C4;font-weight:700">Сахар</text><text x="60" y="231" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">84.26</text><path d="M112 136 H188 L163 176 H137 Z" fill="#e2f1d9" stroke="#70AD47" stroke-width="2"/><text x="150" y="154" class="mut" text-anchor="middle" style="font-size:10px">бункер</text><path d="M150 178 V192" stroke="#70AD47" stroke-width="2" marker-end="url(#m8-arr)"/><rect x="110" y="198" width="80" height="40" rx="6" fill="#fff" stroke="#70AD47" stroke-width="2"/><text x="150" y="214" class="lbl" text-anchor="middle" style="font-size:11px;fill:#70AD47;font-weight:700">Мука</text><text x="150" y="231" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">36.48</text><path d="M202 136 H278 L253 176 H227 Z" fill="#ebe4f6" stroke="#8e6cc8" stroke-width="2"/><text x="240" y="154" class="mut" text-anchor="middle" style="font-size:10px">бункер</text><path d="M240 178 V192" stroke="#8e6cc8" stroke-width="2" marker-end="url(#m8-arr)"/><rect x="200" y="198" width="80" height="40" rx="6" fill="#fff" stroke="#8e6cc8" stroke-width="2"/><text x="240" y="214" class="lbl" text-anchor="middle" style="font-size:11px;fill:#8e6cc8;font-weight:700">Хлопья</text><text x="240" y="231" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">43.52</text><text x="150" y="268" class="hd" text-anchor="middle" style="fill:#ED7D31">13 мешков → 3 строки</text><text x="150" y="286" class="mut" text-anchor="middle">зерно ссыпали — отдельных мешков больше нет</text><line x1="370" y1="40" x2="370" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="359" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="370" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="357" y="50" width="26" height="32.5" fill="#8e6cc8"/><line x1="410" y1="40" x2="410" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="399" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="410" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="397" y="50" width="26" height="32.5" fill="#4472C4"/><line x1="450" y1="40" x2="450" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="439" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="450" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="437" y="50" width="26" height="32.5" fill="#70AD47"/><line x1="490" y1="40" x2="490" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="479" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="490" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="477" y="50" width="26" height="32.5" fill="#8e6cc8"/><line x1="530" y1="40" x2="530" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="519" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="530" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="517" y="50" width="26" height="32.5" fill="#4472C4"/><line x1="570" y1="40" x2="570" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="559" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="570" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="557" y="50" width="26" height="32.5" fill="#70AD47"/><line x1="610" y1="40" x2="610" y2="48" stroke="#9aa4b2" stroke-width="1.2"/><rect x="599" y="24" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="610" y="36" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="597" y="50" width="26" height="32.5" fill="#8e6cc8"/><line x1="390" y1="102" x2="390" y2="110" stroke="#9aa4b2" stroke-width="1.2"/><rect x="379" y="86" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="390" y="98" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="377" y="112" width="26" height="32.5" fill="#4472C4"/><line x1="430" y1="102" x2="430" y2="110" stroke="#9aa4b2" stroke-width="1.2"/><rect x="419" y="86" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="430" y="98" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="417" y="112" width="26" height="32.5" fill="#70AD47"/><line x1="470" y1="102" x2="470" y2="110" stroke="#9aa4b2" stroke-width="1.2"/><rect x="459" y="86" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="470" y="98" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="457" y="112" width="26" height="32.5" fill="#8e6cc8"/><line x1="510" y1="102" x2="510" y2="110" stroke="#9aa4b2" stroke-width="1.2"/><rect x="499" y="86" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="510" y="98" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="497" y="112" width="26" height="32.5" fill="#4472C4"/><line x1="550" y1="102" x2="550" y2="110" stroke="#9aa4b2" stroke-width="1.2"/><rect x="539" y="86" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="550" y="98" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="537" y="112" width="26" height="32.5" fill="#70AD47"/><line x1="590" y1="102" x2="590" y2="110" stroke="#9aa4b2" stroke-width="1.2"/><rect x="579" y="86" width="22" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="590" y="98" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">?</text><use href="#m8-sack" x="577" y="112" width="26" height="32.5" fill="#8e6cc8"/><use href="#m8-sack" x="417" y="178" width="46" height="57.5" fill="#4472C4"/><text x="440" y="220.6" class="in" style="font-size:11px">19.01</text><path d="M455 186 Q480 170 500 186" fill="none" stroke="#9aa4b2" stroke-width="1.5"/><rect x="500" y="176" width="118" height="44" rx="6" fill="#fff" stroke="#ED7D31" stroke-width="2"/><text x="559" y="194" class="mut" text-anchor="middle" style="font-size:10px">бирка = новый столбец</text><text x="559" y="211" class="lbl" text-anchor="middle" style="font-size:13px;fill:#ED7D31;font-weight:700">avg3_price = ?</text><text x="490" y="268" class="hd" text-anchor="middle" style="fill:#70AD47">13 мешков → 13 строк</text><text x="490" y="286" class="mut" text-anchor="middle">каждый мешок на месте + бирка с результатом</text></svg></div>
+  </div>
+  <div class="box ok an-main"><b>Сколько строк вошло — столько и вышло</b><code>OVER ()</code> с пустыми скобками — окно на <b>весь склад</b>: все 13 мешков. Всё, что пишется внутри скобок (②–④), лишь сужает и упорядочивает это окно.</div>
+  <aside class="notes">Вопрос: «Что выведет avg(unit_price) OVER () для каждой строки?» (одно и то же число — среднее по 13 мешкам). Метафора «открытого окна»: строка не выходит из своей комнаты, но через окно видит соседей. Спросите: какой бизнес-вопрос нельзя решить GROUP BY, но можно окном? (сравнить конкретную поставку со средней).</aside>
+</section>
+<section class="an-slide">
+  <h2><span class="an-num">②</span> PARTITION BY — разложить по закромам</h2>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="f">avg</span>(poi.unit_price)                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="k">OVER</span> (                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="h"><span class="k">PARTITION BY</span> poi.material_id</span>              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="k">ORDER BY</span> poi.received_date,               <span class="c">-- <span class="m">③</span> лента</span>
+                          poi.po_item_id
+                 <span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span>  <span class="c">-- <span class="m">④</span> окно</span>
+             ), <span class="n">2</span>) <span class="k">AS</span> avg3_price
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+      <div class="box info an-what"><b>Что делает СУБД</b>Делит 13 строк на 3 раздела по <code>material_id</code> — как <code>GROUP BY</code>, но без схлопывания. Каждый закром обрабатывается отдельно: окно и функция <b>никогда не заглядывают через перегородку</b>. Делить можно по нескольким столбцам: <code>PARTITION BY material_id, supplier_id</code>.</div>
+    </div>
+    <div class="an-r"><svg class="m8svg" viewBox="0 0 640 316" role="img" aria-label="Сортировщик раскладывает мешки по трём закромам по material_id" xmlns="http://www.w3.org/2000/svg"><text x="10" y="14" class="mut" text-anchor="start" style="font-size:11px">Приёмка: 13 мешков вперемешку — строки после WHERE</text><use href="#m8-sack" x="30" y="22" width="28" height="35" fill="#8e6cc8"/><text x="44" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1155</text><line x1="44" y1="74" x2="44" y2="96" stroke="#8e6cc8" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="76" y="22" width="28" height="35" fill="#4472C4"/><text x="90" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1169</text><line x1="90" y1="74" x2="90" y2="96" stroke="#4472C4" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="122" y="22" width="28" height="35" fill="#70AD47"/><text x="136" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1175</text><line x1="136" y1="74" x2="136" y2="96" stroke="#70AD47" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="168" y="22" width="28" height="35" fill="#8e6cc8"/><text x="182" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1176</text><line x1="182" y1="74" x2="182" y2="96" stroke="#8e6cc8" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="214" y="22" width="28" height="35" fill="#4472C4"/><text x="228" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1191</text><line x1="228" y1="74" x2="228" y2="96" stroke="#4472C4" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="260" y="22" width="28" height="35" fill="#70AD47"/><text x="274" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1199</text><line x1="274" y1="74" x2="274" y2="96" stroke="#70AD47" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="306" y="22" width="28" height="35" fill="#8e6cc8"/><text x="320" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1200</text><line x1="320" y1="74" x2="320" y2="96" stroke="#8e6cc8" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="352" y="22" width="28" height="35" fill="#4472C4"/><text x="366" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1213</text><line x1="366" y1="74" x2="366" y2="96" stroke="#4472C4" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="398" y="22" width="28" height="35" fill="#70AD47"/><text x="412" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1219</text><line x1="412" y1="74" x2="412" y2="96" stroke="#70AD47" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="444" y="22" width="28" height="35" fill="#8e6cc8"/><text x="458" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1220</text><line x1="458" y1="74" x2="458" y2="96" stroke="#8e6cc8" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="490" y="22" width="28" height="35" fill="#4472C4"/><text x="504" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1237</text><line x1="504" y1="74" x2="504" y2="96" stroke="#4472C4" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="536" y="22" width="28" height="35" fill="#70AD47"/><text x="550" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1243</text><line x1="550" y1="74" x2="550" y2="96" stroke="#70AD47" stroke-width="2" opacity=".7"/><use href="#m8-sack" x="582" y="22" width="28" height="35" fill="#8e6cc8"/><text x="596" y="70" class="mut" text-anchor="middle" style="font-size:9px">#1244</text><line x1="596" y1="74" x2="596" y2="96" stroke="#8e6cc8" stroke-width="2" opacity=".7"/><rect x="18" y="96" width="604" height="26" rx="6" fill="#2c3e50"/><text x="320" y="114" class="lbl" text-anchor="middle" style="font-size:13px;fill:#fff;font-weight:700">сортировщик · PARTITION BY poi.material_id</text><path d="M110 124 V146" stroke="#4472C4" stroke-width="4" marker-end="url(#m8-arr)"/><path d="M20 152 V276 H200 V152" fill="#dbe5f6" stroke="#5b6573" stroke-width="5" stroke-linejoin="round"/><text x="110" y="172" class="lbl" text-anchor="middle" style="font-size:11px;fill:#4472C4;font-weight:700">material_id = 4</text><use href="#m8-sack" x="36" y="224" width="28" height="35" fill="#4472C4"/><text x="50" y="216" class="mut" text-anchor="middle" style="font-size:9px">04.01</text><use href="#m8-sack" x="76" y="224" width="28" height="35" fill="#4472C4"/><text x="90" y="216" class="mut" text-anchor="middle" style="font-size:9px">13.01</text><use href="#m8-sack" x="116" y="224" width="28" height="35" fill="#4472C4"/><text x="130" y="216" class="mut" text-anchor="middle" style="font-size:9px">19.01</text><use href="#m8-sack" x="156" y="224" width="28" height="35" fill="#4472C4"/><text x="170" y="216" class="mut" text-anchor="middle" style="font-size:9px">27.01</text><text x="110" y="294" class="lbl" text-anchor="middle" style="font-size:12px;fill:#4472C4;font-weight:700">Сахар-песок</text><text x="110" y="310" class="mut" text-anchor="middle" style="font-size:10px">4 мешка</text><path d="M320 124 V146" stroke="#70AD47" stroke-width="4" marker-end="url(#m8-arr)"/><path d="M230 152 V276 H410 V152" fill="#e2f1d9" stroke="#5b6573" stroke-width="5" stroke-linejoin="round"/><text x="320" y="172" class="lbl" text-anchor="middle" style="font-size:11px;fill:#70AD47;font-weight:700">material_id = 6</text><use href="#m8-sack" x="246" y="224" width="28" height="35" fill="#70AD47"/><text x="260" y="216" class="mut" text-anchor="middle" style="font-size:9px">04.01</text><use href="#m8-sack" x="286" y="224" width="28" height="35" fill="#70AD47"/><text x="300" y="216" class="mut" text-anchor="middle" style="font-size:9px">18.01</text><use href="#m8-sack" x="326" y="224" width="28" height="35" fill="#70AD47"/><text x="340" y="216" class="mut" text-anchor="middle" style="font-size:9px">17.01</text><use href="#m8-sack" x="366" y="224" width="28" height="35" fill="#70AD47"/><text x="380" y="216" class="mut" text-anchor="middle" style="font-size:9px">28.01</text><text x="320" y="294" class="lbl" text-anchor="middle" style="font-size:12px;fill:#70AD47;font-weight:700">Мука пшеничная в/с</text><text x="320" y="310" class="mut" text-anchor="middle" style="font-size:10px">4 мешка</text><path d="M530 124 V146" stroke="#8e6cc8" stroke-width="4" marker-end="url(#m8-arr)"/><path d="M440 152 V276 H620 V152" fill="#ebe4f6" stroke="#5b6573" stroke-width="5" stroke-linejoin="round"/><text x="530" y="172" class="lbl" text-anchor="middle" style="font-size:11px;fill:#8e6cc8;font-weight:700">material_id = 7</text><use href="#m8-sack" x="448" y="224" width="28" height="35" fill="#8e6cc8"/><text x="462" y="216" class="mut" text-anchor="middle" style="font-size:9px">02.01</text><use href="#m8-sack" x="482" y="224" width="28" height="35" fill="#8e6cc8"/><text x="496" y="216" class="mut" text-anchor="middle" style="font-size:9px">04.01</text><use href="#m8-sack" x="516" y="224" width="28" height="35" fill="#8e6cc8"/><text x="530" y="216" class="mut" text-anchor="middle" style="font-size:9px">17.01</text><use href="#m8-sack" x="550" y="224" width="28" height="35" fill="#8e6cc8"/><text x="564" y="216" class="mut" text-anchor="middle" style="font-size:9px">17.01</text><use href="#m8-sack" x="584" y="224" width="28" height="35" fill="#8e6cc8"/><text x="598" y="216" class="mut" text-anchor="middle" style="font-size:9px">28.01</text><text x="530" y="294" class="lbl" text-anchor="middle" style="font-size:12px;fill:#8e6cc8;font-weight:700">Хлопья овсяные</text><text x="530" y="310" class="mut" text-anchor="middle" style="font-size:10px">5 мешков</text><text x="215" y="220" class="lbl" text-anchor="middle" style="font-size:16px;fill:#c0392b;font-weight:700">✕</text><text x="425" y="220" class="lbl" text-anchor="middle" style="font-size:16px;fill:#c0392b;font-weight:700">✕</text></svg></div>
+  </div>
+  <div class="box warn an-main"><b>Без PARTITION BY весь склад — один закром</b>Тогда в «среднюю цену сахара» попадут мука по 36 ₽ и хлопья по 44 ₽ — и сахар по 84 ₽ будет выглядеть дорогим. Ошибка тихая: запрос отработает без ошибок.</div>
+  <aside class="notes">Вопрос: «Сколько закромов будет при PARTITION BY material_id, supplier_id?» (столько, сколько уникальных пар). Мини-задание: какой столбец взяли бы для разделов в команде А? (customer_id, region_id, category_id). Обратите внимание: порядок мешков в закроме пока случайный — это следующий шаг.</aside>
+</section>
+<section class="an-slide">
+  <h2><span class="an-num">③</span> ORDER BY — поставить мешки в очередь на ленте</h2>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="f">avg</span>(poi.unit_price)                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="k">OVER</span> (                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="k">PARTITION BY</span> poi.material_id              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="h"><span class="k">ORDER BY</span> poi.received_date,</span>               <span class="c">-- <span class="m">③</span> лента</span>
+                          <span class="h">poi.po_item_id</span>
+                 <span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span>  <span class="c">-- <span class="m">④</span> окно</span>
+             ), <span class="n">2</span>) <span class="k">AS</span> avg3_price
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+      <div class="box info an-what"><b>Что делает СУБД</b>Внутри каждого закрома мешки встают на ленту по <code>received_date</code>, а при равной дате — по <code>po_item_id</code> (тай-брейкер). Номер на ленте — это и есть <code>row_number()</code>. Этот <code>ORDER BY</code> <b>не сортирует результат</b> — за итоговый порядок строк отвечает последний <code>ORDER BY</code> запроса.</div>
+    </div>
+    <div class="an-r"><svg class="m8svg" viewBox="0 0 640 316" role="img" aria-label="В каждом закроме мешки встают на ленту по дате приёмки" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="26" width="96" height="58" rx="6" fill="#dbe5f6" stroke="#4472C4" stroke-width="2"/><text x="48" y="50" class="lbl" text-anchor="middle" style="font-size:13px;fill:#4472C4;font-weight:700">Сахар</text><text x="48" y="68" class="mut" text-anchor="middle" style="font-size:10px">id 4</text><rect x="108" y="74" width="524" height="9" rx="4.5" fill="#9aa4b2"/><circle cx="120" cy="88" r="3.5" fill="#c9ced6"/><circle cx="154" cy="88" r="3.5" fill="#c9ced6"/><circle cx="188" cy="88" r="3.5" fill="#c9ced6"/><circle cx="222" cy="88" r="3.5" fill="#c9ced6"/><circle cx="256" cy="88" r="3.5" fill="#c9ced6"/><circle cx="290" cy="88" r="3.5" fill="#c9ced6"/><circle cx="324" cy="88" r="3.5" fill="#c9ced6"/><circle cx="358" cy="88" r="3.5" fill="#c9ced6"/><circle cx="392" cy="88" r="3.5" fill="#c9ced6"/><circle cx="426" cy="88" r="3.5" fill="#c9ced6"/><circle cx="460" cy="88" r="3.5" fill="#c9ced6"/><circle cx="494" cy="88" r="3.5" fill="#c9ced6"/><circle cx="528" cy="88" r="3.5" fill="#c9ced6"/><circle cx="562" cy="88" r="3.5" fill="#c9ced6"/><circle cx="596" cy="88" r="3.5" fill="#c9ced6"/><use href="#m8-sack" x="142" y="29" width="36" height="45" fill="#4472C4"/><text x="160" y="62.3" class="in" style="font-size:9.5px">04.01</text><circle cx="133" cy="60" r="9" fill="#2c3e50"/><text x="133" y="64" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">1</text><text x="160" y="104" class="mut" text-anchor="middle" style="font-size:10px">#1169 · 87.30</text><use href="#m8-sack" x="247" y="29" width="36" height="45" fill="#4472C4"/><text x="265" y="62.3" class="in" style="font-size:9.5px">13.01</text><circle cx="238" cy="60" r="9" fill="#2c3e50"/><text x="238" y="64" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">2</text><text x="265" y="104" class="mut" text-anchor="middle" style="font-size:10px">#1191 · 85.69</text><use href="#m8-sack" x="352" y="29" width="36" height="45" fill="#4472C4"/><text x="370" y="62.3" class="in" style="font-size:9.5px">19.01</text><circle cx="343" cy="60" r="9" fill="#2c3e50"/><text x="343" y="64" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">3</text><text x="370" y="104" class="mut" text-anchor="middle" style="font-size:10px">#1213 · 79.79</text><use href="#m8-sack" x="457" y="29" width="36" height="45" fill="#4472C4"/><text x="475" y="62.3" class="in" style="font-size:9.5px">27.01</text><circle cx="448" cy="60" r="9" fill="#2c3e50"/><text x="448" y="64" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">4</text><text x="475" y="104" class="mut" text-anchor="middle" style="font-size:10px">#1237 · 84.25</text><text x="632" y="16" class="mut" text-anchor="end" style="font-size:10.5px">направление ленты →</text><rect x="0" y="130" width="96" height="58" rx="6" fill="#e2f1d9" stroke="#70AD47" stroke-width="2"/><text x="48" y="154" class="lbl" text-anchor="middle" style="font-size:13px;fill:#70AD47;font-weight:700">Мука</text><text x="48" y="172" class="mut" text-anchor="middle" style="font-size:10px">id 6</text><rect x="108" y="178" width="524" height="9" rx="4.5" fill="#9aa4b2"/><circle cx="120" cy="192" r="3.5" fill="#c9ced6"/><circle cx="154" cy="192" r="3.5" fill="#c9ced6"/><circle cx="188" cy="192" r="3.5" fill="#c9ced6"/><circle cx="222" cy="192" r="3.5" fill="#c9ced6"/><circle cx="256" cy="192" r="3.5" fill="#c9ced6"/><circle cx="290" cy="192" r="3.5" fill="#c9ced6"/><circle cx="324" cy="192" r="3.5" fill="#c9ced6"/><circle cx="358" cy="192" r="3.5" fill="#c9ced6"/><circle cx="392" cy="192" r="3.5" fill="#c9ced6"/><circle cx="426" cy="192" r="3.5" fill="#c9ced6"/><circle cx="460" cy="192" r="3.5" fill="#c9ced6"/><circle cx="494" cy="192" r="3.5" fill="#c9ced6"/><circle cx="528" cy="192" r="3.5" fill="#c9ced6"/><circle cx="562" cy="192" r="3.5" fill="#c9ced6"/><circle cx="596" cy="192" r="3.5" fill="#c9ced6"/><use href="#m8-sack" x="142" y="133" width="36" height="45" fill="#70AD47"/><text x="160" y="166.3" class="in" style="font-size:9.5px">04.01</text><circle cx="133" cy="164" r="9" fill="#2c3e50"/><text x="133" y="168" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">1</text><text x="160" y="208" class="mut" text-anchor="middle" style="font-size:10px">#1175 · 37.32</text><use href="#m8-sack" x="247" y="133" width="36" height="45" fill="#70AD47"/><text x="265" y="166.3" class="in" style="font-size:9.5px">17.01</text><circle cx="238" cy="164" r="9" fill="#2c3e50"/><text x="238" y="168" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">2</text><text x="265" y="208" class="mut" text-anchor="middle" style="font-size:10px">#1219 · 36.62</text><use href="#m8-sack" x="352" y="133" width="36" height="45" fill="#70AD47"/><text x="370" y="166.3" class="in" style="font-size:9.5px">18.01</text><circle cx="343" cy="164" r="9" fill="#2c3e50"/><text x="343" y="168" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">3</text><text x="370" y="208" class="mut" text-anchor="middle" style="font-size:10px">#1199 · 36.59</text><use href="#m8-sack" x="457" y="133" width="36" height="45" fill="#70AD47"/><text x="475" y="166.3" class="in" style="font-size:9.5px">28.01</text><circle cx="448" cy="164" r="9" fill="#2c3e50"/><text x="448" y="168" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">4</text><text x="475" y="208" class="mut" text-anchor="middle" style="font-size:10px">#1243 · 35.40</text><rect x="0" y="234" width="96" height="58" rx="6" fill="#ebe4f6" stroke="#8e6cc8" stroke-width="2"/><text x="48" y="258" class="lbl" text-anchor="middle" style="font-size:13px;fill:#8e6cc8;font-weight:700">Хлопья</text><text x="48" y="276" class="mut" text-anchor="middle" style="font-size:10px">id 7</text><rect x="108" y="282" width="524" height="9" rx="4.5" fill="#9aa4b2"/><circle cx="120" cy="296" r="3.5" fill="#c9ced6"/><circle cx="154" cy="296" r="3.5" fill="#c9ced6"/><circle cx="188" cy="296" r="3.5" fill="#c9ced6"/><circle cx="222" cy="296" r="3.5" fill="#c9ced6"/><circle cx="256" cy="296" r="3.5" fill="#c9ced6"/><circle cx="290" cy="296" r="3.5" fill="#c9ced6"/><circle cx="324" cy="296" r="3.5" fill="#c9ced6"/><circle cx="358" cy="296" r="3.5" fill="#c9ced6"/><circle cx="392" cy="296" r="3.5" fill="#c9ced6"/><circle cx="426" cy="296" r="3.5" fill="#c9ced6"/><circle cx="460" cy="296" r="3.5" fill="#c9ced6"/><circle cx="494" cy="296" r="3.5" fill="#c9ced6"/><circle cx="528" cy="296" r="3.5" fill="#c9ced6"/><circle cx="562" cy="296" r="3.5" fill="#c9ced6"/><circle cx="596" cy="296" r="3.5" fill="#c9ced6"/><use href="#m8-sack" x="142" y="237" width="36" height="45" fill="#8e6cc8"/><text x="160" y="270.3" class="in" style="font-size:9.5px">02.01</text><circle cx="133" cy="268" r="9" fill="#2c3e50"/><text x="133" y="272" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">1</text><text x="160" y="312" class="mut" text-anchor="middle" style="font-size:10px">#1155 · 41.98</text><use href="#m8-sack" x="247" y="237" width="36" height="45" fill="#8e6cc8"/><text x="265" y="270.3" class="in" style="font-size:9.5px">04.01</text><circle cx="238" cy="268" r="9" fill="#2c3e50"/><text x="238" y="272" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">2</text><text x="265" y="312" class="mut" text-anchor="middle" style="font-size:10px">#1176 · 44.07</text><use href="#m8-sack" x="352" y="237" width="36" height="45" fill="#8e6cc8"/><text x="370" y="270.3" class="in" style="font-size:9.5px">17.01</text><circle cx="343" cy="268" r="9" fill="#2c3e50"/><text x="343" y="272" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">3</text><text x="370" y="312" class="mut" text-anchor="middle" style="font-size:10px;fill:#ED7D31;font-weight:700">#1200 · 44.31</text><use href="#m8-sack" x="457" y="237" width="36" height="45" fill="#8e6cc8"/><text x="475" y="270.3" class="in" style="font-size:9.5px">17.01</text><circle cx="448" cy="268" r="9" fill="#2c3e50"/><text x="448" y="272" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">4</text><text x="475" y="312" class="mut" text-anchor="middle" style="font-size:10px;fill:#ED7D31;font-weight:700">#1220 · 43.27</text><use href="#m8-sack" x="562" y="237" width="36" height="45" fill="#8e6cc8"/><text x="580" y="270.3" class="in" style="font-size:9.5px">28.01</text><circle cx="553" cy="268" r="9" fill="#2c3e50"/><text x="553" y="272" class="lbl" text-anchor="middle" style="font-size:11px;fill:#fff;font-weight:700">5</text><text x="580" y="312" class="mut" text-anchor="middle" style="font-size:10px">#1244 · 43.97</text><path d="M350 234 V228 H495 V234" fill="none" stroke="#ED7D31" stroke-width="2"/><text x="422.5" y="223" class="lbl" text-anchor="middle" style="font-size:10.5px;fill:#ED7D31;font-weight:700">одна дата → порядок решает po_item_id</text></svg></div>
+  </div>
+  <div class="box warn an-main"><b>ORDER BY меняет рамку по умолчанию</b>Как только в <code>OVER</code> появился <code>ORDER BY</code>, рамка по умолчанию — <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>: «от начала ленты до меня и всех моих ровесников». Поэтому <code>sum(x) OVER (ORDER BY d)</code> даёт нарастающий итог, а не сумму раздела.</div>
+  <aside class="notes">Покажите на муке: #1219 пришла раньше #1199 — порядок задаёт дата, а не номер позиции. Вопрос: «Что будет, если убрать po_item_id, а две поставки хлопьев пришли 17.01 одновременно?» (порядок между ними не определён — результат может меняться от запуска к запуску). Это мостик к RANGE на шаге ④.</aside>
+</section>
+<section class="an-slide">
+  <h2><span class="an-num">④</span> ROWS — смотровое окно над лентой</h2>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="f">avg</span>(poi.unit_price)                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="k">OVER</span> (                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="k">PARTITION BY</span> poi.material_id              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="k">ORDER BY</span> poi.received_date,               <span class="c">-- <span class="m">③</span> лента</span>
+                          poi.po_item_id
+                 <span class="h"><span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span></span>  <span class="c">-- <span class="m">④</span> окно</span>
+             ), <span class="n">2</span>) <span class="k">AS</span> avg3_price
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+      <div class="box info an-what"><b>Что делает СУБД</b>Для <b>каждого</b> мешка вырезает рамку — кусок ленты вокруг него. <code>2 PRECEDING AND CURRENT ROW</code> = окно на 3 мешка: два предыдущих + текущий. Окно едет вместе с текущей строкой и не выходит за свой закром. Границы: <code>UNBOUNDED PRECEDING</code> · <code>n PRECEDING</code> · <code>CURRENT ROW</code> · <code>n FOLLOWING</code> · <code>UNBOUNDED FOLLOWING</code>.</div>
+    </div>
+    <div class="an-r"><svg class="m8svg" viewBox="0 0 640 300" role="img" aria-label="Смотровое окно на 3 мешка едет по ленте" xmlns="http://www.w3.org/2000/svg"><text x="320" y="18" class="mut" text-anchor="middle" style="font-size:11.5px">Раздел «Хлопья» (material_id = 7), лента по received_date, po_item_id</text><rect x="18" y="172" width="604" height="10" rx="5.0" fill="#9aa4b2"/><circle cx="30" cy="187" r="3.5" fill="#c9ced6"/><circle cx="64" cy="187" r="3.5" fill="#c9ced6"/><circle cx="98" cy="187" r="3.5" fill="#c9ced6"/><circle cx="132" cy="187" r="3.5" fill="#c9ced6"/><circle cx="166" cy="187" r="3.5" fill="#c9ced6"/><circle cx="200" cy="187" r="3.5" fill="#c9ced6"/><circle cx="234" cy="187" r="3.5" fill="#c9ced6"/><circle cx="268" cy="187" r="3.5" fill="#c9ced6"/><circle cx="302" cy="187" r="3.5" fill="#c9ced6"/><circle cx="336" cy="187" r="3.5" fill="#c9ced6"/><circle cx="370" cy="187" r="3.5" fill="#c9ced6"/><circle cx="404" cy="187" r="3.5" fill="#c9ced6"/><circle cx="438" cy="187" r="3.5" fill="#c9ced6"/><circle cx="472" cy="187" r="3.5" fill="#c9ced6"/><circle cx="506" cy="187" r="3.5" fill="#c9ced6"/><circle cx="540" cy="187" r="3.5" fill="#c9ced6"/><circle cx="574" cy="187" r="3.5" fill="#c9ced6"/><circle cx="608" cy="187" r="3.5" fill="#c9ced6"/><use href="#m8-sack" x="35" y="109.5" width="50" height="62.5" fill="none" stroke="#c9ced6" stroke-width="1.5" stroke-dasharray="4 3"/><text x="60" y="202" class="mut" text-anchor="middle" style="font-size:10px">нет строки</text><use href="#m8-sack" x="120" y="109.5" width="50" height="62.5" fill="none" stroke="#c9ced6" stroke-width="1.5" stroke-dasharray="4 3"/><text x="145" y="202" class="mut" text-anchor="middle" style="font-size:10px">нет строки</text><use href="#m8-sack" x="205" y="109.5" width="50" height="62.5" fill="#8e6cc8"/><text x="230" y="155.8" class="in" style="font-size:12px">02.01</text><text x="230" y="202" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">41.98</text><text x="230" y="217" class="mut" text-anchor="middle" style="font-size:10px">#1155</text><use href="#m8-sack" x="290" y="109.5" width="50" height="62.5" fill="#8e6cc8"/><text x="315" y="155.8" class="in" style="font-size:12px">04.01</text><text x="315" y="202" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">44.07</text><text x="315" y="217" class="mut" text-anchor="middle" style="font-size:10px">#1176</text><use href="#m8-sack" x="375" y="109.5" width="50" height="62.5" fill="#8e6cc8"/><text x="400" y="155.8" class="in" style="font-size:12px">17.01</text><text x="400" y="202" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">44.31</text><text x="400" y="217" class="mut" text-anchor="middle" style="font-size:10px">#1200</text><use href="#m8-sack" x="460" y="109.5" width="50" height="62.5" fill="#8e6cc8"/><text x="485" y="155.8" class="in" style="font-size:12px">17.01</text><text x="485" y="202" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">43.27</text><text x="485" y="217" class="mut" text-anchor="middle" style="font-size:10px">#1220</text><use href="#m8-sack" x="545" y="109.5" width="50" height="62.5" fill="#8e6cc8"/><text x="570" y="155.8" class="in" style="font-size:12px">28.01</text><text x="570" y="202" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">43.97</text><text x="570" y="217" class="mut" text-anchor="middle" style="font-size:10px">#1244</text><g class="fragment fade-out" data-fragment-index="1"><text x="320" y="262" class="lbl" text-anchor="middle" style="font-size:13px;fill:#6b7280">Кликайте: окно на 3 мешка поедет по ленте вместе с текущим мешком</text></g><g class="fragment fade-in-then-out" data-fragment-index="1"><rect x="20" y="88" width="250" height="138" rx="8" fill="rgba(237,125,49,.10)" stroke="#ED7D31" stroke-width="5"/><line x1="145.0" y1="88" x2="145.0" y2="100" stroke="#ED7D31" stroke-width="3"/><rect x="83.0" y="64" width="124" height="22" rx="5" fill="#ED7D31"/><text x="145" y="80" class="lbl" text-anchor="middle" style="font-size:12px;fill:#fff;font-weight:700">смотровое окно</text><path d="M230 252 V234" stroke="#ED7D31" stroke-width="3" marker-end="url(#m8-arro)"/><text x="230" y="266" class="lbl" text-anchor="middle" style="font-size:11px;fill:#ED7D31;font-weight:700">CURRENT ROW</text><text x="102.5" y="244" class="mut" text-anchor="middle" style="font-size:11px;font-weight:700">2 PRECEDING</text><text x="320" y="292" class="lbl" text-anchor="middle" style="font-size:13.5px">Мешок 1: avg = (41.98) / 1 = <tspan class="r">41.98</tspan>  — окно неполное</text></g><g class="fragment fade-in-then-out" data-fragment-index="2"><rect x="105" y="88" width="250" height="138" rx="8" fill="rgba(237,125,49,.10)" stroke="#ED7D31" stroke-width="5"/><line x1="230.0" y1="88" x2="230.0" y2="100" stroke="#ED7D31" stroke-width="3"/><rect x="168.0" y="64" width="124" height="22" rx="5" fill="#ED7D31"/><text x="230" y="80" class="lbl" text-anchor="middle" style="font-size:12px;fill:#fff;font-weight:700">смотровое окно</text><path d="M315 252 V234" stroke="#ED7D31" stroke-width="3" marker-end="url(#m8-arro)"/><text x="315" y="266" class="lbl" text-anchor="middle" style="font-size:11px;fill:#ED7D31;font-weight:700">CURRENT ROW</text><text x="187.5" y="244" class="mut" text-anchor="middle" style="font-size:11px;font-weight:700">2 PRECEDING</text><text x="320" y="292" class="lbl" text-anchor="middle" style="font-size:13.5px">Мешок 2: avg = (41.98 + 44.07) / 2 = <tspan class="r">43.03</tspan>  — окно неполное</text></g><g class="fragment fade-in-then-out" data-fragment-index="3"><rect x="190" y="88" width="250" height="138" rx="8" fill="rgba(237,125,49,.10)" stroke="#ED7D31" stroke-width="5"/><line x1="315.0" y1="88" x2="315.0" y2="100" stroke="#ED7D31" stroke-width="3"/><rect x="253.0" y="64" width="124" height="22" rx="5" fill="#ED7D31"/><text x="315" y="80" class="lbl" text-anchor="middle" style="font-size:12px;fill:#fff;font-weight:700">смотровое окно</text><path d="M400 252 V234" stroke="#ED7D31" stroke-width="3" marker-end="url(#m8-arro)"/><text x="400" y="266" class="lbl" text-anchor="middle" style="font-size:11px;fill:#ED7D31;font-weight:700">CURRENT ROW</text><text x="272.5" y="244" class="mut" text-anchor="middle" style="font-size:11px;font-weight:700">2 PRECEDING</text><text x="320" y="292" class="lbl" text-anchor="middle" style="font-size:13.5px">Мешок 3: avg = (41.98 + 44.07 + 44.31) / 3 = <tspan class="r">43.45</tspan></text></g><g class="fragment fade-in-then-out" data-fragment-index="4"><rect x="275" y="88" width="250" height="138" rx="8" fill="rgba(237,125,49,.10)" stroke="#ED7D31" stroke-width="5"/><line x1="400.0" y1="88" x2="400.0" y2="100" stroke="#ED7D31" stroke-width="3"/><rect x="338.0" y="64" width="124" height="22" rx="5" fill="#ED7D31"/><text x="400" y="80" class="lbl" text-anchor="middle" style="font-size:12px;fill:#fff;font-weight:700">смотровое окно</text><path d="M485 252 V234" stroke="#ED7D31" stroke-width="3" marker-end="url(#m8-arro)"/><text x="485" y="266" class="lbl" text-anchor="middle" style="font-size:11px;fill:#ED7D31;font-weight:700">CURRENT ROW</text><text x="357.5" y="244" class="mut" text-anchor="middle" style="font-size:11px;font-weight:700">2 PRECEDING</text><text x="320" y="292" class="lbl" text-anchor="middle" style="font-size:13.5px">Мешок 4: avg = (44.07 + 44.31 + 43.27) / 3 = <tspan class="r">43.88</tspan></text></g><g class="fragment" data-fragment-index="5"><rect x="360" y="88" width="250" height="138" rx="8" fill="rgba(237,125,49,.10)" stroke="#ED7D31" stroke-width="5"/><line x1="485.0" y1="88" x2="485.0" y2="100" stroke="#ED7D31" stroke-width="3"/><rect x="423.0" y="64" width="124" height="22" rx="5" fill="#ED7D31"/><text x="485" y="80" class="lbl" text-anchor="middle" style="font-size:12px;fill:#fff;font-weight:700">смотровое окно</text><path d="M570 252 V234" stroke="#ED7D31" stroke-width="3" marker-end="url(#m8-arro)"/><text x="570" y="266" class="lbl" text-anchor="middle" style="font-size:11px;fill:#ED7D31;font-weight:700">CURRENT ROW</text><text x="442.5" y="244" class="mut" text-anchor="middle" style="font-size:11px;font-weight:700">2 PRECEDING</text><text x="320" y="292" class="lbl" text-anchor="middle" style="font-size:13.5px">Мешок 5: avg = (44.31 + 43.27 + 43.97) / 3 = <tspan class="r">43.85</tspan></text></g></svg></div>
+  </div>
+  <div class="box warn an-main"><b>У первых мешков окно неполное</b>Мешок 1 видит только себя, мешок 2 — двоих. Это всё ещё «среднее», но не по 3 поставкам. Нужна честная средняя по 3 поставкам — посчитайте <code>count(*)</code> с той же рамкой и во внешнем запросе оставьте строки, где он равен 3.</div>
+  <aside class="notes">Кликайте по одному: окно сдвигается на мешок. Перед каждым кликом спрашивайте: «Какой мешок выйдет из окна, какой войдёт?» После 5-го клика: «А что будет у первого мешка сахара?» — окно не перескакивает из хлопьев в сахар, у сахара своя лента и своё окно.</aside>
+</section>
+<section class="an-slide">
+  <h2><span class="an-num">④</span> ROWS или RANGE: окно по мешкам или по календарю</h2>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> poi.po_item_id,
+       poi.received_date,
+       poi.received_qty,
+       <span class="f">sum</span>(poi.received_qty) <span class="k">OVER</span> (
+           <span class="k">ORDER BY</span> poi.received_date
+           <span class="h"><span class="k">ROWS</span></span>  <span class="k">BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+       ) <span class="k">AS</span> by_rows,
+       <span class="f">sum</span>(poi.received_qty) <span class="k">OVER</span> (
+           <span class="k">ORDER BY</span> poi.received_date
+           <span class="h"><span class="k">RANGE</span></span> <span class="k">BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+       ) <span class="k">AS</span> by_range                <span class="c">-- = рамка по умолчанию</span>
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">WHERE</span>  poi.material_id = <span class="n">7</span>                 <span class="c">-- хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.received_date, poi.po_item_id;</div>
+      <div class="box info an-what"><b>Два способа мерить окно</b><code>ROWS</code> считает <b>мешки</b> (физические строки). <code>RANGE</code> меряет <b>значение</b> ключа сортировки: все мешки с той же датой — «ровесники» и входят в окно вместе. Есть и третий — <code>GROUPS</code>: считает группы ровесников.</div>
+    </div>
+    <div class="an-r"><svg class="m8svg" viewBox="0 0 640 280" role="img" aria-label="ROWS считает мешки, RANGE захватывает всех ровесников по дате" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="150" width="604" height="10" rx="5.0" fill="#9aa4b2"/><circle cx="30" cy="165" r="3.5" fill="#c9ced6"/><circle cx="64" cy="165" r="3.5" fill="#c9ced6"/><circle cx="98" cy="165" r="3.5" fill="#c9ced6"/><circle cx="132" cy="165" r="3.5" fill="#c9ced6"/><circle cx="166" cy="165" r="3.5" fill="#c9ced6"/><circle cx="200" cy="165" r="3.5" fill="#c9ced6"/><circle cx="234" cy="165" r="3.5" fill="#c9ced6"/><circle cx="268" cy="165" r="3.5" fill="#c9ced6"/><circle cx="302" cy="165" r="3.5" fill="#c9ced6"/><circle cx="336" cy="165" r="3.5" fill="#c9ced6"/><circle cx="370" cy="165" r="3.5" fill="#c9ced6"/><circle cx="404" cy="165" r="3.5" fill="#c9ced6"/><circle cx="438" cy="165" r="3.5" fill="#c9ced6"/><circle cx="472" cy="165" r="3.5" fill="#c9ced6"/><circle cx="506" cy="165" r="3.5" fill="#c9ced6"/><circle cx="540" cy="165" r="3.5" fill="#c9ced6"/><circle cx="574" cy="165" r="3.5" fill="#c9ced6"/><circle cx="608" cy="165" r="3.5" fill="#c9ced6"/><rect x="22" y="40" width="476" height="174" rx="8" fill="rgba(237,125,49,.07)" stroke="#ED7D31" stroke-width="4"/><rect x="30" y="56" width="344" height="150" rx="6" fill="none" stroke="#4472C4" stroke-width="3.5" stroke-dasharray="9 5"/><rect x="22" y="22" width="150" height="20" rx="4" fill="#ED7D31"/><text x="97" y="36" class="lbl" text-anchor="middle" style="font-size:11.5px;fill:#fff;font-weight:700">RANGE: по значению</text><rect x="30" y="206" width="138" height="20" rx="4" fill="#4472C4"/><text x="99" y="220" class="lbl" text-anchor="middle" style="font-size:11.5px;fill:#fff;font-weight:700">ROWS: по мешкам</text><use href="#m8-sack" x="57" y="92.5" width="46" height="57.5" fill="#8e6cc8"/><text x="80" y="135.1" class="in" style="font-size:11.5px">02.01</text><text x="80" y="178" class="lbl" text-anchor="middle" style="font-size:12px;font-weight:700">4 814.70</text><text x="80" y="193" class="mut" text-anchor="middle" style="font-size:10px">#1155</text><use href="#m8-sack" x="177" y="92.5" width="46" height="57.5" fill="#8e6cc8"/><text x="200" y="135.1" class="in" style="font-size:11.5px">04.01</text><text x="200" y="178" class="lbl" text-anchor="middle" style="font-size:12px;font-weight:700">1 727.80</text><text x="200" y="193" class="mut" text-anchor="middle" style="font-size:10px">#1176</text><use href="#m8-sack" x="297" y="92.5" width="46" height="57.5" fill="#8e6cc8"/><text x="320" y="135.1" class="in" style="font-size:11.5px">17.01</text><text x="320" y="178" class="lbl" text-anchor="middle" style="font-size:12px;font-weight:700">807.00</text><text x="320" y="193" class="mut" text-anchor="middle" style="font-size:10px">#1200</text><use href="#m8-sack" x="417" y="92.5" width="46" height="57.5" fill="#8e6cc8"/><text x="440" y="135.1" class="in" style="font-size:11.5px">17.01</text><text x="440" y="178" class="lbl" text-anchor="middle" style="font-size:12px;font-weight:700">2 653.20</text><text x="440" y="193" class="mut" text-anchor="middle" style="font-size:10px">#1220</text><use href="#m8-sack" x="537" y="92.5" width="46" height="57.5" fill="#8e6cc8"/><text x="560" y="135.1" class="in" style="font-size:11.5px">28.01</text><text x="560" y="178" class="lbl" text-anchor="middle" style="font-size:12px;font-weight:700">1 554.90</text><text x="560" y="193" class="mut" text-anchor="middle" style="font-size:10px">#1244</text><path d="M296 86 V78 H464 V86" fill="none" stroke="#ED7D31" stroke-width="2"/><text x="410" y="72" class="lbl" text-anchor="middle" style="font-size:11px;fill:#ED7D31;font-weight:700">ровесники (peers): 17.01</text><path d="M320 258 V232" stroke="#2c3e50" stroke-width="2.5" marker-end="url(#m8-arr)"/><text x="320" y="274" class="lbl" text-anchor="middle" style="font-size:12px;font-weight:700">текущий мешок #1200</text><text x="560" y="236" class="mut" text-anchor="middle" style="font-size:10.5px">вне обеих рамок</text></svg><table class="wd-tbl an-res" style="margin-top:.3em">
+        <tr><th>po_item_id</th><th>date</th><th>qty</th><th>by_rows</th><th>by_range</th></tr>
+        <tr class="p3"><td>1155</td><td>2025-01-02</td><td class="num">4814.70</td><td class="num">4814.70</td><td class="num">4814.70</td></tr>
+        <tr class="p3"><td>1176</td><td>2025-01-04</td><td class="num">1727.80</td><td class="num">6542.50</td><td class="num">6542.50</td></tr>
+        <tr class="p3 cur"><td>1200</td><td>2025-01-17</td><td class="num">807.00</td><td class="num" style="color:#4472C4">7349.50</td><td class="num" style="color:#ED7D31">10002.70</td></tr>
+        <tr class="p3 inf"><td>1220</td><td>2025-01-17</td><td class="num">2653.20</td><td class="num">10002.70</td><td class="num">10002.70</td></tr>
+        <tr class="p3"><td>1244</td><td>2025-01-28</td><td class="num">1554.90</td><td class="num">11557.60</td><td class="num">11557.60</td></tr>
+      </table></div>
+  </div>
+  <div class="box warn an-main"><b>Ловушка рамки по умолчанию</b>Без явной рамки работает <code>RANGE</code>: у #1200 нарастающий итог уже включает «соседа по дню» #1220. Нужен итог «по мешкам» — пишите <code>ROWS</code> <b>и</b> добавляйте тай-брейкер в <code>ORDER BY</code>: без него порядок #1200 / #1220 внутри <code>ROWS</code> не гарантирован.</div>
+  <aside class="notes">Вопрос до показа таблицы: «Чему равен by_range у строки 1200?» Многие ответят 7349.50. Объясните: RANGE смотрит не на мешки, а на календарь — 17.01 приехали два мешка, и окно впускает обоих. Аналогия: ROWS — окно шириной «N мешков», RANGE — окно «по дате на бирке».</aside>
+</section>
+<section class="an-slide">
+  <h2><span class="an-num">⑤</span> Функция — лаборант у окна пишет результат на бирку</h2>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="h"><span class="f">avg</span>(poi.unit_price)</span>                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="k">OVER</span> (                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="k">PARTITION BY</span> poi.material_id              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="k">ORDER BY</span> poi.received_date,               <span class="c">-- <span class="m">③</span> лента</span>
+                          poi.po_item_id
+                 <span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span>  <span class="c">-- <span class="m">④</span> окно</span>
+             ), <span class="n">2</span>) <span class="h"><span class="k">AS</span> avg3_price</span>
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+      <div class="box info an-what"><b>Что делает СУБД</b>Для текущей строки берёт строки рамки, применяет к ним <code>avg(poi.unit_price)</code> и записывает результат в <b>текущую</b> строку — столбец <code>avg3_price</code>. Затем рамка сдвигается, и всё повторяется для следующего мешка.</div>
+    </div>
+    <div class="an-r"><svg class="m8svg" viewBox="0 0 640 306" role="img" aria-label="Лаборант считает среднее по мешкам в окне и пишет результат на бирку текущего мешка" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="236" width="604" height="10" rx="5.0" fill="#9aa4b2"/><circle cx="30" cy="251" r="3.5" fill="#c9ced6"/><circle cx="64" cy="251" r="3.5" fill="#c9ced6"/><circle cx="98" cy="251" r="3.5" fill="#c9ced6"/><circle cx="132" cy="251" r="3.5" fill="#c9ced6"/><circle cx="166" cy="251" r="3.5" fill="#c9ced6"/><circle cx="200" cy="251" r="3.5" fill="#c9ced6"/><circle cx="234" cy="251" r="3.5" fill="#c9ced6"/><circle cx="268" cy="251" r="3.5" fill="#c9ced6"/><circle cx="302" cy="251" r="3.5" fill="#c9ced6"/><circle cx="336" cy="251" r="3.5" fill="#c9ced6"/><circle cx="370" cy="251" r="3.5" fill="#c9ced6"/><circle cx="404" cy="251" r="3.5" fill="#c9ced6"/><circle cx="438" cy="251" r="3.5" fill="#c9ced6"/><circle cx="472" cy="251" r="3.5" fill="#c9ced6"/><circle cx="506" cy="251" r="3.5" fill="#c9ced6"/><circle cx="540" cy="251" r="3.5" fill="#c9ced6"/><circle cx="574" cy="251" r="3.5" fill="#c9ced6"/><circle cx="608" cy="251" r="3.5" fill="#c9ced6"/><rect x="48" y="132" width="384" height="152" rx="8" fill="rgba(237,125,49,.08)" stroke="#ED7D31" stroke-width="5"/><line x1="110" y1="164" x2="110" y2="172" stroke="#9aa4b2" stroke-width="1.2"/><rect x="84" y="148" width="52" height="16" rx="3" fill="#fff" stroke="#6b7280" stroke-width="1.5"/><text x="110" y="160" class="tg" text-anchor="middle" style="fill:#6b7280;font-weight:700">87.30</text><use href="#m8-sack" x="85" y="173.5" width="50" height="62.5" fill="#4472C4"/><text x="110" y="219.8" class="in" style="font-size:12px">04.01</text><text x="110" y="264" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">87.30</text><text x="110" y="278" class="mut" text-anchor="middle" style="font-size:10px">#1169</text><line x1="240" y1="164" x2="240" y2="172" stroke="#9aa4b2" stroke-width="1.2"/><rect x="214" y="148" width="52" height="16" rx="3" fill="#fff" stroke="#6b7280" stroke-width="1.5"/><text x="240" y="160" class="tg" text-anchor="middle" style="fill:#6b7280;font-weight:700">86.50</text><use href="#m8-sack" x="215" y="173.5" width="50" height="62.5" fill="#4472C4"/><text x="240" y="219.8" class="in" style="font-size:12px">13.01</text><text x="240" y="264" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">85.69</text><text x="240" y="278" class="mut" text-anchor="middle" style="font-size:10px">#1191</text><line x1="370" y1="164" x2="370" y2="172" stroke="#9aa4b2" stroke-width="1.2"/><rect x="344" y="148" width="52" height="16" rx="3" fill="#fff" stroke="#ED7D31" stroke-width="1.5"/><text x="370" y="160" class="tg" text-anchor="middle" style="fill:#ED7D31;font-weight:700">84.26</text><use href="#m8-sack" x="345" y="173.5" width="50" height="62.5" fill="#4472C4"/><text x="370" y="219.8" class="in" style="font-size:12px">19.01</text><text x="370" y="264" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">79.79</text><text x="370" y="278" class="mut" text-anchor="middle" style="font-size:10px">#1213</text><line x1="510" y1="164" x2="510" y2="172" stroke="#9aa4b2" stroke-width="1.2"/><rect x="484" y="148" width="52" height="16" rx="3" fill="#fff" stroke="#9aa4b2" stroke-width="1.5" stroke-dasharray="3 2"/><text x="510" y="160" class="tg" text-anchor="middle" style="fill:#9aa4b2;font-weight:700">?</text><use href="#m8-sack" x="485" y="173.5" width="50" height="62.5" fill="#4472C4"/><text x="510" y="219.8" class="in" style="font-size:12px">27.01</text><text x="510" y="264" class="lbl" text-anchor="middle" style="font-size:13px;font-weight:700">84.25</text><text x="510" y="278" class="mut" text-anchor="middle" style="font-size:10px">#1237</text><text x="510" y="300" class="mut" text-anchor="middle" style="font-size:10.5px">следующий: окно сдвинется</text><text x="70" y="96" class="lbl" text-anchor="middle" style="font-size:50px">🧑‍🔬</text><path d="M92 128 L82 106" stroke="#6b7280" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#m8-arr)"/><text x="126" y="124" class="mut" text-anchor="start" style="font-size:10.5px">смотрит только в окно</text><rect x="130" y="14" width="340" height="86" rx="8" fill="#fff" stroke="#c9d3e6" stroke-width="2"/><text x="146" y="38" class="lbl" text-anchor="start" style="font-size:12.5px">Мешок 3 (19.01), в окне мешки 1…3:</text><text x="146" y="60" class="lbl" text-anchor="start" style="font-size:13.5px;font-weight:700">avg(87.30; 85.69; 79.79)</text><text x="146" y="84" class="lbl" text-anchor="start" style="font-size:13.5px;fill:#ED7D31;font-weight:700">= 84.26 → на бирку avg3_price</text><path d="M430 100 Q440 128 398 148" fill="none" stroke="#ED7D31" stroke-width="2.5" marker-end="url(#m8-arro)"/></svg></div>
+  </div>
+  <div class="three-col an-tools">
+    <div class="card"><h4>Слушают рамку ④</h4><code>sum</code> <code>avg</code> <code>min</code> <code>max</code> <code>count</code> · <code>first_value</code> <code>last_value</code> <code>nth_value</code><br>весы и влагомер: считают то, что видно в окне</div>
+    <div class="card orange-top"><h4>Игнорируют рамку</h4><code>row_number</code> <code>rank</code> <code>dense_rank</code> <code>ntile</code> · <code>lag</code> <code>lead</code><br>номерок в очереди и «оглянуться на соседа»: смотрят на всю ленту закрома</div>
+    <div class="card green-top"><h4>Результат — новый столбец</h4>Фильтровать по нему в <code>WHERE</code> нельзя: лаборант работает <b>после</b> WHERE. Фильтр — во внешнем запросе или CTE</div>
+  </div>
+  <aside class="notes">Вопрос: «Почему у мешка 1 на бирке 87.30?» (в окне только он сам). Спросите, какой инструмент лаборанта нужен, чтобы сравнить цену с предыдущей поставкой (lag) — и почему ему не важна рамка. Частая ошибка: last_value с рамкой по умолчанию возвращает текущую строку — вернёмся к этому в разделе функций смещения.</aside>
+</section>
+<section class="an-slide">
+  <h2>Сборка: весь элеватор в одном запросе</h2>
+<div class="an-strip"><div class="an-chip done"><span class="i">🏷️</span><span><b>① OVER</b><br>бирка, а не бункер</span></div><span class="ar">→</span><div class="an-chip done"><span class="i">🗄️</span><span><b>② PARTITION BY</b><br>закрома</span></div><span class="ar">→</span><div class="an-chip done"><span class="i">➡️</span><span><b>③ ORDER BY</b><br>лента</span></div><span class="ar">→</span><div class="an-chip done"><span class="i">🪟</span><span><b>④ ROWS / RANGE</b><br>смотровое окно</span></div><span class="ar">→</span><div class="an-chip done"><span class="i">🧑‍🔬</span><span><b>⑤ функция</b><br>лаборант</span></div></div>
+  <div class="an-grid">
+    <div class="an-l"><div class="sd-code an-code"><span class="k">SELECT</span> m.material_name,
+       poi.received_date,
+       poi.unit_price,
+       <span class="f">round</span>(<span class="f">avg</span>(poi.unit_price)                           <span class="c">-- <span class="m">⑤</span> лаборант</span>
+             <span class="k">OVER</span> (                                        <span class="c">-- <span class="m">①</span> бирка</span>
+                 <span class="k">PARTITION BY</span> poi.material_id              <span class="c">-- <span class="m">②</span> закрома</span>
+                 <span class="k">ORDER BY</span> poi.received_date,               <span class="c">-- <span class="m">③</span> лента</span>
+                          poi.po_item_id
+                 <span class="k">ROWS BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND CURRENT ROW</span>  <span class="c">-- <span class="m">④</span> окно</span>
+             ), <span class="n">2</span>) <span class="k">AS</span> avg3_price
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   raw_materials        <span class="k">AS</span> m <span class="k">USING</span> (material_id)
+<span class="k">WHERE</span>  poi.material_id <span class="k">IN</span> (<span class="n">4</span>, <span class="n">6</span>, <span class="n">7</span>)  <span class="c">-- сахар, мука, хлопья</span>
+  <span class="k">AND</span>  poi.received_date <span class="k">BETWEEN DATE</span> <span class="s">&#39;2025-01-01&#39;</span>
+                             <span class="k">AND DATE</span> <span class="s">&#39;2025-01-31&#39;</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> poi.material_id, poi.received_date, poi.po_item_id;</div>
+      <div class="box ok an-what"><b>Вывод для руководства</b>По хлопьям 3 из 5 январских поставок дороже скользящей средней, по сахару — одна (27.01: +1.01 ₽/кг к средней). По муке цены стабильно снижаются. Следующий шаг: добавить <code>supplier_id</code> и выяснить, <b>у кого</b> покупаем дороже.</div>
+    </div>
+    <div class="an-r">
+      <table class="wd-tbl an-res">
+        <tr><th>material_name</th><th>received_date</th><th>unit_price</th><th>avg3_price</th></tr>
+        <tr class="p1"><td>Сахар-песок</td><td>2025-01-04</td><td class="num">87.30</td><td class="num">87.30</td></tr><tr class="p1"><td>Сахар-песок</td><td>2025-01-13</td><td class="num">85.69</td><td class="num">86.50</td></tr><tr class="p1"><td>Сахар-песок</td><td>2025-01-19</td><td class="num">79.79</td><td class="num">84.26</td></tr><tr class="p1"><td>Сахар-песок</td><td>2025-01-27</td><td class="num res">84.25</td><td class="num">83.24</td></tr><tr class="p2"><td>Мука пшеничная в/с</td><td>2025-01-04</td><td class="num">37.32</td><td class="num">37.32</td></tr><tr class="p2"><td>Мука пшеничная в/с</td><td>2025-01-17</td><td class="num">36.62</td><td class="num">36.97</td></tr><tr class="p2"><td>Мука пшеничная в/с</td><td>2025-01-18</td><td class="num">36.59</td><td class="num">36.84</td></tr><tr class="p2"><td>Мука пшеничная в/с</td><td>2025-01-28</td><td class="num">35.40</td><td class="num">36.20</td></tr><tr class="p3"><td>Хлопья овсяные (сырьё)</td><td>2025-01-02</td><td class="num">41.98</td><td class="num">41.98</td></tr><tr class="p3"><td>Хлопья овсяные (сырьё)</td><td>2025-01-04</td><td class="num res">44.07</td><td class="num">43.03</td></tr><tr class="p3"><td>Хлопья овсяные (сырьё)</td><td>2025-01-17</td><td class="num res">44.31</td><td class="num">43.45</td></tr><tr class="p3"><td>Хлопья овсяные (сырьё)</td><td>2025-01-17</td><td class="num">43.27</td><td class="num">43.88</td></tr><tr class="p3"><td>Хлопья овсяные (сырьё)</td><td>2025-01-28</td><td class="num res">43.97</td><td class="num">43.85</td></tr>
+      </table>
+      <p class="wd-legend"><span style="background:#ED7D31"></span>цена выше средней последних 3 поставок — повод для разговора с поставщиком</p>
+    </div>
+  </div>
+  <aside class="notes">Попросите группу «прочитать» запрос вслух в порядке выполнения: WHERE → ① бирка → ② закрома → ③ лента → ④ окно → ⑤ лаборант → итоговый ORDER BY. Вопрос: «Как сделать окно по 3 последним поставкам, но только от одного поставщика?» (добавить supplier_id в PARTITION BY через JOIN purchase_orders).</aside>
+</section>
+<section class="quiz-slide">
+  <h2>Квиз: какой шаг забыли?</h2>
+  <p>Аналитик посчитал скользящую среднюю цену сахара, но в окно попали мешки муки и хлопьев. Какой части не хватает в <code>OVER (…)</code>?</p>
+  <ul class="quiz">
+    <li>① пустые скобки <code>OVER ()</code> вместо <code>OVER (…)</code></li>
+    <li data-correct>② <code>PARTITION BY poi.material_id</code></li>
+    <li>③ <code>ORDER BY poi.received_date</code></li>
+    <li>④ <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code></li>
+  </ul>
+  <p class="explain">Без закромов весь склад — один раздел, и смотровое окно видит соседние мешки любой культуры. ORDER BY и ROWS задают порядок и ширину окна, но не перегородки.</p>
+</section>
+<section class="discussion-slide">
+  <h2>Где аналогия с элеватором ломается?</h2>
+  <p style="font-size:.7em">Любая аналогия неточна. Найдите, где SQL ведёт себя <b>не так</b>, как настоящий элеватор. <span class="timer">5 мин</span></p>
+  <ol style="font-size:.66em">
+    <li>На элеваторе мешки лежат в физическом порядке. Есть ли «естественный порядок» строк в таблице?
+      <div class="fragment small" style="font-size:.85em">→ Нет. Без <code>ORDER BY</code> внутри <code>OVER</code> порядок не определён, и <code>row_number()</code> выдаст случайную нумерацию.</div></li>
+    <li>Можно ли одни и те же мешки одновременно разложить по закромам <b>по-разному</b>?
+      <div class="fragment small" style="font-size:.85em">→ В SQL — да: несколько <code>OVER</code> с разными <code>PARTITION BY</code> в одном SELECT. Закрома виртуальные, физически ничего не двигается.</div></li>
+    <li>Может ли лаборант выбросить «дорогой» мешок прямо у окна?
+      <div class="fragment small" style="font-size:.85em">→ Нет: окна считаются после <code>WHERE</code> и <code>HAVING</code>. Отбраковка — во внешнем запросе (CTE).</div></li>
+    <li>У первых мешков окно неполное. Это ошибка или особенность? Чем это опасно для отчёта руководству?
+      <div class="fragment small" style="font-size:.85em">→ Особенность: «среднее по 1 поставке» выглядит как скользящая средняя, но ей не является. Помечайте или отсекайте такие строки (<code>count(*) OVER (…) = 3</code>).</div></li>
+  </ol>
+  <aside class="notes">Работа в парах: 3 минуты на обсуждение, затем по одному ответу от пары. Ответы открывайте кликами. Хороший дополнительный вопрос: «Придумайте свою аналогию для оконной функции из вашей предметной области».</aside>
+</section>
+
+<!-- ===================== 7a. СХЕМА: КАК СЧИТАЕТСЯ ОКНО ===================== -->
+<section>
+  <h2>Схема: как СУБД считает окно</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none"><span class="k">SELECT</span> batch_id, line_id, production_date, shift, produced_qty,
+       <span class="f">round</span>(<span class="f">avg</span>(produced_qty) <span class="k">OVER</span> (
+                 <span class="h"><span class="k">PARTITION</span> <span class="k">BY</span> line_id</span>                       <span class="c">-- <span class="m">①</span></span>
+                 <span class="h"><span class="k">ORDER</span> <span class="k">BY</span> production_date, shift</span>            <span class="c">-- <span class="m">②</span></span>
+                 <span class="h"><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span></span>   <span class="c">-- <span class="m">③</span></span>
+             ), <span class="n">0</span>) <span class="k">AS</span> avg_3                                 <span class="c">-- <span class="m">④</span></span>
+<span class="k">FROM</span>   production_batches
+<span class="k">WHERE</span>  line_id <span class="k">IN</span> (<span class="n">1</span>, <span class="n">2</span>)                                    <span class="c">-- <span class="m">⓪</span></span>
+  <span class="k">AND</span>  production_date <span class="k">BETWEEN</span> <span class="k">DATE</span> <span class="s">'2025-03-03'</span> <span class="k">AND</span> <span class="k">DATE</span> <span class="s">'2025-03-04'</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> line_id, production_date, shift;</div><div class="box info" style="font-size:.5em;flex:1"><b>Как читать схему</b>Номера в комментариях — этапы на панелях: ⓪ строки после WHERE, ① деление на разделы, ② порядок внутри раздела, ③ рамка вокруг текущей строки, ④ функция по строкам рамки. Этапы ③–④ повторяются для каждой строки: рамка «едет» вместе с текущей строкой и не выходит за свой раздел.<br><span style="display:inline-block;width:.9em;height:.9em;background:#f9c49c;border-radius:3px;vertical-align:-1px"></span> текущая строка <span style="display:inline-block;width:.9em;height:.9em;background:#fde3cf;border-radius:3px;vertical-align:-1px;margin-left:8px"></span> рамка</div></div>
+  <div class="wd-flow">
+    <div class="wd-panel">
+      <p class="wd-h">⓪ Строки после WHERE</p>
+      <table class="wd-tbl">
+        <tr><th>batch</th><th>line</th><th>date</th><th>shift</th><th>qty</th></tr>
+        <tr class="p1"><td>3539</td><td>1</td><td>03-03</td><td>День</td><td class="num">1047</td></tr>
+        <tr class="p1"><td>3540</td><td>1</td><td>03-03</td><td>Ночь</td><td class="num">1228</td></tr>
+        <tr class="p2"><td>3541</td><td>2</td><td>03-03</td><td>День</td><td class="num">1180</td></tr>
+        <tr class="p2"><td>3542</td><td>2</td><td>03-03</td><td>Ночь</td><td class="num">1342</td></tr>
+        <tr class="p1"><td>3549</td><td>1</td><td>03-04</td><td>День</td><td class="num">942</td></tr>
+        <tr class="p1"><td>3550</td><td>1</td><td>03-04</td><td>Ночь</td><td class="num">950</td></tr>
+        <tr class="p2"><td>3551</td><td>2</td><td>03-04</td><td>День</td><td class="num">1364</td></tr>
+        <tr class="p2"><td>3552</td><td>2</td><td>03-04</td><td>Ночь</td><td class="num">1081</td></tr>
+      </table>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1">
+      <p class="wd-h">① PARTITION BY · ② ORDER BY</p>
+      <table class="wd-tbl">
+        <tr><th>batch</th><th>line</th><th>date</th><th>shift</th><th>qty</th></tr>
+        <tr class="ph"><td colspan="5">раздел line_id = 1</td></tr>
+        <tr class="p1"><td>3539</td><td>1</td><td>03-03</td><td>День</td><td class="num">1047</td></tr>
+        <tr class="p1"><td>3540</td><td>1</td><td>03-03</td><td>Ночь</td><td class="num">1228</td></tr>
+        <tr class="p1"><td>3549</td><td>1</td><td>03-04</td><td>День</td><td class="num">942</td></tr>
+        <tr class="p1"><td>3550</td><td>1</td><td>03-04</td><td>Ночь</td><td class="num">950</td></tr>
+        <tr class="ph"><td colspan="5">раздел line_id = 2</td></tr>
+        <tr class="p2"><td>3541</td><td>2</td><td>03-03</td><td>День</td><td class="num">1180</td></tr>
+        <tr class="p2"><td>3542</td><td>2</td><td>03-03</td><td>Ночь</td><td class="num">1342</td></tr>
+        <tr class="p2"><td>3551</td><td>2</td><td>03-04</td><td>День</td><td class="num">1364</td></tr>
+        <tr class="p2"><td>3552</td><td>2</td><td>03-04</td><td>Ночь</td><td class="num">1081</td></tr>
+      </table>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2" style="flex:1.15">
+      <p class="wd-h">③ Рамка · ④ Функция</p>
+      <div class="r-stack">
+        <div class="fragment fade-out" data-fragment-index="3" style="margin:0">
+        <table class="wd-tbl">
+          <tr><th>batch</th><th>date</th><th>shift</th><th>qty</th><th>avg</th></tr>
+          <tr class="ph"><td colspan="5">раздел line_id = 1</td></tr>
+          <tr class="p1 inf"><td>3539</td><td>03-03</td><td>День</td><td class="num">1047</td><td class="num dim">1047</td></tr>
+          <tr class="p1 inf"><td>3540</td><td>03-03</td><td>Ночь</td><td class="num">1228</td><td class="num dim">1138</td></tr>
+          <tr class="p1 cur"><td>3549</td><td>03-04</td><td>День</td><td class="num">942</td><td class="num res">1072</td></tr>
+          <tr class="p1 "><td>3550</td><td>03-04</td><td>Ночь</td><td class="num">950</td><td class="num dim">1040</td></tr>
+          <tr class="ph"><td colspan="5">раздел line_id = 2</td></tr>
+          <tr class="p2 out"><td>3541</td><td>03-03</td><td>День</td><td class="num">1180</td><td class="num dim">1180</td></tr>
+          <tr class="p2 out"><td>3542</td><td>03-03</td><td>Ночь</td><td class="num">1342</td><td class="num dim">1261</td></tr>
+          <tr class="p2 out"><td>3551</td><td>03-04</td><td>День</td><td class="num">1364</td><td class="num dim">1295</td></tr>
+          <tr class="p2 out"><td>3552</td><td>03-04</td><td>Ночь</td><td class="num">1081</td><td class="num dim">1262</td></tr>
+        </table>
+        <p class="wd-cap">Для текущей строки (3549) рамка — она и 2 предыдущие строки раздела: (1047 + 1228 + 942) / 3 = <b class="orange">1072</b>.</p>
+        </div>
+        <div class="fragment" data-fragment-index="3" style="margin:0">
+        <table class="wd-tbl">
+          <tr><th>batch</th><th>date</th><th>shift</th><th>qty</th><th>avg</th></tr>
+          <tr class="ph"><td colspan="5">раздел line_id = 1</td></tr>
+          <tr class="p1 out"><td>3539</td><td>03-03</td><td>День</td><td class="num">1047</td><td class="num dim">1047</td></tr>
+          <tr class="p1 inf"><td>3540</td><td>03-03</td><td>Ночь</td><td class="num">1228</td><td class="num dim">1138</td></tr>
+          <tr class="p1 inf"><td>3549</td><td>03-04</td><td>День</td><td class="num">942</td><td class="num dim">1072</td></tr>
+          <tr class="p1 cur"><td>3550</td><td>03-04</td><td>Ночь</td><td class="num">950</td><td class="num res">1040</td></tr>
+          <tr class="ph"><td colspan="5">раздел line_id = 2</td></tr>
+          <tr class="p2 out"><td>3541</td><td>03-03</td><td>День</td><td class="num">1180</td><td class="num dim">1180</td></tr>
+          <tr class="p2 out"><td>3542</td><td>03-03</td><td>Ночь</td><td class="num">1342</td><td class="num dim">1261</td></tr>
+          <tr class="p2 out"><td>3551</td><td>03-04</td><td>День</td><td class="num">1364</td><td class="num dim">1295</td></tr>
+          <tr class="p2 out"><td>3552</td><td>03-04</td><td>Ночь</td><td class="num">1081</td><td class="num dim">1262</td></tr>
+        </table>
+        <p class="wd-cap"><b>Шаг вперёд:</b> текущая — 3550. Рамка сдвинулась на 1 строку: 3539 вышла, 3550 вошла. (1228 + 942 + 950) / 3 = <b class="orange">1040</b>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Вопрос перед третьим кликом: какие строки попадут в рамку для партии 3549? Четвёртый клик сдвигает текущую строку на 3550 — спросите, какая строка выйдет из рамки. Затем: а для 3541 (первая строка линии 2)? Ответ — только она сама, 1180: рамка не заходит в чужой раздел, и предыдущих строк в разделе нет.</aside>
+</section>
+
+<!-- ===================== 8. ПОРЯДОК ===================== -->
+<section>
+  <h2>Логический порядок: окна — после HAVING</h2>
+  <p class="center"><code>FROM → WHERE → GROUP BY → HAVING → &lt;b&gt;ОКНА&lt;/b&gt; → SELECT → DISTINCT → ORDER BY → LIMIT</code></p>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT batch_id, line_id, defect_qty
+FROM   production_batches
+WHERE  row_number() OVER (
+         PARTITION BY line_id
+         ORDER BY defect_qty DESC) &lt;= 3;
+-- ERROR: window functions are not
+--        allowed in WHERE
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+WITH ranked AS (
+    SELECT batch_id, line_id, shift, defect_qty,
+           row_number() OVER (
+               PARTITION BY line_id
+               ORDER BY defect_qty DESC, batch_id
+           ) AS rn
+    FROM   production_batches
+)
+SELECT * FROM ranked WHERE rn &lt;= 3;
+-- Линия 3: все три худшие партии — ночные
+-- (230, 217, 214 шт. брака)
+      </code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>Следствия</b>Окна видят строки после WHERE и группы после GROUP BY; в окне можно использовать агрегаты; фильтровать по окну — только во внешнем запросе. В PG нет <code>QUALIFY</code>.</div>
+</section>
+
+<!-- ===================== 9. КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: где можно писать оконную функцию?</h2>
+  <p>В каких частях одного SELECT допустима <code>rank() OVER (ORDER BY revenue DESC)</code>?</p>
+  <ul class="quiz">
+    <li>SELECT, WHERE, ORDER BY</li>
+    <li>SELECT, HAVING</li>
+    <li data-correct>SELECT и ORDER BY</li>
+    <li>Везде, где допустимо выражение</li>
+  </ul>
+  <p class="explain">Окна вычисляются после WHERE, GROUP BY и HAVING, поэтому там их использовать нельзя. В ORDER BY — можно (он выполняется позже). Для фильтра — CTE или подзапрос.</p>
+</section>
+
+<!-- ===================== 10. РАЗДЕЛ РАНЖИРОВАНИЕ ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Функции ранжирования</h2>
+  <p>ROW_NUMBER · RANK · DENSE_RANK · NTILE · PERCENT_RANK · CUME_DIST</p>
+</section>
+
+<!-- ===================== 11. ROW_NUMBER RANK DENSE_RANK ===================== -->
+<section>
+  <h2>ROW_NUMBER, RANK, DENSE_RANK при равных значениях</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT material_name,
+       shelf_life_days,
+       row_number() OVER (ORDER BY shelf_life_days DESC) AS rn,
+       rank()       OVER (ORDER BY shelf_life_days DESC) AS rnk,
+       dense_rank() OVER (ORDER BY shelf_life_days DESC) AS drnk
+FROM   raw_materials
+ORDER  BY rn;
+  </code></pre>
+  <div class="two-col" style="align-items:center">
+    <div style="flex:1.3">
+      <table class="t" style="font-size:.5em;margin:0">
+        <tr><th>material_name</th><th>days</th><th>rn</th><th>rnk</th><th>drnk</th></tr>
+        <tr><td>Соль пищевая</td><td>1825</td><td>1</td><td>1</td><td>1</td></tr>
+        <tr><td>Коробка картонная</td><td>1825</td><td>2</td><td>1</td><td>1</td></tr>
+        <tr><td>Пакет тетра-пак 1 л</td><td>1095</td><td>3</td><td class="hl">3</td><td class="hl">2</td></tr>
+        <tr><td>Стаканчик 0,3 кг с крышкой</td><td>1095</td><td>4</td><td>3</td><td>2</td></tr>
+        <tr><td>Флоу-пак плёнка</td><td>1095</td><td>5</td><td>3</td><td>2</td></tr>
+        <tr><td>Сахар-песок</td><td>730</td><td>6</td><td class="hl">6</td><td class="hl">3</td></tr>
+        <tr><td>Ванилин</td><td>730</td><td>7</td><td>6</td><td>3</td></tr>
+      </table>
+      <div class="small" style="font-size:.45em;margin-top:.3em">первые 7 строк</div>
+    </div>
+    <div>
+      <ul style="font-size:.62em;margin:0">
+        <li><code>RANK</code> — с пропусками: 1, 1, <b>3</b>, 3, 3, <b>6</b></li>
+        <li><code>DENSE_RANK</code> — без пропусков: 1, 1, 2, 2, 2, 3</li>
+        <li><code>ROW_NUMBER</code> — уникальный номер, но среди равных — <b>произвольный</b></li>
+      </ul>
+      <div class="box warn" style="font-size:.6em"><b>Детерминизм</b>Добавляйте второй ключ: <code>ORDER BY shelf_life_days DESC, material_id</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. TOP-N ===================== -->
+<section>
+  <h2>Топ-N в каждой группе</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+WITH rev AS (
+    SELECT c.customer_type, c.customer_name,
+           sum(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100)) AS revenue
+    FROM   orders AS o
+    JOIN   order_items AS oi ON oi.order_id   = o.order_id
+    JOIN   customers   AS c  ON c.customer_id = o.customer_id
+    WHERE  o.status &lt;&gt; 'Отменён' AND o.order_date &gt;= DATE '2025-01-01'
+    GROUP  BY c.customer_type, c.customer_name
+), ranked AS (
+    SELECT rev.*, row_number() OVER (PARTITION BY customer_type ORDER BY revenue DESC) AS rn
+    FROM   rev
+)
+SELECT customer_type, rn, customer_name, round(revenue / 1e6, 2) AS revenue_mln
+FROM   ranked WHERE rn &lt;= 2;
+  </code></pre>
+  <table class="t">
+    <tr><th>customer_type</th><th>rn</th><th>customer_name</th><th>revenue_mln</th></tr>
+    <tr><td>Дистрибьютор</td><td>1</td><td>ООО "Лотос"</td><td>13.93</td></tr>
+    <tr><td>Дистрибьютор</td><td>2</td><td>ООО "Ромашка"</td><td>13.18</td></tr>
+    <tr><td>Федеральная сеть</td><td>1</td><td>ООО "Лента-Сервис"</td><td>28.15</td></tr>
+  </table>
+  <div class="box info"><b>T-SQL ↔ PostgreSQL</b><code>CROSS APPLY (SELECT TOP 2 …)</code> → окно + фильтр или <code>LATERAL (… LIMIT 2)</code> (модуль 6).</div>
+</section>
+
+<!-- ===================== 12a. ФИЛЬТР ПО ОКНУ / QUALIFY ===================== -->
+<section>
+  <h2>Фильтр по результату окна: QUALIFY и PostgreSQL</h2>
+  <div class="two-col">
+    <div>
+      <p class="wd-h" style="font-size:.5em">Так нельзя: WHERE выполняется до окон</p>
+      <pre style="font-size:.4em;margin-top:0"><code class="language-sql" data-trim data-noescape>
+SELECT material_id, order_date, unit_price,
+       row_number() OVER (PARTITION BY material_id
+                          ORDER BY order_date DESC) AS rn
+FROM   purchases
+WHERE  rn = 1;                       -- column "rn" does not exist
+-- и WHERE row_number() OVER (…) = 1 → window functions are not allowed in WHERE
+      </code></pre>
+      <p class="wd-h" style="font-size:.5em">Snowflake, BigQuery, DuckDB, Teradata: QUALIFY</p>
+      <pre style="font-size:.4em;margin-top:0"><code class="language-sql" data-trim data-noescape>
+SELECT material_id, order_date, unit_price,
+       row_number() OVER (PARTITION BY material_id
+                          ORDER BY order_date DESC) AS rn
+FROM   purchases
+QUALIFY rn = 1;                      -- «HAVING для окон»
+      </code></pre>
+      <p class="small" style="font-size:.45em;margin:.2em 0">Порядок: FROM → WHERE → GROUP BY → HAVING → окна → <b class="orange">QUALIFY</b> → SELECT → … В стандарте SQL, PostgreSQL и SQL Server его <b>нет</b>.</p>
+    </div>
+    <div>
+      <p class="wd-h" style="font-size:.5em">PostgreSQL: окно в CTE, фильтр снаружи</p>
+      <pre style="font-size:.4em;margin-top:0"><code class="language-sql" data-trim data-noescape>
+WITH ranked AS (
+    SELECT poi.material_id,
+           po.order_date,
+           poi.unit_price,
+           row_number() OVER (PARTITION BY poi.material_id
+                              ORDER BY po.order_date DESC,
+                                       poi.po_item_id DESC) AS rn
+    FROM   purchase_order_items AS poi
+    JOIN   purchase_orders      AS po ON po.po_id = poi.po_id
+)
+SELECT material_id, order_date, unit_price
+FROM   ranked
+WHERE  rn = 1;                       -- это и есть QUALIFY rn = 1
+      </code></pre>
+      <table class="t" style="font-size:.46em;margin:.2em 0">
+        <tr><th>Способ в PG</th><th>Когда</th></tr>
+        <tr><td>CTE + <code>WHERE</code></td><td>любой фильтр по окну — основной способ</td></tr>
+        <tr><td>подзапрос в <code>FROM</code></td><td>то же; у подзапроса обязателен псевдоним</td></tr>
+        <tr><td><code>DISTINCT ON (material_id)</code></td><td>только «топ-1 в группе»; есть только в PG</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box warn" style="font-size:.52em;margin-top:.3em"><b>Где стоит WHERE — до окна или после — меняет результат</b><code>WHERE</code> внутри CTE сужает строки, <b>по которым считается</b> окно; <code>WHERE</code> снаружи только отбирает строки, а окно уже посчитано по всем. Пример: последняя закупка материала 14 в феврале имеет <code>rn = 44</code> среди всех его закупок, а не 1.</div>
+  <aside class="notes">Вопрос: найдите партии 2025 г., где брак больше среднего по линии в 2 раза (пример 2.6.6 в examples.sql). Ответ: все 34 такие партии — ночные смены Линии 3. Это фильтр по агрегатному окну, не по рангу: QUALIFY нужен не только для топ-N. Пример 2.6.7 показывает разницу между WHERE в CTE и снаружи. Таблица purchases на левой половине — условная, чтобы показать синтаксис; рабочие запросы — в examples.sql, раздел 2.6.</aside>
+</section>
+
+<!-- ===================== 13. NTILE, PERCENT_RANK ===================== -->
+<section>
+  <h2>NTILE, PERCENT_RANK, CUME_DIST</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+WITH q AS (
+    SELECT shift,
+           ntile(4) OVER (ORDER BY 1.0 * defect_qty
+                                   / produced_qty) AS quartile
+    FROM   production_batches
+    WHERE  line_id = 3
+)
+SELECT quartile, count(*) AS batches,
+       count(*) FILTER (WHERE shift = 'Ночь') AS night
+FROM   q GROUP BY quartile ORDER BY quartile;
+      </code></pre>
+      <table class="t">
+        <tr><th>квартиль брака</th><th>партий</th><th>ночных</th></tr>
+        <tr><td>1 (лучший)</td><td>314</td><td>0</td></tr>
+        <tr><td>2</td><td>314</td><td>1</td></tr>
+        <tr><td>3</td><td>313</td><td class="hl">313</td></tr>
+        <tr><td>4 (худший)</td><td>313</td><td class="hl">313</td></tr>
+      </table>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Функция</th><th>Значение</th></tr>
+        <tr><td><code>ntile(n)</code></td><td>номер «корзины» 1..n (почти равные по размеру)</td></tr>
+        <tr><td><code>percent_rank()</code></td><td>(rank − 1) / (N − 1), от 0 до 1</td></tr>
+        <tr><td><code>cume_dist()</code></td><td>доля строк ≤ текущей, (0; 1]</td></tr>
+      </table>
+      <p class="small">Средняя скидка менеджеров: Соколов И. А. — 18,01 %, <code>percent_rank = 1.000</code>, следующий — Попов С. И. — 8,29 %.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 14. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Рейтинг для премии: RANK, DENSE_RANK или ROW_NUMBER?</h2>
+  <p>Директор по продажам хочет премировать «тройку лучших менеджеров квартала» по выручке. У двух менеджеров выручка совпала до рубля.</p>
+  <ul>
+    <li>Сколько человек получат премию при <code>RANK() &lt;= 3</code>, <code>DENSE_RANK() &lt;= 3</code>, <code>ROW_NUMBER() &lt;= 3</code>?</li>
+    <li>Какую функцию выбрать, чтобы решение было справедливым и воспроизводимым?</li>
+    <li>Достаточно ли выручки как метрики? (Вспомните скидки Соколова — 18 % при норме 10 %.)</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">RANK ≤ 3 при равных значениях на 2–3 месте — 3 или 4 человека; DENSE_RANK ≤ 3 — может быть больше трёх (все с 3-м значением); ROW_NUMBER — ровно 3, но кто третий — случайно, если нет второго ключа. Справедливо — явное правило для равных значений. Метрика: выручка за вычетом сверхполитических скидок или маржа — Соколов лидирует по выручке в Q3, но его выручка «куплена» скидками (A1).</aside>
+</section>
+
+<!-- ===================== 15. РАЗДЕЛ АГРЕГАТНЫЕ ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Агрегатные оконные функции</h2>
+  <p>нарастающий итог · доля · скользящее среднее · рамки</p>
+</section>
+
+<!-- ===================== 16. НАРАСТАЮЩИЙ ИТОГ ===================== -->
+<section>
+  <h2>Нарастающий итог и доля месяца в году</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+WITH m AS (
+    SELECT date_trunc('month', o.order_date)::date                        AS month,
+           sum(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100)) AS revenue
+    FROM   orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id
+    WHERE  o.status &lt;&gt; 'Отменён'
+      AND  o.order_date BETWEEN DATE '2025-01-01' AND DATE '2025-12-31'
+    GROUP  BY 1
+)
+SELECT month,
+       round(revenue / 1e6, 2)                             AS revenue_mln,
+       round(sum(revenue) OVER (ORDER BY month) / 1e6, 2)  AS running_mln,
+       round(100 * revenue / sum(revenue) OVER (), 1)      AS share_pct
+FROM   m ORDER BY month;
+  </code></pre>
+  <table class="t">
+    <tr><th>month</th><th>revenue_mln</th><th>running_mln</th><th>share_pct</th></tr>
+    <tr><td>2025-06</td><td>33.01</td><td>219.56</td><td>7.4</td></tr>
+    <tr><td>2025-07</td><td class="hl">24.71</td><td>244.27</td><td class="hl">5.6</td></tr>
+    <tr><td>2025-12</td><td>44.67</td><td>445.11</td><td>10.0</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 17. РАМКИ ===================== -->
+<section>
+  <h2>Рамка окна: ROWS, RANGE, GROUPS</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+{ ROWS | RANGE | GROUPS } BETWEEN начало AND конец
+-- начало / конец:  UNBOUNDED PRECEDING | n PRECEDING | CURRENT ROW | n FOLLOWING | UNBOUNDED FOLLOWING
+  </code></pre>
+  <table class="t">
+    <tr><th>Режим</th><th>Смещение считается в…</th><th>Пример</th></tr>
+    <tr><td><code>ROWS</code></td><td>физических строках</td><td><code>ROWS BETWEEN 6 PRECEDING AND CURRENT ROW</code> — 7 смен</td></tr>
+    <tr><td><code>RANGE</code></td><td>значениях ключа ORDER BY</td><td><code>RANGE BETWEEN INTERVAL '6 days' PRECEDING AND CURRENT ROW</code> — 7 календарных дней</td></tr>
+    <tr><td><code>GROUPS</code></td><td>группах равных значений</td><td><code>GROUPS BETWEEN 6 PRECEDING AND CURRENT ROW</code> — 7 разных дат</td></tr>
+  </table>
+  <p class="small">Линия 2, дневные смены марта 2025: «7 календарных дней» вмещают 6 партий, «7 дат» — 7 (по воскресеньям линия стоит).</p>
+  <div class="box info"><b>T-SQL ↔ PostgreSQL</b>В SQL Server нет <code>GROUPS</code>, а <code>RANGE</code> — только с UNBOUNDED/CURRENT ROW. В PG 11+ — полный стандарт, включая <code>EXCLUDE CURRENT ROW</code>.</div>
+</section>
+
+<!-- ===================== 17a. СХЕМА: ROWS / RANGE / GROUPS ===================== -->
+<section>
+  <h2>Схема: ROWS, RANGE и GROUPS на одних данных</h2>
+  <div class="two-col" style="gap:.8em">
+    <div style="flex:1.05">
+      <div class="sd-code"><span class="k">SELECT</span> production_date, shift, produced_qty,
+       <span class="f">sum</span>(produced_qty) <span class="k">OVER</span> (
+           <span class="k">ORDER</span> <span class="k">BY</span> production_date, shift
+           <span class="h"><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="n">1</span> <span class="k">PRECEDING</span> <span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span></span>) <span class="k">AS</span> rows_1,     <span class="c">-- <span class="m">①</span></span>
+       <span class="f">sum</span>(produced_qty) <span class="k">OVER</span> (
+           <span class="k">ORDER</span> <span class="k">BY</span> production_date
+           <span class="h"><span class="k">RANGE</span> <span class="k">BETWEEN</span> <span class="k">INTERVAL</span> <span class="s">'1 day'</span> <span class="k">PRECEDING</span></span>
+                 <span class="h"><span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span></span>) <span class="k">AS</span> range_1d,                     <span class="c">-- <span class="m">②</span></span>
+       <span class="f">sum</span>(produced_qty) <span class="k">OVER</span> (
+           <span class="k">ORDER</span> <span class="k">BY</span> production_date
+           <span class="h"><span class="k">GROUPS</span> <span class="k">BETWEEN</span> <span class="n">1</span> <span class="k">PRECEDING</span> <span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span></span>) <span class="k">AS</span> groups_1  <span class="c">-- <span class="m">③</span></span>
+<span class="k">FROM</span>   production_batches
+<span class="k">WHERE</span>  line_id = <span class="n">1</span>
+  <span class="k">AND</span>  production_date <span class="k">BETWEEN</span> <span class="k">DATE</span> <span class="s">'2025-02-28'</span> <span class="k">AND</span> <span class="k">DATE</span> <span class="s">'2025-03-04'</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> production_date, shift;</div>
+      <div class="box warn fragment" data-fragment-index="3" style="font-size:.5em;margin:.3em 0 0"><b>Одна и та же «1 PRECEDING» — три разных ответа</b><code>ROWS</code> — сколько строк, <code>RANGE</code> — насколько отличается значение ключа, <code>GROUPS</code> — сколько разных значений ключа. Для <code>RANGE</code> и <code>GROUPS</code> строки с той же датой — одна неразрывная группа.</div>
+    </div>
+    <div style="flex:1">
+      <p class="wd-h" style="font-size:.48em">Рамка для текущей строки 03-03 День</p>
+      <table class="wd-tbl" style="font-size:.48em">
+        <tr><th>date</th><th>shift</th><th>qty</th><th>① ROWS</th><th class="fragment" data-fragment-index="1">② RANGE</th><th class="fragment" data-fragment-index="2">③ GROUPS</th></tr>
+        <tr><td>02-28</td><td>День</td><td class="num">1308</td><td class="fx">·</td><td class="fx fragment" data-fragment-index="1">·</td><td class="fx fragment" data-fragment-index="2">·</td></tr>
+        <tr><td>02-28</td><td>Ночь</td><td class="num">953</td><td class="fx">·</td><td class="fx fragment" data-fragment-index="1">·</td><td class="fx fragment" data-fragment-index="2">·</td></tr>
+        <tr class="gap"><td>03-01</td><td>День</td><td class="num">1354</td><td class="fx">·</td><td class="fx fragment" data-fragment-index="1">·</td><td class="fc fragment" data-fragment-index="2">1354</td></tr>
+        <tr><td>03-01</td><td>Ночь</td><td class="num">966</td><td class="fc">966</td><td class="fx fragment" data-fragment-index="1">·</td><td class="fc fragment" data-fragment-index="2">966</td></tr>
+        <tr class="ph"><td colspan="6">03-02 — воскресенье, партий нет</td></tr>
+        <tr class="cur"><td>03-03</td><td>День</td><td class="num">1047</td><td class="fc">1047</td><td class="fc fragment" data-fragment-index="1">1047</td><td class="fc fragment" data-fragment-index="2">1047</td></tr>
+        <tr><td>03-03</td><td>Ночь</td><td class="num">1228</td><td class="fx">·</td><td class="fc fragment" data-fragment-index="1">1228</td><td class="fc fragment" data-fragment-index="2">1228</td></tr>
+        <tr class="gap"><td>03-04</td><td>День</td><td class="num">942</td><td class="fx">·</td><td class="fx fragment" data-fragment-index="1">·</td><td class="fx fragment" data-fragment-index="2">·</td></tr>
+        <tr><td>03-04</td><td>Ночь</td><td class="num">950</td><td class="fx">·</td><td class="fx fragment" data-fragment-index="1">·</td><td class="fx fragment" data-fragment-index="2">·</td></tr>
+        <tr class="sum"><td colspan="3" style="text-align:left">sum в строке 03-03 День</td><td>2013</td><td class="fragment" data-fragment-index="1">2275</td><td class="fragment" data-fragment-index="2">4595</td></tr>
+      </table>
+      <ul class="wd-cap" style="margin:.4em 0 0 1em">
+        <li>① <b>физические строки</b>: 1 строка до текущей — 03-01 Ночь</li>
+        <li class="fragment" data-fragment-index="1">② <b>значения ключа</b>: даты 03-02…03-03. 03-02 нет, но попала Ночь 03-03 — строка с той же датой, хотя она идёт после текущей</li>
+        <li class="fragment" data-fragment-index="2">③ <b>группы дат</b>: своя дата + 1 предыдущая существующая (03-01); пропуск воскресенья не важен</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">Числа в последней строке — значения rows_1, range_1d и groups_1, которые запрос возвращает в строке 03-03 День. Перед каждым кликом спросите: какие строки попадут в рамку? Частая ошибка — думать, что RANGE 1 day возьмёт субботу 03-01: нет, суббота отстоит на 2 дня. Для ROWS в ORDER BY добавлен shift, иначе порядок строк одной даты произволен.</aside>
+</section>
+
+<!-- ===================== 17b. ШПАРГАЛКА ROWS / RANGE / GROUPS ===================== -->
+<section>
+  <h2>Шпаргалка: что можно писать в ROWS, RANGE и GROUPS</h2>
+  <div class="sd-code">{ <span class="k">ROWS</span> | <span class="k">RANGE</span> | <span class="k">GROUPS</span> } <span class="k">BETWEEN</span> начало <span class="k">AND</span> конец
+      [ EXCLUDE { NO OTHERS | <span class="k">CURRENT</span> <span class="k">ROW</span> | <span class="k">GROUP</span> | TIES } ]
+<span class="c">-- начало / конец: UNBOUNDED PRECEDING | n PRECEDING | CURRENT ROW | n FOLLOWING | UNBOUNDED FOLLOWING</span>
+<span class="c">-- краткая форма:  ROWS 6 PRECEDING  =  ROWS BETWEEN 6 PRECEDING AND CURRENT ROW</span></div>
+  <table class="t" style="font-size:.46em;margin:.3em 0">
+    <tr><th></th><th>ROWS</th><th>RANGE</th><th>GROUPS</th></tr>
+    <tr><td><b>n считается в…</b></td><td>физических строках</td><td>значениях ключа ORDER BY</td><td>группах строк с равным ключом</td></tr>
+    <tr><td><b>Что такое n</b></td><td>целое ≥ 0</td><td>по типу ключа: число для <code>integer</code>/<code>numeric</code>, <code>INTERVAL</code> для <code>date</code>/<code>timestamp</code></td><td>целое ≥ 0</td></tr>
+    <tr><td><b>ORDER BY в OVER</b></td><td>не обязателен (но без него порядок произволен)</td><td>для <code>n PRECEDING/FOLLOWING</code> — ровно <b>один</b> столбец числа или даты; без n — любой</td><td><b>обязателен</b>, столбцов сколько угодно, тип любой</td></tr>
+    <tr><td><b>CURRENT ROW</b></td><td>только текущая строка</td><td class="hl">текущая строка + все строки с тем же ключом</td><td class="hl">текущая строка + все строки с тем же ключом</td></tr>
+    <tr><td><b>UNBOUNDED, EXCLUDE</b></td><td>да</td><td>да</td><td>да</td></tr>
+    <tr><td><b>Пример «7 …»</b></td><td><code>ROWS BETWEEN 6 PRECEDING AND CURRENT ROW</code> — 7 смен</td><td><code>RANGE BETWEEN INTERVAL '6 days' PRECEDING AND CURRENT ROW</code> — 7 календарных дней</td><td><code>GROUPS BETWEEN 6 PRECEDING AND CURRENT ROW</code> — 7 разных дат</td></tr>
+    <tr><td><b>По умолчанию</b></td><td colspan="3">есть ORDER BY → <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>; нет ORDER BY → весь раздел</td></tr>
+  </table>
+  <div class="two-col" style="gap:.8em">
+    <div class="box warn" style="font-size:.48em;margin:0;flex:1.2"><b>Ошибки — проверено в PostgreSQL</b>
+      <ul style="margin:0 0 0 1em">
+        <li><code>RANGE BETWEEN 1 PRECEDING …</code> с двумя столбцами в ORDER BY → <i>requires exactly one ORDER BY column</i></li>
+        <li><code>RANGE … PRECEDING</code> по тексту → <i>not supported for column type text</i></li>
+        <li><code>GROUPS</code> без ORDER BY → <i>GROUPS mode requires an ORDER BY clause</i></li>
+        <li>отрицательное n → <i>frame starting offset must not be negative</i></li>
+        <li>конец раньше начала: <code>BETWEEN CURRENT ROW AND 1 PRECEDING</code>, <code>BETWEEN 1 FOLLOWING AND CURRENT ROW</code> → ошибка</li>
+        <li>начало <code>UNBOUNDED FOLLOWING</code> / конец <code>UNBOUNDED PRECEDING</code> → ошибка</li>
+      </ul>
+    </div>
+    <div style="flex:1">
+      <table class="t" style="font-size:.46em;margin:0">
+        <tr><th>EXCLUDE</th><th>Убирает из рамки</th></tr>
+        <tr><td><code>NO OTHERS</code></td><td>ничего (по умолчанию)</td></tr>
+        <tr><td><code>CURRENT ROW</code></td><td>саму текущую строку</td></tr>
+        <tr><td><code>GROUP</code></td><td>текущую строку и строки с тем же ключом</td></tr>
+        <tr><td><code>TIES</code></td><td>строки с тем же ключом, кроме текущей</td></tr>
+      </table>
+    </div>
+  </div>
+  <aside class="notes">Ключевые отличия: единица смещения и то, как CURRENT ROW обращается с «пирами» (строками с тем же ключом). Пример RANGE по числу: count(*) OVER (PARTITION BY material_id ORDER BY unit_price RANGE BETWEEN 50 PRECEDING AND 50 FOLLOWING) — сколько закупок материала по цене ±50 ₽ от текущей. Пример EXCLUDE GROUP: сравнить % брака смены со средним за прошлую неделю без другой смены той же даты — RANGE BETWEEN INTERVAL '7 days' PRECEDING AND CURRENT ROW EXCLUDE GROUP. Вопрос: почему для RANGE со смещением нужен ровно один столбец ORDER BY? (Смещение «± значение» определено для одного ключа — непонятно, к какому из двух его прибавлять.)</aside>
+</section>
+
+<!-- ===================== 18. ЛОВУШКА РАМКИ ===================== -->
+<section>
+  <h2>Ловушка: рамка по умолчанию — RANGE</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT production_date,
+       shift,
+       produced_qty,
+       sum(produced_qty) OVER (ORDER BY production_date)        AS range_default,
+       sum(produced_qty) OVER (ORDER BY production_date, shift
+                               ROWS BETWEEN UNBOUNDED PRECEDING
+                                        AND CURRENT ROW)        AS rows_frame
+FROM   production_batches
+WHERE  line_id = 1
+  AND  production_date BETWEEN DATE '2025-03-03' AND DATE '2025-03-05'
+ORDER  BY production_date, shift;
+  </code></pre>
+  <div class="two-col" style="align-items:center">
+    <div style="flex:1.2">
+      <table class="t" style="font-size:.5em;margin:0">
+        <tr><th>date</th><th>shift</th><th>qty</th><th>range_default</th><th>rows_frame</th></tr>
+        <tr><td>03-03</td><td>День</td><td>1047</td><td class="hl">2275</td><td>1047</td></tr>
+        <tr><td>03-03</td><td>Ночь</td><td>1228</td><td>2275</td><td>2275</td></tr>
+        <tr><td>03-04</td><td>День</td><td>942</td><td class="hl">4167</td><td>3217</td></tr>
+        <tr><td>03-04</td><td>Ночь</td><td>950</td><td>4167</td><td>4167</td></tr>
+        <tr><td>03-05</td><td>День</td><td>1085</td><td class="hl">6540</td><td>5252</td></tr>
+        <tr><td>03-05</td><td>Ночь</td><td>1288</td><td>6540</td><td>6540</td></tr>
+      </table>
+    </div>
+    <div class="box warn" style="font-size:.6em;margin:0"><b>Почему так</b>С ORDER BY без рамки действует <code>RANGE … CURRENT ROW</code>: в рамку входят все «пиры» — строки с той же датой. Итог прыгает сразу на две смены. Лечение — явный <code>ROWS</code> и уникальный порядок.</div>
+  </div>
+</section>
+
+<!-- ===================== 18a. СХЕМА: РАМКА ПОЛЗЁТ ===================== -->
+<section class="wd-slide" data-wd-prec="2">
+  <h2>Схема: рамка «ползёт» вместе с текущей строкой</h2>
+  <div class="sd-code"><span class="k">SELECT</span> production_date, shift, produced_qty,
+       <span class="f">round</span>(<span class="f">avg</span>(produced_qty) <span class="k">OVER</span> (
+                 <span class="k">ORDER</span> <span class="k">BY</span> production_date, shift
+                 <span class="h"><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="n">2</span> <span class="k">PRECEDING</span> <span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span></span>), <span class="n">0</span>) <span class="k">AS</span> avg_3
+<span class="k">FROM</span>   production_batches
+<span class="k">WHERE</span>  line_id = <span class="n">1</span>
+  <span class="k">AND</span>  production_date <span class="k">BETWEEN</span> <span class="k">DATE</span> <span class="s">'2025-03-03'</span> <span class="k">AND</span> <span class="k">DATE</span> <span class="s">'2025-03-05'</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> production_date, shift;</div>
+  <div class="two-col" style="align-items:center">
+    <div class="wd-panel" style="flex:1">
+      <table class="wd-tbl" style="font-size:.62em">
+        <tr><th>date</th><th>shift</th><th>qty</th><th>avg_3</th></tr>
+        <tr data-i="1"><td>03-03</td><td>День</td><td class="num">1047</td><td class="num res" style="visibility:hidden">1047</td></tr>
+        <tr data-i="2"><td>03-03</td><td>Ночь</td><td class="num">1228</td><td class="num res" style="visibility:hidden">1138</td></tr>
+        <tr data-i="3"><td>03-04</td><td>День</td><td class="num">942</td><td class="num res" style="visibility:hidden">1072</td></tr>
+        <tr data-i="4"><td>03-04</td><td>Ночь</td><td class="num">950</td><td class="num res" style="visibility:hidden">1040</td></tr>
+        <tr data-i="5"><td>03-05</td><td>День</td><td class="num">1085</td><td class="num res" style="visibility:hidden">992</td></tr>
+        <tr data-i="6"><td>03-05</td><td>Ночь</td><td class="num">1288</td><td class="num res" style="visibility:hidden">1108</td></tr>
+      </table>
+    </div>
+    <div style="flex:1">
+      <p class="wd-live box info" style="font-size:.58em;min-height:4.2em;margin:0"><b>Нажимайте →</b>На каждом шаге текущей становится следующая строка, а рамка из 3 строк сдвигается за ней.</p>
+      <p class="wd-legend"><span style="background:#f9c49c"></span>текущая строка<span style="background:#fde3cf"></span>рамка</p>
+      <div class="box warn" style="font-size:.54em"><b>А нарастающий итог?</b>Это та же схема, но начало рамки закреплено: <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — рамка не ползёт, а растёт от первой строки.</div>
+    </div>
+  </div>
+  <span class="fragment wd-step" data-cap="Строка 1: рамка — только сама строка 1. avg = (1047) / 1 = <b class=&quot;orange&quot;>1047</b> — в рамке пока меньше 3 строк, окно неполное"></span>
+  <span class="fragment wd-step" data-cap="Строка 2: рамка — строки 1…2. avg = (1047 + 1228) / 2 = <b class=&quot;orange&quot;>1138</b> — в рамке пока меньше 3 строк, окно неполное"></span>
+  <span class="fragment wd-step" data-cap="Строка 3: рамка — строки 1…3. avg = (1047 + 1228 + 942) / 3 = <b class=&quot;orange&quot;>1072</b>"></span>
+  <span class="fragment wd-step" data-cap="Строка 4: рамка — строки 2…4. avg = (1228 + 942 + 950) / 3 = <b class=&quot;orange&quot;>1040</b>"></span>
+  <span class="fragment wd-step" data-cap="Строка 5: рамка — строки 3…5. avg = (942 + 950 + 1085) / 3 = <b class=&quot;orange&quot;>992</b>"></span>
+  <span class="fragment wd-step" data-cap="Строка 6: рамка — строки 4…6. avg = (950 + 1085 + 1288) / 3 = <b class=&quot;orange&quot;>1108</b>"></span>
+  <aside class="notes">6 кликов — 6 строк. На 1–2 шаге обратите внимание: рамка неполная, среднее по 1–2 строкам. Вопрос: как отбросить такие строки? (Посчитать count(*) OVER с той же рамкой и оставить строки, где он = 3, во внешнем запросе.)</aside>
+</section>
+
+<!-- ===================== 19. СКОЛЬЗЯЩЕЕ СРЕДНЕЕ ===================== -->
+<section>
+  <h2>Скользящее среднее брака за 7 смен</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT production_date,
+       shift,
+       round(100.0 * defect_qty / produced_qty, 2) AS defect_pct,
+       round(avg(100.0 * defect_qty / produced_qty)
+               OVER (ORDER BY production_date, shift
+                     ROWS BETWEEN 6 PRECEDING
+                              AND CURRENT ROW), 2) AS ma7_pct
+FROM   production_batches
+WHERE  line_id = 3
+  AND  production_date BETWEEN DATE '2025-03-01' AND DATE '2025-03-06'
+ORDER  BY production_date, shift;
+  </code></pre>
+  <div class="two-col" style="align-items:center">
+    <div>
+      <table class="t" style="font-size:.45em;margin:0">
+        <tr><th>date</th><th>shift</th><th>defect_pct</th><th>ma7_pct</th></tr>
+        <tr style="color:var(--muted)"><td>03-01</td><td>День</td><td>2.27</td><td>2.27</td></tr>
+        <tr style="color:var(--muted)"><td>03-01</td><td>Ночь</td><td>6.21</td><td>4.24</td></tr>
+        <tr style="color:var(--muted)"><td>03-03</td><td>День</td><td>2.43</td><td>3.64</td></tr>
+        <tr style="color:var(--muted)"><td>03-03</td><td>Ночь</td><td>8.40</td><td>4.83</td></tr>
+        <tr style="color:var(--muted)"><td>03-04</td><td>День</td><td>2.20</td><td>4.30</td></tr>
+        <tr style="color:var(--muted)"><td>03-04</td><td>Ночь</td><td class="hl">8.57</td><td>5.01</td></tr>
+        <tr><td>03-05</td><td>День</td><td>0.90</td><td><b>4.43</b></td></tr>
+        <tr><td>03-05</td><td>Ночь</td><td>7.97</td><td><b>5.24</b></td></tr>
+        <tr><td>03-06</td><td>День</td><td>1.86</td><td><b>4.62</b></td></tr>
+        <tr><td>03-06</td><td>Ночь</td><td class="hl">9.86</td><td><b>5.68</b></td></tr>
+      </table>
+      <div class="small" style="font-size:.45em;margin-top:.3em">серым — строки с неполным окном (меньше 7 смен)</div>
+    </div>
+    <div class="box info" style="font-size:.6em;margin:0"><b>Пила «день — ночь»</b>Отдельные значения скачут от 1 до 10 %, скользящее среднее показывает уровень. Первые 6 строк считаются по неполному окну — учитывайте при интерпретации.</div>
+  </div>
+</section>
+
+<!-- ===================== 20. КВИЗ 2 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: рамка по умолчанию</h2>
+  <p>Какая рамка применяется в <code>sum(amount) OVER (PARTITION BY customer_id ORDER BY invoice_date)</code>?</p>
+  <ul class="quiz">
+    <li>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</li>
+    <li data-correct>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</li>
+    <li>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</li>
+    <li>Вся секция (PARTITION) целиком</li>
+  </ul>
+  <p class="explain">С ORDER BY — RANGE до текущей строки включительно, с пирами: два счёта одного дня получат одинаковый итог. Без ORDER BY — вся секция.</p>
+</section>
+
+<!-- ===================== 21. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>7 смен или 7 дней?</h2>
+  <p>Начальник цеха просит «график брака Линии 3 со сглаживанием за неделю». Линия работает в две смены, по воскресеньям стоит, иногда смена пропускается из-за простоя.</p>
+  <ul>
+    <li>Что выбрать: <code>ROWS 13 PRECEDING</code>, <code>RANGE INTERVAL '6 days' PRECEDING</code> или <code>GROUPS 6 PRECEDING</code>?</li>
+    <li>Нужно ли сглаживать дневную и ночную смены вместе?</li>
+    <li>Что покажет сглаженный график, если ночная смена бракует 8 %, а дневная 1,6 %?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">«Неделя» — календарная: RANGE INTERVAL '6 days' корректно учитывает пропуски; ROWS считает строки и при пропусках захватывает больше дней. Смешивание смен скрывает проблему: среднее ~4,8 % выглядит «умеренно», а на деле ночь ≈ 8 % (B3). Правильно — PARTITION BY shift или две линии на графике. Мораль: окно сглаживает, но может прятать структурную причину.</aside>
+</section>
+
+<!-- ===================== 22. РАЗДЕЛ СМЕЩЕНИЯ ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Функции смещения</h2>
+  <p>LAG · LEAD · FIRST_VALUE · LAST_VALUE · NTH_VALUE · WINDOW</p>
+</section>
+
+<!-- ===================== 22a. СХЕМА: КАРТА ФУНКЦИЙ СМЕЩЕНИЯ ===================== -->
+<section>
+  <h2>Схема: куда «смотрят» функции смещения</h2>
+  <div class="two-col" style="gap:.8em">
+    <div style="flex:1.2">
+      <div class="sd-code" style="font-size:.41em"><span class="k">SELECT</span> po.order_date,
+       poi.unit_price,
+       <span class="h"><span class="f">lag</span>(poi.unit_price)</span>          <span class="k">OVER</span> (<span class="k">ORDER</span> <span class="k">BY</span> po.order_date) <span class="k">AS</span> lag_price,    <span class="c">-- <span class="m">①</span></span>
+       <span class="h"><span class="f">lead</span>(poi.unit_price)</span>         <span class="k">OVER</span> (<span class="k">ORDER</span> <span class="k">BY</span> po.order_date) <span class="k">AS</span> lead_price,   <span class="c">-- <span class="m">①</span></span>
+       <span class="h"><span class="f">first_value</span>(poi.unit_price)</span>  <span class="k">OVER</span> (<span class="k">ORDER</span> <span class="k">BY</span> po.order_date) <span class="k">AS</span> first_price,  <span class="c">-- <span class="m">②</span></span>
+       <span class="h"><span class="f">nth_value</span>(poi.unit_price, <span class="n">2</span>)</span> <span class="k">OVER</span> (<span class="k">ORDER</span> <span class="k">BY</span> po.order_date) <span class="k">AS</span> nth_2,        <span class="c">-- <span class="m">②</span></span>
+       <span class="h"><span class="f">last_value</span>(poi.unit_price)</span>   <span class="k">OVER</span> (<span class="k">ORDER</span> <span class="k">BY</span> po.order_date) <span class="k">AS</span> last_default, <span class="c">-- <span class="m">③</span></span>
+       <span class="h"><span class="f">last_value</span>(poi.unit_price)</span>   <span class="k">OVER</span> (
+           <span class="k">ORDER</span> <span class="k">BY</span> po.order_date
+           <span class="h"><span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="k">UNBOUNDED</span> <span class="k">PRECEDING</span></span>
+                <span class="h"><span class="k">AND</span> <span class="k">UNBOUNDED</span> <span class="k">FOLLOWING</span></span>)                            <span class="k">AS</span> last_full,    <span class="c">-- <span class="m">④</span></span>
+<span class="k">FROM</span>   purchase_order_items <span class="k">AS</span> poi
+<span class="k">JOIN</span>   purchase_orders      <span class="k">AS</span> po <span class="k">ON</span> po.po_id = poi.po_id
+<span class="k">WHERE</span>  poi.material_id = <span class="n">14</span>
+  <span class="k">AND</span>  po.order_date <span class="k">BETWEEN</span> <span class="k">DATE</span> <span class="s">'2025-01-01'</span> <span class="k">AND</span> <span class="k">DATE</span> <span class="s">'2025-02-28'</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> po.order_date;</div>
+      <p class="wd-cap" style="margin-top:.2em">Закупки материала 14, янв.–февр. 2025. Справа — что вернул каждый столбец запроса в строке 02-07.</p>
+    </div>
+    <div style="flex:1">
+      <table class="wd-tbl" style="font-size:.52em">
+        <tr><th>order_date</th><th>price</th><th>значение в строке 02-07</th></tr>
+        <tr class="inf"><td>01-08</td><td class="num">757.98</td><td class="ptr"><span class="wd-ptr g fragment" data-fragment-index="2">← ② first_price = 757.98</span></td></tr>
+        <tr class="inf"><td>01-16</td><td class="num">783.47</td><td class="ptr"><span class="wd-ptr g fragment" data-fragment-index="2">← ② nth_2 = 783.47</span></td></tr>
+        <tr class="inf"><td>01-24</td><td class="num">787.80</td><td class="ptr"></td></tr>
+        <tr class="inf"><td>01-29</td><td class="num">773.79</td><td class="ptr"><span class="wd-ptr b fragment" data-fragment-index="1">← ① lag_price = 773.79</span></td></tr>
+        <tr class="cur"><td>02-07 ◀</td><td class="num">775.90</td><td class="ptr"><span class="wd-ptr o fragment" data-fragment-index="3">← ③ last_default = 775.90 ⚠</span></td></tr>
+        <tr><td>02-14</td><td class="num">1010.28</td><td class="ptr"><span class="wd-ptr b fragment" data-fragment-index="1">← ① lead_price = 1010.28</span></td></tr>
+        <tr><td>02-19</td><td class="num">988.82</td><td class="ptr"></td></tr>
+        <tr><td>02-28</td><td class="num">985.47</td><td class="ptr"><span class="wd-ptr g fragment" data-fragment-index="4">← ④ last_full = 985.47</span></td></tr>
+      </table>
+      <p class="wd-legend"><span style="background:#f9c49c"></span>текущая строка<span style="background:#fde3cf"></span>рамка по умолчанию</p>
+      <ul class="wd-cap" style="margin:.3em 0 0 1em;font-size:.5em">
+        <li class="fragment" data-fragment-index="1"><b class="blue">① LAG / LEAD</b> — n строк назад / вперёд от текущей; рамка не важна</li>
+        <li class="fragment" data-fragment-index="2"><b class="green">② FIRST_VALUE / NTH_VALUE</b> — 1-я / n-я строка <b>рамки</b></li>
+        <li class="fragment" data-fragment-index="3"><b class="orange">③ LAST_VALUE</b> — рамка по умолчанию кончается на текущей строке → текущая цена</li>
+        <li class="fragment" data-fragment-index="4"><b class="green">④ Лечение</b> — рамка до <code>UNBOUNDED FOLLOWING</code></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">4 клика: ① LAG/LEAD → ② FIRST/NTH → ③ ловушка LAST_VALUE → ④ лечение. Вопрос перед 3-м кликом: что вернёт last_default в строке 02-07? Большинство ответит 985.47. Все числа — реальный результат запроса слева.</aside>
+</section>
+
+<!-- ===================== 23. LAG ===================== -->
+<section>
+  <h2>LAG: изменение цены к предыдущей закупке</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT po.order_date, s.supplier_name, poi.unit_price,
+       lag(poi.unit_price) OVER w                                        AS prev_price,
+       round(100 * (poi.unit_price / lag(poi.unit_price) OVER w - 1), 1) AS change_pct
+FROM   purchase_order_items AS poi
+JOIN   purchase_orders      AS po ON po.po_id      = poi.po_id
+JOIN   suppliers            AS s  ON s.supplier_id = po.supplier_id
+WHERE  poi.material_id = 14                                -- молочный жир
+  AND  po.order_date BETWEEN DATE '2025-01-20' AND DATE '2025-03-10'
+WINDOW w AS (ORDER BY po.order_date, poi.po_item_id);
+  </code></pre>
+  <table class="t">
+    <tr><th>order_date</th><th>supplier</th><th>unit_price</th><th>prev_price</th><th>change_pct</th></tr>
+    <tr><td>2025-01-24</td><td>Масложир Юг</td><td>787.80</td><td>NULL</td><td>NULL</td></tr>
+    <tr><td>2025-02-07</td><td>Тверское молоко</td><td>775.90</td><td>773.79</td><td>0.3</td></tr>
+    <tr><td>2025-02-14</td><td>Масложир Юг</td><td class="hl">1010.28</td><td>775.90</td><td class="hl">+30.2</td></tr>
+    <tr><td>2025-02-19</td><td>Масложир Юг</td><td>988.82</td><td>1010.28</td><td>−2.1</td></tr>
+  </table>
+  <p class="small"><code>lag(x, n, default)</code> / <code>lead(x, n, default)</code>: n строк назад / вперёд; default вместо NULL на краю окна. Сравнение «год к году» по месяцам — <code>lag(revenue, 12)</code>.</p>
+</section>
+
+<!-- ===================== 24. FIRST/LAST ===================== -->
+<section>
+  <h2>FIRST_VALUE и ловушка LAST_VALUE</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT po.order_date,
+       poi.unit_price,
+       first_value(poi.unit_price)
+           OVER (ORDER BY po.order_date, poi.po_item_id)  AS first_price,
+       last_value(poi.unit_price)
+           OVER (ORDER BY po.order_date, poi.po_item_id)  AS last_wrong,
+       last_value(poi.unit_price)
+           OVER (ORDER BY po.order_date, poi.po_item_id
+                 ROWS BETWEEN UNBOUNDED PRECEDING
+                          AND UNBOUNDED FOLLOWING)        AS last_right
+FROM   purchase_order_items AS poi
+JOIN   purchase_orders      AS po ON po.po_id = poi.po_id
+WHERE  poi.material_id = 14
+  AND  po.order_date BETWEEN DATE '2025-02-01' AND DATE '2025-02-28'
+ORDER  BY po.order_date, poi.po_item_id;
+  </code></pre>
+  <div class="two-col" style="align-items:center">
+    <table class="t" style="font-size:.5em;margin:0;flex:1.2">
+      <tr><th>date</th><th>price</th><th>first</th><th>last_wrong</th><th>last_right</th></tr>
+      <tr><td>02-07</td><td>775.90</td><td>775.90</td><td class="hl">775.90</td><td>985.47</td></tr>
+      <tr><td>02-14</td><td>1010.28</td><td>775.90</td><td class="hl">1010.28</td><td>985.47</td></tr>
+      <tr><td>02-19</td><td>988.82</td><td>775.90</td><td class="hl">988.82</td><td>985.47</td></tr>
+      <tr><td>02-28</td><td>985.47</td><td>775.90</td><td>985.47</td><td>985.47</td></tr>
+    </table>
+    <div class="box warn" style="font-size:.6em;margin:0;flex:1"><b>Почему</b>Рамка по умолчанию заканчивается на CURRENT ROW — «последняя» строка рамки и есть текущая. Для LAST_VALUE и NTH_VALUE задавайте рамку до <code>UNBOUNDED FOLLOWING</code>.</div>
+  </div>
+</section>
+
+<!-- ===================== 25. NTH_VALUE + LEAD ===================== -->
+<section>
+  <h2>NTH_VALUE и LEAD</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT DISTINCT line_id,
+       nth_value(defect_qty, 1) OVER w AS max_defect,
+       nth_value(defect_qty, 2) OVER w AS second_defect
+FROM   production_batches
+WHERE  production_date &gt;= DATE '2025-01-01'
+WINDOW w AS (PARTITION BY line_id
+             ORDER BY defect_qty DESC
+             ROWS BETWEEN UNBOUNDED PRECEDING
+                      AND UNBOUNDED FOLLOWING);
+-- Линия 3: 230 и 217; Линия 2: 60 и 58
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- дней до следующего заказа «Вектора»
+SELECT order_number, order_date,
+       lead(order_date, 1, DATE '2025-12-31')
+           OVER (ORDER BY order_date, order_id)
+         - order_date AS days_to_next
+FROM   orders
+WHERE  customer_id = 1
+  AND  order_date &gt;= DATE '2025-10-01';
+-- 14 заказов за квартал, интервалы 0–23 дня:
+-- отгрузки должнику не прекращаются
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 26. WINDOW ===================== -->
+<section>
+  <h2>Предложение WINDOW: именованные окна</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT cat_id, month,
+       round(revenue / 1e6, 2)                             AS revenue_mln,
+       round(sum(revenue) OVER w_run / 1e6, 2)             AS running_mln,
+       round(avg(revenue) OVER w_3m  / 1e6, 2)             AS ma3_mln,
+       round(100 * (revenue / lag(revenue) OVER w - 1), 1) AS mom_pct
+FROM   m                                   -- выручка по категориям верхнего уровня и месяцам
+WINDOW w     AS (PARTITION BY cat_id ORDER BY month),
+       w_run AS (w ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),
+       w_3m  AS (w ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)
+ORDER  BY cat_id, month;
+  </code></pre>
+  <ul>
+    <li>Одно определение — много функций; меньше ошибок «забыл PARTITION BY в одном из столбцов».</li>
+    <li>Наследник может добавить ORDER BY (если его не было) и рамку, но не может изменить PARTITION BY.</li>
+    <li>Окна с одинаковым определением PostgreSQL вычисляет за одну сортировку.</li>
+  </ul>
+  <div class="box info"><b>T-SQL ↔ PostgreSQL</b><code>WINDOW</code> появилась в SQL Server только в 2022; в PostgreSQL — с версии 8.4.</div>
+</section>
+
+<!-- ===================== 26a. СВОДКА ТИПОВ ===================== -->
+<section>
+  <h2>Сводка: чем отличаются типы оконных функций</h2>
+  <table class="t" style="font-size:.5em">
+    <tr><th>Тип</th><th>Функции</th><th>Что возвращает</th><th>Сортировка: ORDER BY в OVER</th><th>Рамка</th><th>Задача «Питание +»</th></tr>
+    <tr><td><b>Ранжирование</b></td><td><code>ROW_NUMBER</code>, <code>RANK</code>, <code>DENSE_RANK</code>, <code>NTILE(n)</code></td><td>номер / ранг строки</td><td><b>нужна</b> — решает, кто получит 1-е место; <code>DESC</code> — лучший первым; при равных ключах ранги совпадают</td><td>не учитывается</td><td>топ-3 клиента в каждом сегменте</td></tr>
+    <tr><td><b>Распределение</b></td><td><code>PERCENT_RANK</code>, <code>CUME_DIST</code></td><td>доля от 0 до 1</td><td><b>нужна</b> — задаёт шкалу: первая строка ближе к 0, последняя — 1</td><td>не учитывается</td><td>в какой доле поставщиков по цене</td></tr>
+    <tr><td><b>Агрегатные</b></td><td><code>SUM</code>, <code>AVG</code>, <code>COUNT</code>, <code>MIN</code>, <code>MAX</code> + <code>FILTER</code></td><td>агрегат по рамке</td><td><b>необязательна</b> — без неё итог по всему разделу, с ней нарастающий итог в порядке сортировки</td><td class="hl">учитывается</td><td>нарастающий итог выручки, скользящее среднее брака</td></tr>
+    <tr><td><b>Смещения</b></td><td><code>LAG</code>, <code>LEAD</code></td><td>значение из строки на n позиций назад / вперёд</td><td><b>нужна</b> — определяет «предыдущую» строку; <code>LAG</code> при <code>DESC</code> = <code>LEAD</code> при <code>ASC</code></td><td>не учитывается</td><td>изменение цены к предыдущей закупке</td></tr>
+    <tr><td><b>Значения рамки</b></td><td><code>FIRST_VALUE</code>, <code>LAST_VALUE</code>, <code>NTH_VALUE</code></td><td>значение из первой / последней / n-й строки рамки</td><td><b>нужна</b> — определяет, какая строка первая; <code>FIRST_VALUE</code> при <code>DESC</code> = последнее значение</td><td class="hl">учитывается</td><td>первая и последняя цена материала за месяц</td></tr>
+  </table>
+  <p style="font-size:.5em;margin:.2em 0;color:var(--muted)"><code>ORDER BY</code> внутри <code>OVER</code> упорядочивает строки только для вычисления функции и <b>не сортирует результат</b> запроса — для вывода нужен свой <code>ORDER BY</code> в конце.</p>
+  <div class="box warn" style="font-size:.6em;margin-top:.3em"><b>Где ловушка</b>Рамку видят только агрегатные функции и <code>*_VALUE</code>. Рамка по умолчанию <code>RANGE … CURRENT ROW</code> влияет только на них. Из-за неё строки с одинаковым ключом сортировки (например, две смены одной даты) получают <b>одинаковый</b> нарастающий итог — сразу за обе строки, а <code>LAST_VALUE</code> возвращает значение текущей строки вместо последней в разделе.</div>
+  <aside class="notes">Вопрос аудитории перед показом таблицы: какие функции зависят от рамки? Пусть назовут, затем откройте сводку. Второй вопрос: почему LAG не зависит от рамки, а FIRST_VALUE зависит? Ответ: LAG отсчитывает строки внутри раздела, а *_VALUE берут значение из рамки.</aside>
+</section>
+
+<!-- ===================== 27. КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: что вернёт LAST_VALUE?</h2>
+  <p><code>last_value(unit_price) OVER (PARTITION BY material_id ORDER BY order_date)</code> — для каждой строки это…</p>
+  <ul class="quiz">
+    <li>последняя цена материала за весь период</li>
+    <li data-correct>цена текущей строки (или последней из строк с той же датой)</li>
+    <li>предыдущая цена материала</li>
+    <li>NULL для всех строк, кроме последней</li>
+  </ul>
+  <p class="explain">Рамка по умолчанию — RANGE … CURRENT ROW, поэтому «последняя строка рамки» — текущая строка или её последний пир с той же датой. Нужно: ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING — или first_value(…) OVER (… ORDER BY order_date DESC).</p>
+</section>
+
+<!-- ===================== 28. КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: план по кондитерке «тонет» с июля</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT sp.plan_month,
+       round(sp.plan_amount / 1e6, 2) AS plan_mln,
+       round(f.fact / 1e6, 2)         AS fact_mln,
+       round(100 * sum(f.fact)        OVER w
+                 / sum(sp.plan_amount) OVER w, 1)
+                                      AS ytd_pct
+FROM   sales_plan AS sp
+JOIN   fact       AS f ON f.m = sp.plan_month
+WHERE  sp.plan_year = 2025 AND sp.category_id = 2
+WINDOW w AS (ORDER BY sp.plan_month);
+      </code></pre>
+      <table class="t">
+        <tr><th>мес.</th><th>план</th><th>факт</th><th>YTD %</th></tr>
+        <tr><td>3</td><td>12.12</td><td>12.46</td><td>100.0</td></tr>
+        <tr><td>7</td><td>10.42</td><td>8.33</td><td>95.0</td></tr>
+        <tr><td>9</td><td>16.60</td><td>13.28</td><td>90.8</td></tr>
+        <tr><td>12</td><td>17.77</td><td>14.22</td><td class="hl">87.4</td></tr>
+      </table>
+    </div>
+    <div class="card orange-top">
+      <h4>Вопросы <span class="badge team-a">Команда А</span></h4>
+      <ol>
+        <li>Плохо работают продажи — или план нереалистичен? Какой запрос это различит?</li>
+        <li>Факт 2-го полугодия 2025 растёт к 2024 г.? Посчитайте <code>lag(fact, 12)</code>.</li>
+        <li>Как подать руководству: «недовыполнение» или «завышенный план»?</li>
+      </ol>
+    </div>
+  </div>
+  <aside class="notes">План 2-го полугодия завышен (A7): факт II пол. 2025 — 77,91 млн против 64,73 млн в 2024 (+20 %), а план — 97,39 млн против 66,08 (+47 %). Различить: сравнить рост плана к прошлому году и рост факта — LAG(…,12) по плану и по факту. Вывод для руководства: проблема в планировании, а не только в продажах.</aside>
+</section>
+
+<!-- ===================== 29. ОБСУЖДЕНИЕ ИЮЛЬ ===================== -->
+<section class="discussion-slide">
+  <h2>Что случилось в июле 2025?</h2>
+  <p>Выручка июля 2025 — 24,71 млн: <b>−25,1 %</b> к июню и <b>−23,3 %</b> к июлю 2024. Это единственный месяц 2025 г. с падением год к году.</p>
+  <ul>
+    <li>Выдвиньте 3 гипотезы. Какими запросами (с окнами) вы их проверите?</li>
+    <li>Какие данные <span class="badge team-b">Команды Б</span> могут объяснить провал продаж?</li>
+    <li>Почему годовой итог (445 млн, +16 % к 2024) этот провал не показывает?</li>
+  </ul>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Гипотезы: сезонность (в июне 2024 тоже −23 % м/м), отгрузочные проблемы (shipped_date − order_date по месяцам), недовыпуск (простои Линии 2 в 2025 г. в 3,5 раза выше — B4; LAG/нарастающие часы), уход клиента (выручка по клиентам июль vs июнь, LAG по клиенту), отмены (доля статуса «Отменён» по месяцам). Агрегат за год усредняет — окна показывают динамику.</aside>
+</section>
+
+<!-- ===================== 30. ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Лабораторная работа: динамика, рейтинги, ABC</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ol>
+        <li>Рейтинг менеджеров по выручке и скидке в каждом квартале</li>
+        <li>Нарастающая выручка и % плана нарастающим итогом</li>
+        <li>ABC-анализ клиентов</li>
+        <li>Выручка м/м и г/г (LAG)</li>
+        <li>Интервалы между заказами, просрочка и долг «Вектора»</li>
+        <li>Топ-3 продукта по возвратам в регионах</li>
+      </ol></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ol>
+        <li>DENSE_RANK поставщиков по цене и переплата к лучшей</li>
+        <li>Скользящее среднее брака за 7 смен по линиям</li>
+        <li>LAG цены материала — скачок молочного жира</li>
+        <li>Нарастающие часы простоя Линии 2</li>
+        <li>Интервалы между поломками</li>
+        <li>ABC-анализ закупок</li>
+      </ol></div>
+  </div>
+  <p class="small">Инструкция — <code>module_08/lab.md</code>. Работаем в <code>pitanie</code> (только чтение).</p>
+  <span class="timer">⏱ 35 мин</span>
+</section>
+
+<!-- ===================== 31. T-SQL vs PG ===================== -->
+<section>
+  <h2>Оконные функции: T-SQL ↔ PostgreSQL</h2>
+  <table class="t">
+    <tr><th>Возможность</th><th>SQL Server</th><th>PostgreSQL 16</th></tr>
+    <tr><td>ROW_NUMBER, RANK, DENSE_RANK, NTILE, LAG, LEAD, FIRST/LAST_VALUE</td><td>да</td><td>да</td></tr>
+    <tr><td>NTH_VALUE</td><td>нет</td><td>да</td></tr>
+    <tr><td>Рамка GROUPS, RANGE с числом/интервалом, EXCLUDE</td><td>нет</td><td>да</td></tr>
+    <tr><td>Именованное окно WINDOW</td><td>с 2022</td><td>да</td></tr>
+    <tr><td>FILTER в агрегате: <code>count(*) FILTER (WHERE …) OVER (…)</code></td><td>нет (CASE)</td><td>да</td></tr>
+    <tr><td>Фильтр по окну (QUALIFY)</td><td>нет</td><td>нет — CTE/подзапрос</td></tr>
+    <tr><td>DISTINCT внутри оконного агрегата</td><td>нет</td><td>нет</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 32. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>Принцип</h4>
+      <ul><li>окно не схлопывает строки</li><li>вычисляется после WHERE / GROUP BY / HAVING</li><li>фильтр по окну — через CTE</li><li>можно «окно над агрегатом»</li></ul></div>
+    <div class="card orange-top"><h4>Ловушки</h4>
+      <ul><li>рамка по умолчанию = RANGE с пирами</li><li>LAST_VALUE без рамки = текущая строка</li><li>ROW_NUMBER без уникального порядка</li><li>окно внутри агрегата — нельзя</li></ul></div>
+    <div class="card green-top"><h4>Аналитические приёмы</h4>
+      <ul><li>топ-N в группе</li><li>нарастающий итог и % плана</li><li>ABC через долю нарастающим итогом</li><li>LAG: м/м, г/г, интервалы</li><li>MA7 для сглаживания</li></ul></div>
+  </div>
+</section>
+
+<!-- ===================== 33. МОСТ ===================== -->
+<section>
+  <h2>Дальше: модуль 9 «Представления, табличные функции и CTE»</h2>
+  <div class="two-col">
+    <div>
+      <p>Запросы лабораторной уже длинные: CTE в CTE, одинаковая формула выручки в каждом.</p>
+      <ul>
+        <li>сохраним «строки продаж» как <b>представление</b> — формула выручки в одном месте;</li>
+        <li>ABC-анализ за произвольный период — <b>табличная функция</b> с параметрами;</li>
+        <li>рекурсивные CTE — иерархия сотрудников и категорий.</li>
+      </ul>
+    </div>
+    <div class="box info"><b>Домашнее задание</b>Завершите лабораторную. Выберите один запрос с окнами, который вы хотели бы переиспользовать каждый месяц, — в модуле 9 превратим его в представление в личной схеме.</div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Схема «рамка ползёт»: подсветка текущей строки и рамки по шагам (фрагменты .wd-step)
+function wdUpdate(slide){
+  if(!slide||!slide.classList.contains('wd-slide')) return;
+  var steps=slide.querySelectorAll('.wd-step'), k=slide.querySelectorAll('.wd-step.visible').length;
+  var prec=+(slide.getAttribute('data-wd-prec')||0), live=slide.querySelector('.wd-live');
+  slide.querySelectorAll('tr[data-i]').forEach(function(tr){
+    var i=+tr.getAttribute('data-i'), inFrame=k>0&&i<k&&i>=k-prec;
+    tr.classList.toggle('cur',i===k); tr.classList.toggle('inf',inFrame);
+    tr.classList.toggle('out',k>0&&i!==k&&!inFrame);
+    var r=tr.querySelector('td.res'); if(r) r.style.visibility=(k>0&&i<=k)?'visible':'hidden';
+  });
+  if(live){
+    if(!live.hasAttribute('data-orig')) live.setAttribute('data-orig',live.innerHTML);
+    live.innerHTML=k>0?'<b>Шаг '+k+' из '+steps.length+'</b>'+steps[k-1].getAttribute('data-cap'):live.getAttribute('data-orig');
+  }
+}
+['ready','slidechanged','fragmentshown','fragmenthidden'].forEach(function(ev){
+  Reveal.on(ev,function(){wdUpdate(Reveal.getCurrentSlide());});
+});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
