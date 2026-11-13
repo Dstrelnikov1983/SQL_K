@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 5 — Использование вложенных запросов</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+
+/* --- слайд «Порядок выполнения SELECT» --- */
+.qo-wrap{display:flex;gap:1.2em;align-items:stretch}
+.qo-wrap>div{flex:1;min-width:0}
+.qo-h{font-size:.62em;font-weight:700;color:var(--accent1);margin:0 0 .3em 0;text-transform:uppercase;letter-spacing:.04em}
+.qo-code{background:var(--code-bg);border-radius:8px;padding:10px 14px;font-family:Consolas,'Courier New',monospace;
+  font-size:.5em;line-height:1.75;color:#d4d4d4;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.qo-code .ln{display:flex;align-items:center;gap:10px;border-radius:5px;padding:0 6px}
+.qo-code .kw{color:#569cd6;font-weight:700;min-width:6.2em;display:inline-block;white-space:pre}
+.qo-code .cm{color:#6a9955}
+.qo-code .n{display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;
+  background:#3a3d41;color:#cfd3d8;font-size:.85em;font-weight:700;flex:none}
+.qo-code .ln.focus{background:rgba(237,125,49,.30)}
+.qo-code .ln.focus .n{background:var(--accent2);color:#fff}
+.qo-code .ln.rel{background:rgba(237,125,49,.10)}
+.qo-code .ln.rel .n{background:#8a5a36;color:#fff}
+.qo-steps{list-style:none;margin:0!important;padding:0;font-size:.52em}
+.qo-steps li{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e8f2;border-left:6px solid #c9d3e6;
+  border-radius:6px;padding:3px 10px;margin:0 0 4px 0;line-height:1.3;color:var(--muted)}
+.qo-steps li .n{font-weight:800;color:#9aa4b2;width:1.2em;text-align:right;flex:none}
+.qo-steps li .k{font-family:Consolas,'Courier New',monospace;font-weight:700;color:var(--text);min-width:7.4em}
+.qo-steps li .d{flex:1}
+.qo-steps li .m{font-size:.85em;background:#eef2fa;color:var(--accent1);border-radius:10px;padding:0 8px;font-weight:700;white-space:nowrap}
+.qo-steps li.focus{border-left-color:var(--accent2);background:#fff3e8;color:var(--text);box-shadow:0 2px 6px rgba(237,125,49,.25)}
+.qo-steps li.focus .n,.qo-steps li.focus .k{color:var(--accent2)}
+.qo-steps li.focus .m{background:var(--accent2);color:#fff}
+.qo-steps li.rel{border-left-color:#f3b88f;background:#fffaf5}
+.qo-steps li.done{border-left-color:var(--accent6)}
+.qo-legend{font-size:.5em;color:var(--muted);margin-top:.3em}
+.qo-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+/* --- схемы работы оконных функций (wd-) --- */
+.wd-flow{display:flex;align-items:stretch;gap:.5em}
+.wd-panel{flex:1;min-width:0;background:#fff;border:1px solid #e3e8f2;border-radius:8px;padding:8px 10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.wd-arrow{display:flex;align-items:center;font-size:1.3em;color:var(--accent1);font-weight:800}
+.wd-h{font-size:.5em;font-weight:700;color:var(--accent1);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .25em}
+.wd-chip{display:inline-block;font-family:Consolas,'Courier New',monospace;font-size:.46em;background:var(--code-bg);
+  color:#d4d4d4;border-radius:5px;padding:2px 8px;margin:0 0 .4em}
+.wd-chip .kw{color:#569cd6;font-weight:700}
+.wd-cap{font-size:.46em;color:var(--muted);margin:.4em 0 0;line-height:1.35}
+.reveal table.wd-tbl{border-collapse:separate;border-spacing:0 2px;font-size:.44em;width:100%;margin:0}
+.reveal table.wd-tbl th{color:var(--muted);font-weight:600;text-align:left;padding:2px 6px;border:none;
+  border-bottom:1px solid #e3e8f2}
+.reveal table.wd-tbl td{padding:3px 6px;border:none;background:#f7f8fa;transition:background .25s,color .25s}
+.reveal table.wd-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.reveal table.wd-tbl tr.p1 td{background:#eaf0fb}.reveal table.wd-tbl tr.p1 td:first-child{border-left:5px solid var(--accent1)}
+.reveal table.wd-tbl tr.p2 td{background:#edf7e8}.reveal table.wd-tbl tr.p2 td:first-child{border-left:5px solid var(--accent6)}
+.reveal table.wd-tbl tr.p3 td{background:#f3eefb}.reveal table.wd-tbl tr.p3 td:first-child{border-left:5px solid #8e6cc8}
+.reveal table.wd-tbl tr.ph td{background:none;color:var(--muted);font-weight:700;font-size:.9em;padding:4px 2px 0}
+.reveal table.wd-tbl tr.gap td{border-top:6px solid #fff}
+.reveal table.wd-tbl tr.out td{color:#b3bac5}
+.reveal table.wd-tbl tr.inf td{background:#fde3cf!important;color:var(--text)}
+.reveal table.wd-tbl tr.cur td{background:#f9c49c!important;color:var(--text);font-weight:700}
+.reveal table.wd-tbl tr.cur td:first-child,.reveal table.wd-tbl tr.inf td:first-child{border-left:5px solid var(--accent2)}
+.reveal table.wd-tbl td.res{color:var(--accent2);font-weight:700}
+.reveal table.wd-tbl td.dim{color:#b3bac5;font-weight:400}
+.wd-total{font-size:.5em;margin-top:.35em;font-weight:700;color:var(--accent2)}
+.wd-ptr{display:inline-block;border-radius:12px;padding:0 10px;font-weight:700;color:#fff;white-space:nowrap}
+.wd-ptr.b{background:var(--accent1)}.wd-ptr.g{background:var(--accent6)}.wd-ptr.o{background:var(--accent2)}
+.wd-legend{font-size:.44em;color:var(--muted);margin-top:.4em}
+.wd-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+.wd-step{position:absolute;width:0;height:0;overflow:hidden}
+.reveal table.wd-tbl tr td.ptr{background:none!important;border-left:none!important;padding-left:10px}
+/* --- дополнения для схем подзапросов (sd-) --- */
+.wd-sub{font-size:.42em;color:var(--muted);margin:0 0 .3em}
+.sd-set{display:flex;flex-wrap:wrap;gap:4px;margin:.2em 0 .3em}
+.sd-v{display:inline-block;font-family:Consolas,'Courier New',monospace;font-size:.5em;font-weight:700;background:#eef2fa;
+  color:var(--accent1);border:1px solid #c9d3e6;border-radius:12px;padding:1px 10px}
+.sd-v.null{background:#fde3cf;color:var(--accent2);border-color:#f3b88f}
+.sd-v.big{font-size:.95em;padding:4px 18px;background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.sd-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:100%}
+.reveal table.wd-tbl tr.hit td{background:#e3f3da!important}
+.reveal table.wd-tbl tr.hit td:first-child{border-left:5px solid var(--accent6)}
+.reveal table.wd-tbl tr.miss td{color:#9aa4b2}
+.reveal table.wd-tbl td.yes{color:var(--accent6);font-weight:800;text-align:center}
+.reveal table.wd-tbl td.no{color:var(--accent2);font-weight:800;text-align:center}
+.reveal table.wd-tbl td.unk{color:var(--accent2);font-weight:800;background:#fde3cf!important}
+.reveal table.wd-tbl td.mark{text-align:center;font-weight:800}
+.sd-res{display:flex;gap:.5em}
+.sd-res>div{flex:1;min-width:0}
+.sd-tag{display:inline-block;border-radius:10px;padding:0 8px;font-size:.42em;font-weight:700;color:#fff;margin-bottom:.2em}
+.sd-tag.b{background:var(--accent1)}.sd-tag.g{background:var(--accent6)}.sd-tag.o{background:var(--accent2)}
+.sd-step{position:absolute;width:0;height:0;overflow:hidden}
+/* полный код запроса на схеме */
+.sd-code{display:block;background:var(--code-bg);color:#d4d4d4;border-radius:8px;padding:8px 16px;font-family:Consolas,'Courier New',monospace;font-size:.44em;line-height:1.45;white-space:pre;text-align:left;box-shadow:0 3px 12px rgba(0,0,0,.18);margin:0 0 .4em;overflow:hidden}
+.sd-code .k{color:#569cd6;font-weight:700}.sd-code .f{color:#dcdcaa}.sd-code .s{color:#ce9178}.sd-code .n{color:#b5cea8}.sd-code .c{color:#6a9955;font-style:italic}
+.sd-code .h{background:rgba(237,125,49,.38);border-radius:3px}
+.sd-code .m{color:#f9c49c;font-weight:700}
+.sd-top{display:flex;gap:.6em;align-items:stretch;margin:0 0 .4em}
+.sd-top>*{margin:0!important}
+.sd-vflow{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.sd-vflow .wd-arrow{justify-content:center;font-size:.8em;line-height:1}
+.sd-row{display:flex;gap:.8em;align-items:flex-start}.sd-row>div:first-child{flex:.75;min-width:0}.sd-row>div:last-child{flex:1.25;min-width:0}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 5</div>
+  <h1>Использование вложенных запросов</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">Скалярные, многострочные и табличные подзапросы · корреляция · EXISTS / NOT EXISTS</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 3 ак. ч.</div>
+  <aside class="notes">Модуль опирается на модули 3–4 (JOIN, GROUP BY, HAVING). Главная мысль: подзапрос позволяет сравнить строку с показателем, который сам надо вычислить, — со средним по компании, по своей группе, с лимитом, с фактом наличия связанных строк.</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план занятия</h2>
+  <div class="two-col">
+    <div>
+      <h3>После модуля вы сможете</h3>
+      <ul style="font-size:.78em">
+        <li>выбрать вид подзапроса: скалярный, многострочный, табличный</li>
+        <li>писать <span class="blue">коррелированные</span> подзапросы: «сравнить со своей группой», «последний элемент группы», top-N</li>
+        <li>применять <code>EXISTS</code> / <code>NOT EXISTS</code> и избегать ловушки <span class="orange">NOT IN + NULL</span></li>
+        <li>читать план: Semi Join, Anti Join, SubPlan</li>
+        <li>решать, когда подзапрос лучше заменить JOIN</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Виды подзапросов, некоррелированные</td><td>30</td></tr>
+        <tr><td>Коррелированные подзапросы</td><td>25</td></tr>
+        <tr><td>EXISTS / NOT EXISTS, NULL, планы</td><td>25</td></tr>
+        <tr><td>HAVING, ORDER BY, подзапрос vs JOIN</td><td>10</td></tr>
+        <tr><td>Практическая работа (practice.md)</td><td>—*</td></tr>
+        <tr><td>Лабораторная №5 (старт; защита — на следующем занятии)</td><td>45</td></tr>
+      </table>
+      <p class="small">* практические шаги встроены в лекцию: преподаватель показывает — слушатели повторяют. Всего 135 мин.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ПОРЯДОК ВЫПОЛНЕНИЯ SELECT (общая схема курса) ===================== -->
+<section>
+  <h2>Как выполняется SELECT … FROM: что разбираем сегодня</h2>
+  <div class="qo-wrap">
+    <div>
+      <p class="qo-h">Как мы пишем (синтаксический порядок)</p>
+      <div class="qo-code">
+        <div class="ln focus"><span class="n">6</span><span class="kw">SELECT</span><span>столбцы, выражения <span class='cm'>-- окна OVER(…) — шаг 5</span></span></div>
+        <div class="ln "><span class="n">7</span><span class="kw">DISTINCT</span><span><span class='cm'>-- необязательно</span></span></div>
+        <div class="ln focus"><span class="n">1</span><span class="kw">FROM</span><span>таблица t</span></div>
+        <div class="ln focus"><span class="n">1</span><span class="kw">  JOIN</span><span>таблица2 ON …</span></div>
+        <div class="ln focus"><span class="n">2</span><span class="kw">WHERE</span><span>условие на строки</span></div>
+        <div class="ln "><span class="n">3</span><span class="kw">GROUP BY</span><span>ключи группировки</span></div>
+        <div class="ln rel"><span class="n">4</span><span class="kw">HAVING</span><span>условие на группы</span></div>
+        <div class="ln "><span class="n">8</span><span class="kw">ORDER BY</span><span>столбцы [ASC | DESC]</span></div>
+        <div class="ln "><span class="n">9</span><span class="kw">LIMIT</span><span>n OFFSET m;</span></div>
+      </div>
+      <p class="qo-legend">цифра в кружке — номер шага выполнения</p>
+    </div>
+    <div>
+      <p class="qo-h">Как выполняет СУБД (логический порядок)</p>
+      <ul class="qo-steps">
+        <li class="focus"><span class="n">1</span><span class="k">FROM / JOIN</span><span class="d">таблицы, JOIN, подзапросы <b class="orange">← сегодня</b></span><span class="m">М3 · М5</span></li>
+        <li class="focus"><span class="n">2</span><span class="k">WHERE</span><span class="d">фильтр отдельных строк <b class="orange">← сегодня</b></span><span class="m">М1</span></li>
+        <li class="done"><span class="n">3</span><span class="k">GROUP BY</span><span class="d">строки → группы</span><span class="m">М4</span></li>
+        <li class="rel"><span class="n">4</span><span class="k">HAVING</span><span class="d">фильтр групп</span><span class="m">М4</span></li>
+        <li class=""><span class="n">5</span><span class="k">OVER (…)</span><span class="d">оконные функции</span><span class="m">М8</span></li>
+        <li class="focus"><span class="n">6</span><span class="k">SELECT</span><span class="d">выражения, функции, псевдонимы <b class="orange">← сегодня</b></span><span class="m">М2</span></li>
+        <li class="done"><span class="n">7</span><span class="k">DISTINCT</span><span class="d">удаление дублей</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">8</span><span class="k">ORDER BY</span><span class="d">сортировка</span><span class="m">М1</span></li>
+        <li class="done"><span class="n">9</span><span class="k">LIMIT/OFFSET</span><span class="d">отсечение строк</span><span class="m">М1</span></li>
+      </ul>
+      <p class="qo-legend"><span style="background:var(--accent2)"></span>тема модуля<span style="background:#f3b88f"></span>связано с темой<span style="background:var(--accent6)"></span>уже изучено</p>
+    </div>
+  </div>
+  <div class="box warn" style="font-size:.62em;margin-top:.5em"><b>Сегодня: подзапросы внутри шагов 1, 2, 6 (и 4)</b>Подзапрос — это <b>полноценный SELECT со своим конвейером</b> шагов 1…9, вложенный в шаг внешнего запроса: в FROM — как производная таблица, в WHERE/HAVING — как условие (<code>IN</code>, <code>EXISTS</code>, сравнение), в SELECT — как скалярное значение. Коррелированный подзапрос вычисляется для каждой строки внешнего.</div>
+  <aside class="notes">Вопрос аудитории: в каком месте запроса подзапрос может вернуть таблицу, а в каком — только одно значение? Обсудить по схеме.</aside>
+</section>
+
+
+<!-- ===================== 3. ОБСУЖДЕНИЕ-РАЗМИНКА ===================== -->
+<section class="discussion-slide">
+  <h2>С чего начнём</h2>
+  <p>Финансовый директор просит: «Покажите позиции, где скидка <b>выше средней по компании</b>».</p>
+  <ul>
+    <li>Как бы вы решили это с помощью уже известных инструментов (модули 1–4)?</li>
+    <li>Сколько запросов придётся выполнить? Что будет, если завтра средняя изменится?</li>
+    <li>А если нужно «выше средней <b>по своему менеджеру</b>»?</li>
+  </ul>
+  <span class="timer">⏱ 3 мин</span>
+  <aside class="notes">Ожидаемые ответы: два запроса — сначала AVG, потом подставить число руками (хрупко, значение «зашито»); можно CROSS JOIN с агрегатом (решение из модуля 4). Для «своего менеджера» — JOIN с производной таблицей по группам. Подводим: подзапрос делает это одним запросом, а коррелированный — «для своей группы».</aside>
+</section>
+
+<!-- ===================== 4. РАЗДЕЛ 1 ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Виды подзапросов. Некоррелированные подзапросы</h2>
+  <p>Подзапрос вычисляется один раз — результат подставляется во внешний запрос</p>
+</section>
+
+<!-- ===================== 5. КЛАССИФИКАЦИЯ ===================== -->
+<section>
+  <h2>Классификация подзапросов</h2>
+  <table class="t">
+    <tr><th>По результату</th><th>Что возвращает</th><th>Где используется</th><th>Пример</th></tr>
+    <tr><td class="hl">Скалярный</td><td>1 строка × 1 столбец</td><td>SELECT, WHERE, HAVING, ORDER BY — как значение</td><td><code>&gt; (SELECT AVG(...))</code></td></tr>
+    <tr><td class="hl">Многострочный</td><td>N строк × 1 столбец</td><td><code>IN</code>, <code>ANY/SOME</code>, <code>ALL</code></td><td><code>IN (SELECT region_id ...)</code></td></tr>
+    <tr><td class="hl">Табличный</td><td>N строк × M столбцов</td><td>FROM (производная таблица), <code>EXISTS</code>, строковое сравнение</td><td><code>FROM (SELECT ...) AS m</code></td></tr>
+  </table>
+  <table class="t">
+    <tr><th>По связи с внешним запросом</th><th>Как выполняется</th></tr>
+    <tr><td><b>Некоррелированный</b></td><td>не ссылается на внешний запрос; логически выполняется один раз</td></tr>
+    <tr><td><b>Коррелированный</b></td><td>ссылается на столбец внешнего запроса; логически выполняется для каждой строки</td></tr>
+  </table>
+  <div class="box info"><b>Синтаксис</b>Подзапрос всегда в скобках. Производной таблице в FROM даём псевдоним (в PostgreSQL 16 он стал необязательным, но в других СУБД обязателен).</div>
+</section>
+
+<!-- ===================== 5a. СХЕМА: НЕКОРРЕЛИРОВАННЫЙ ПОДЗАПРОС ===================== -->
+<section>
+  <h2>Схема: некоррелированный подзапрос выполняется один раз</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none"><span class="k">SELECT</span> product_name, base_price
+<span class="k">FROM</span>   products
+<span class="k">WHERE</span>  base_price &gt;
+       <span class="h">(<span class="k">SELECT</span> <span class="f">AVG</span>(base_price)</span>  <span class="c">-- ① выполняется один раз</span>
+        <span class="h"><span class="k">FROM</span>   products)</span>        <span class="c">-- ② → 150.06</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> base_price <span class="k">DESC</span>;      <span class="c">-- ③ 9 строк из 35</span></div>
+    <div class="box info" style="font-size:.5em;flex:1"><b>Как читать схему</b>Подсвечен подзапрос. Номера в комментариях — шаги на схеме: ① подзапрос считается один раз, ② его результат подставляется как константа, ③ внешний запрос фильтрует строки.</div>
+  </div>
+  <div class="wd-flow">
+    <div class="wd-panel">
+      <p class="wd-h">① Внутренний запрос</p>
+      <span class="wd-chip"><span class="kw">SELECT</span> <span class="kw">avg</span>(base_price) <span class="kw">FROM</span> products</span>
+      <table class="wd-tbl">
+        <tr><th>product</th><th>base_price</th></tr>
+        <tr class="inf"><td>Творожный сырок 50 г</td><td class="num">45.00</td></tr>
+        <tr class="inf"><td>Батончик с нугой 50 г</td><td class="num">49.00</td></tr>
+        <tr class="inf"><td>Крекер солёный 250 г</td><td class="num">65.00</td></tr>
+        <tr class="ph"><td colspan="2">… ещё 31 строка …</td></tr>
+        <tr class="inf"><td>Сыр Гауда 45% 1 кг</td><td class="num">780.00</td></tr>
+      </table>
+      <p class="wd-total">avg по 35 строкам = 150.06</p>
+      <p class="wd-cap">Не ссылается на внешний запрос — ему не нужна «текущая строка». В плане: <code>InitPlan</code>.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1" style="flex:.8">
+      <p class="wd-h">② Подстановка</p>
+      <div class="sd-center" style="height:auto;margin-top:1.2em">
+        <span class="wd-sub">подзапрос заменяется готовым значением</span>
+        <span class="sd-v big">150.06</span>
+        <span class="wd-chip" style="margin-top:.8em"><span class="kw">WHERE</span> base_price &gt; 150.06</span>
+      </div>
+      <p class="wd-cap">Дальше — обычный фильтр с константой. Подзапрос больше не выполняется.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2" style="flex:1.3">
+      <p class="wd-h">③ Внешний проход по products</p>
+      <table class="wd-tbl">
+        <tr><th>product</th><th>cat</th><th>price</th><th>&gt; 150.06?</th></tr>
+        <tr class="hit"><td>Сливки 33% 0,5 л</td><td>11</td><td class="num">245</td><td class="yes">✔</td></tr>
+        <tr class="hit"><td>Сливки 20% 0,5 л</td><td>11</td><td class="num">165</td><td class="yes">✔</td></tr>
+        <tr class="miss"><td>Молоко у/п 3,2% 1 л</td><td>11</td><td class="num">112</td><td class="no">✘</td></tr>
+        <tr class="miss"><td>Молоко паст. 3,2% 1 л</td><td>11</td><td class="num">95</td><td class="no">✘</td></tr>
+        <tr class="miss"><td>Молоко паст. 2,5% 1 л</td><td>11</td><td class="num">89</td><td class="no">✘</td></tr>
+        <tr class="miss"><td>Соус сырный 200 г</td><td>32</td><td class="num">129</td><td class="no">✘</td></tr>
+        <tr class="miss"><td>Соус сливочно-чесночный</td><td>32</td><td class="num">119</td><td class="no">✘</td></tr>
+      </table>
+      <p class="wd-cap">Фрагмент: категории 11 и 32. <b>Все строки</b> сравниваются с одним и тем же числом. Всего в результате 9 из 35.</p>
+    </div>
+  </div>
+  <div class="box info fragment" data-fragment-index="3" style="font-size:.54em;margin-top:.5em"><b>Запомните эту картинку</b>В разделе 2 возьмём те же 7 строк, но сравним каждую со средним <i>её</i> категории — и «Соус сырный» за 129 руб. попадёт в результат.</div>
+  <aside class="notes">Покажите по кликам: сначала внутренний запрос и его единственный результат, затем подстановку, затем внешний проход. Вопрос аудитории перед третьим кликом: сколько раз СУБД вычислит AVG? (Один.) Что будет, если подзапрос вернёт 2 строки? (Ошибка — см. следующий слайд.) Данные проверены на БД: AVG(base_price) = 150.06.</aside>
+</section>
+
+<!-- ===================== 6. СКАЛЯРНЫЙ В WHERE ===================== -->
+<section>
+  <h2>Скалярный подзапрос в WHERE</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- средняя скидка по компании
+SELECT ROUND(AVG(discount_pct), 2)
+FROM   order_items;             -- 7.25
+
+-- позиции со скидкой выше средней
+SELECT COUNT(*) AS items_above_avg
+FROM   order_items
+WHERE  discount_pct &gt;
+       (SELECT AVG(discount_pct)
+        FROM   order_items);    -- 5 483
+      </code></pre>
+    </div>
+    <div>
+      <div class="box ok"><b>Что происходит</b>PostgreSQL вычисляет подзапрос один раз (в плане — <code>InitPlan</code>) и сравнивает каждую строку с готовым числом.</div>
+      <div class="box warn"><b>Почему не WHERE discount_pct &gt; AVG(discount_pct)?</b>Агрегаты в WHERE запрещены: WHERE отбирает строки <i>до</i> группировки.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. СКАЛЯРНЫЙ В SELECT + ОШИБКА ===================== -->
+<section>
+  <h2>Скалярный подзапрос в SELECT и его ограничения</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT product_name,
+       base_price,
+       ROUND(100.0 * base_price / (SELECT MAX(base_price) FROM products), 1) AS pct_of_max
+FROM   products
+ORDER  BY base_price DESC
+LIMIT  3;          -- Сыр Гауда 100.0 · Сыр Российский 88.5 · Конфеты ассорти 38.3
+  </code></pre>
+  <div class="two-col" style="gap:1em">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- ОЖИДАЕМАЯ ОШИБКА: в категории 13 пять продуктов
+SELECT product_name,
+       (SELECT base_price
+        FROM   products
+        WHERE  category_id = 13) AS cheese_price
+FROM   products;
+-- ERROR: more than one row returned
+--        by a subquery used as an expression
+      </code></pre>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- ИСПРАВЛЕНИЕ: ORDER BY + LIMIT 1 → ровно одна строка
+SELECT product_name,
+       base_price,
+       (SELECT product_name
+        FROM   products
+        WHERE  category_id = 13
+        ORDER  BY base_price DESC
+        LIMIT  1) AS top_cheese
+FROM   products
+WHERE  category_id = 32;
+-- Соус сырный 200 г             129 · Сыр Гауда 45% 1 кг
+-- Соус сливочно-чесночный 200 г 119 · Сыр Гауда 45% 1 кг
+      </code></pre>
+    </div>
+  </div>
+  <div class="two-col" style="gap:1em">
+    <div class="box info" style="font-size:.6em"><b>Правило</b>Скалярный подзапрос должен вернуть 1 строку × 1 столбец: ≥ 2 строк — ошибка, 0 строк — <code>NULL</code>. Как гарантировать одну строку: агрегат (<code>MAX</code>, <code>SUM</code>…) или <code>ORDER BY … LIMIT 1</code> — он нужен, когда требуется не число, а значение из «строки-лидера» (имя, дата), которое агрегатом не получить.</div>
+    <div class="box warn" style="font-size:.6em"><b>LIMIT без ORDER BY — лотерея</b><code>LIMIT 1</code> без сортировки вернёт произвольную строку, а при равных ценах результат тоже не определён — добавьте второй ключ сортировки. И не прячьте <code>LIMIT 1</code>-ом ошибку в логике: если строк «не должно быть» несколько, разберитесь, откуда они.</div>
+  </div>
+  <aside class="notes">Если подзапрос стоит в WHERE и должен вернуть несколько значений, это уже не скалярный, а многострочный подзапрос: вместо «=» нужен IN / ANY / ALL — это следующий слайд. В SELECT многострочный подзапрос использовать нельзя: в ячейку результата помещается только одно значение.</aside>
+</section>
+
+<!-- ===================== 8. КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: пустой скалярный подзапрос</h2>
+  <p>Что вернёт запрос, если у клиента 73 нет ни одного заказа?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT customer_name,
+       (SELECT MAX(order_date) FROM orders WHERE customer_id = 73) AS last_order
+FROM   customers
+WHERE  customer_id = 73;
+  </code></pre>
+  <ul class="quiz">
+    <li>Ошибку: подзапрос вернул 0 строк</li>
+    <li>0 строк — клиент отфильтруется</li>
+    <li data-correct>1 строку: «ООО "Новый горизонт"», last_order = NULL</li>
+    <li>1 строку с датой 0001-01-01</li>
+  </ul>
+  <p class="explain">MAX по пустому набору — NULL; скалярный подзапрос без строк тоже даёт NULL. Внешняя строка сохраняется.</p>
+</section>
+
+<!-- ===================== 9. IN / ANY / ALL ===================== -->
+<section>
+  <h2>Многострочный подзапрос: IN, ANY / SOME, ALL</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- клиенты Сибирского ФО
+SELECT customer_name, customer_type
+FROM   customers
+WHERE  region_id IN
+       (SELECT region_id
+        FROM   regions
+        WHERE  federal_district = 'Сибирский');
+-- 15 строк
+
+-- дороже ЛЮБОГО печенья и вафель
+SELECT product_name, base_price
+FROM   products
+WHERE  base_price &gt; ALL
+       (SELECT base_price
+        FROM   products
+        WHERE  category_id = 21);
+-- 15 строк, от 112 руб.
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th style="white-space:nowrap">Запись</th><th>Смысл</th></tr>
+        <tr><td style="white-space:nowrap"><code>= ANY (…)</code></td><td>то же, что <code>IN</code></td></tr>
+        <tr><td style="white-space:nowrap"><code>&gt; ANY (…)</code></td><td>больше хотя бы одного (≈ &gt; MIN)</td></tr>
+        <tr><td style="white-space:nowrap"><code>&gt; ALL (…)</code></td><td>больше всех (≈ &gt; MAX)</td></tr>
+        <tr><td style="white-space:nowrap"><code>= ALL (…)</code></td><td>равно каждому: TRUE, только если все значения набора одинаковы и равны проверяемому (на пустом наборе — TRUE)</td></tr>
+        <tr><td style="white-space:nowrap"><code>&lt;&gt; ALL (…)</code></td><td>то же, что <code>NOT IN</code></td></tr>
+        <tr><td><code>SOME</code></td><td>синоним <code>ANY</code></td></tr>
+      </table>
+      <div class="box warn"><b>«≈» — не случайно</b>Эквивалентность с MIN/MAX нарушается на пустом наборе и при NULL.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9a. СХЕМА: IN / ANY / ALL ===================== -->
+<section>
+  <h2>Схема: IN, ANY и ALL сравнивают значение с набором</h2>
+  <div class="wd-flow">
+    <div class="sd-code" style="flex:none;margin:0;align-self:flex-start"><span class="k">SELECT</span> customer_name, customer_type
+<span class="k">FROM</span>   customers
+<span class="k">WHERE</span>  region_id <span class="k">IN</span>       <span class="c">-- ②</span>
+       <span class="h">(<span class="k">SELECT</span> region_id</span>  <span class="c">-- ①</span>
+        <span class="h"><span class="k">FROM</span>   regions</span>
+        <span class="h"><span class="k">WHERE</span>  federal_district</span>
+               <span class="h">= <span class="s">'Сибирский'</span>)</span>;
+<span class="c">-- 15 строк</span></div>
+    <div class="wd-panel">
+      <p class="wd-h">① Подзапрос → набор</p>
+      <table class="wd-tbl">
+        <tr><th>region_id</th><th>federal_district</th></tr>
+        <tr class="out"><td>1</td><td>Центральный</td></tr>
+        <tr class="out"><td>8</td><td>Уральский</td></tr>
+        <tr class="inf"><td>9</td><td>Сибирский</td></tr>
+        <tr class="inf"><td>10</td><td>Сибирский</td></tr>
+        <tr class="out"><td>12</td><td>Приволжский</td></tr>
+      </table>
+      <div class="sd-set"><span class="sd-v">9</span><span class="sd-v">10</span></div>
+      <p class="wd-cap">12 регионов → набор из <b>2 значений</b>, один столбец.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1" style="flex:1.2">
+      <p class="wd-h">② Внешний запрос: region_id IN (9, 10)</p>
+      <table class="wd-tbl">
+        <tr><th>customer</th><th>region_id</th><th>= 9</th><th>= 10</th><th>IN</th></tr>
+        <tr class="miss"><td>АО "Уральский продукт"</td><td>8</td><td class="mark">F</td><td class="mark">F</td><td class="no">✘</td></tr>
+        <tr class="hit"><td>ООО "Сибирская торговая"</td><td>9</td><td class="mark">T</td><td class="mark dim">—</td><td class="yes">✔</td></tr>
+        <tr class="hit"><td>ООО "Южный берег"</td><td>10</td><td class="mark">F</td><td class="mark">T</td><td class="yes">✔</td></tr>
+        <tr class="miss"><td>ООО "Столовая №7"</td><td>8</td><td class="mark">F</td><td class="mark">F</td><td class="no">✘</td></tr>
+        <tr class="hit"><td>АО "Призма"</td><td>10</td><td class="mark">F</td><td class="mark">T</td><td class="yes">✔</td></tr>
+      </table>
+      <p class="wd-cap"><code>IN</code> = цепочка <code>OR</code>: хватит одного совпадения (дальше можно не проверять). Итог — 15 клиентов.</p>
+    </div>
+  </div>
+  <div class="wd-panel fragment" data-fragment-index="2" style="margin-top:.5em">
+    <p class="wd-h">ANY и ALL: новый набор — цены категории 21, сравнение через &gt;</p>
+    <div class="two-col" style="align-items:center;gap:1em">
+      <div style="flex:.9">
+        <div class="sd-code"><span class="k">SELECT</span> product_name, base_price
+<span class="k">FROM</span>   products
+<span class="k">WHERE</span>  base_price &gt; <span class="k">ANY</span>  <span class="c">-- или &gt; ALL</span>
+       <span class="h">(<span class="k">SELECT</span> base_price</span>
+        <span class="h"><span class="k">FROM</span>   products</span>
+        <span class="h"><span class="k">WHERE</span>  category_id = <span class="n">21</span>)</span>;
+<span class="c">-- &gt; ANY: 31 строка, &gt; ALL: 15 строк</span></div>
+        <div class="sd-set"><span class="sd-v">65</span><span class="sd-v">69</span><span class="sd-v">75</span><span class="sd-v">79</span><span class="sd-v">85</span><span class="sd-v">99</span></div>
+        <p class="wd-cap">печенье и вафли: min = 65, max = 99</p>
+      </div>
+      <div style="flex:1.1">
+        <table class="wd-tbl">
+          <tr><th>product</th><th>price</th><th>&gt; ANY <span class="dim">(хотя бы одного)</span></th><th>&gt; ALL <span class="dim">(каждого)</span></th></tr>
+          <tr><td>Творожный сырок 50 г</td><td class="num">45</td><td class="no">✘</td><td class="no">✘</td></tr>
+          <tr><td>Молоко паст. 2,5% 1 л</td><td class="num">89</td><td class="yes">✔ (&gt; 65)</td><td class="no">✘ (≤ 99)</td></tr>
+          <tr class="hit"><td>Творог 9% 0,2 кг</td><td class="num">115</td><td class="yes">✔</td><td class="yes">✔</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Клик 1: внешний запрос проверяет каждую строку на совпадение с любым элементом набора. Клик 2: ANY/ALL. Вопрос: что вернёт &gt; ALL, если набор пуст? (TRUE для всех — это следующий квиз.) А если в наборе есть NULL? (&gt; ALL станет UNKNOWN для значений, которые больше всех не-NULL.)</aside>
+</section>
+
+<!-- ===================== 10. КВИЗ 2: ALL НА ПУСТОМ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: ALL на пустом наборе</h2>
+  <p>Категории 999 нет. Сколько строк из 35 вернёт запрос?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)
+FROM   products
+WHERE  base_price &gt; ALL (SELECT base_price FROM products WHERE category_id = 999);
+  </code></pre>
+  <ul class="quiz">
+    <li>0</li>
+    <li data-correct>35</li>
+    <li>NULL</li>
+    <li>Ошибка выполнения</li>
+  </ul>
+  <p class="explain">«Больше всех элементов пустого множества» — истинно для любого значения (проверено: 35). А вариант <code>&gt; (SELECT MAX(...))</code> вернул бы 0: MAX пустого набора — NULL.</p>
+</section>
+
+<!-- ===================== 11. ПРОИЗВОДНАЯ ТАБЛИЦА ===================== -->
+<section>
+  <h2>Табличный подзапрос в FROM — производная таблица</h2>
+  <div class="two-col">
+    <div style="flex:1.25">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT e.full_name,
+       m.items,
+       m.avg_discount,
+       m.discount_rub
+FROM  (SELECT o.employee_id,
+              COUNT(*)                       AS items,
+              ROUND(AVG(oi.discount_pct), 2) AS avg_discount,
+              ROUND(SUM(oi.quantity * oi.unit_price
+                        * oi.discount_pct / 100)) AS discount_rub
+       FROM   orders      AS o
+       JOIN   order_items AS oi ON oi.order_id = o.order_id
+       WHERE  o.status &lt;&gt; 'Отменён'
+       GROUP  BY o.employee_id) AS m
+JOIN   employees AS e ON e.employee_id = m.employee_id
+ORDER  BY m.discount_rub DESC;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Менеджер</th><th>Поз.</th><th>Ср. %</th><th>Скидки, руб.</th></tr>
+        <tr><td class="hl">Соколов И. А.</td><td>4 167</td><td class="hl">18.01</td><td class="hl">38 779 099</td></tr>
+        <tr><td>Морозова Е. П.</td><td>3 625</td><td>4.02</td><td>10 324 708</td></tr>
+        <tr><td>Павлов С. Д.</td><td>1 590</td><td>5.23</td><td>7 095 398</td></tr>
+        <tr><td>Федоров П. О.</td><td>1 366</td><td>4.41</td><td>4 313 238</td></tr>
+        <tr><td>…ещё 5</td><td></td><td></td><td></td></tr>
+      </table>
+      <div class="box warn"><b>Политика: скидка ≤ 10 %</b>Средняя 18 % у одного менеджера — повод копать дальше (лабораторная, команда А).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11a. СХЕМА: ПРОИЗВОДНАЯ ТАБЛИЦА ===================== -->
+<section>
+  <h2>Схема: производная таблица — подзапрос в роли таблицы</h2>
+  <div class="wd-flow" style="gap:.8em">
+    <div style="flex:none;display:flex;flex-direction:column;gap:.4em">
+      <div class="sd-code" style="font-size:.42em"><span class="k">SELECT</span> e.full_name,
+       m.items,
+       m.avg_discount,
+       m.discount_rub
+<span class="k">FROM</span>  <span class="h">(<span class="k">SELECT</span> o.employee_id,</span>
+              <span class="h"><span class="f">COUNT</span>(*)                       <span class="k">AS</span> items,</span>
+              <span class="h"><span class="f">ROUND</span>(<span class="f">AVG</span>(oi.discount_pct), <span class="n">2</span>) <span class="k">AS</span> avg_discount,</span>
+              <span class="h"><span class="f">ROUND</span>(<span class="f">SUM</span>(oi.quantity * oi.unit_price</span>
+                        <span class="h">* oi.discount_pct / <span class="n">100</span>)) <span class="k">AS</span> discount_rub</span>
+       <span class="h"><span class="k">FROM</span>   orders      <span class="k">AS</span> o</span>                          <span class="c">-- ①</span>
+       <span class="h"><span class="k">JOIN</span>   order_items <span class="k">AS</span> oi <span class="k">ON</span> oi.order_id = o.order_id</span>
+       <span class="h"><span class="k">WHERE</span>  o.status &lt;&gt; <span class="s">'Отменён'</span></span>
+       <span class="h"><span class="k">GROUP</span>  <span class="k">BY</span> o.employee_id) <span class="k">AS</span> m</span>                    <span class="c">-- ②</span>
+<span class="k">JOIN</span>   employees <span class="k">AS</span> e <span class="k">ON</span> e.employee_id = m.employee_id  <span class="c">-- ③</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> m.discount_rub <span class="k">DESC</span>;</div>
+      <div class="box warn fragment" data-fragment-index="3" style="font-size:.5em;margin:0;max-width:30em"><b>Почему это удобно</b>Агрегаты m.avg_discount и m.discount_rub снаружи — обычные столбцы: фильтр <code>WHERE m.avg_discount &gt; 10</code> работает без HAVING, а JOIN со справочником идёт по 9 строкам, а не по 16 923.</div>
+    </div>
+    <div class="sd-vflow">
+      <div class="wd-panel">
+        <div class="sd-row">
+          <div>
+            <p class="wd-h">① Внутри скобок: FROM … WHERE</p>
+            <p class="wd-cap">Детальные строки продаж без отменённых заказов: <b>16 923</b> строки. Цвет — менеджер.</p>
+          </div>
+          <div>
+            <table class="wd-tbl">
+              <tr><th>order_id</th><th>employee_id</th><th>qty</th><th>price</th><th>disc %</th></tr>
+              <tr class="p1"><td>1</td><td>10</td><td class="num">732</td><td class="num">42.30</td><td class="num">20</td></tr>
+              <tr class="p1"><td>1</td><td>10</td><td class="num">595</td><td class="num">89.30</td><td class="num">15</td></tr>
+              <tr class="p2"><td>2</td><td>11</td><td class="num">1207</td><td class="num">79.90</td><td class="num">5</td></tr>
+              <tr class="p2"><td>2</td><td>11</td><td class="num">1325</td><td class="num">42.30</td><td class="num">10</td></tr>
+              <tr class="ph"><td colspan="5">… всего 16 923 строки</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="wd-arrow fragment" data-fragment-index="1">↓</div>
+      <div class="wd-panel fragment" data-fragment-index="1">
+        <div class="sd-row">
+          <div>
+            <p class="wd-h">② GROUP BY → AS m</p>
+            <p class="wd-cap"><b>9 строк</b> — «виртуальная таблица» m. Она существует только во время выполнения запроса.</p>
+          </div>
+          <div>
+            <table class="wd-tbl">
+              <tr><th>employee_id</th><th>items</th><th>avg_discount</th><th>discount_rub</th></tr>
+              <tr class="p1"><td>10</td><td class="num">4 167</td><td class="num res">18.01</td><td class="num">38 779 099</td></tr>
+              <tr class="p2"><td>11</td><td class="num">3 625</td><td class="num">4.02</td><td class="num">10 324 708</td></tr>
+              <tr class="p3"><td>16</td><td class="num">1 590</td><td class="num">5.23</td><td class="num">7 095 398</td></tr>
+              <tr class="ph"><td colspan="4">… ещё 6 строк</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="wd-arrow fragment" data-fragment-index="2">↓</div>
+      <div class="wd-panel fragment" data-fragment-index="2">
+        <div class="sd-row">
+          <div>
+            <p class="wd-h">③ m JOIN employees</p>
+            <p class="wd-cap">С m работают как с обычной таблицей: JOIN, WHERE, ORDER BY — уже по агрегатам.</p>
+          </div>
+          <div>
+            <table class="wd-tbl">
+              <tr><th>full_name</th><th>items</th><th>avg_discount</th><th>discount_rub</th></tr>
+              <tr class="p1"><td>Соколов И. А.</td><td class="num">4 167</td><td class="num res">18.01</td><td class="num res">38 779 099</td></tr>
+              <tr class="p2"><td>Морозова Е. П.</td><td class="num">3 625</td><td class="num">4.02</td><td class="num">10 324 708</td></tr>
+              <tr class="p3"><td>Павлов С. Д.</td><td class="num">1 590</td><td class="num">5.23</td><td class="num">7 095 398</td></tr>
+              <tr class="ph"><td colspan="4">… ещё 6 строк</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Подсвеченная часть кода — производная таблица m; номера ①②③ в коде соответствуют панелям справа. Вопрос аудитории: можно ли во внешнем запросе обратиться к oi.discount_pct? (Нет — снаружи видны только столбцы m, детальные строки «спрятаны» внутри скобок.) Вопрос 2: как получить имя менеджера без производной таблицы? (JOIN employees внутрь и GROUP BY e.full_name — тоже работает, но смешивает расчёт и оформление.)</aside>
+</section>
+
+<!-- ===================== 12. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Производная таблица, CTE или представление?</h2>
+  <p>Один и тот же расчёт «показатели по менеджерам» можно оформить:</p>
+  <ol>
+    <li>подзапросом в FROM;</li>
+    <li>CTE <code>WITH m AS (...)</code> (модуль 9);</li>
+    <li>представлением <code>CREATE VIEW</code> (модуль 9).</li>
+  </ol>
+  <p>Что выбрать для разового анализа? Для отчёта, который будут запускать каждый месяц? Для расчёта, который нужен в пяти разных запросах?</p>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: разовый анализ — производная таблица или CTE (CTE читается сверху вниз, удобнее для 2+ шагов); повторяющийся отчёт и переиспользование — представление (единое определение бизнес-показателя, права доступа). Отметить: в PG 12+ CTE по умолчанию встраивается (inline), как и подзапрос, — разница в читаемости, а не в скорости.</aside>
+</section>
+
+<!-- ===================== 13. РАЗДЕЛ 2 ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Коррелированные подзапросы</h2>
+  <p>«Для каждой строки внешнего запроса вычислить показатель её группы»</p>
+</section>
+
+<!-- ===================== 14. МОДЕЛЬ ВЫПОЛНЕНИЯ ===================== -->
+<section>
+  <h2>Как «думает» коррелированный подзапрос</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT p.product_name, p.category_id, p.base_price
+FROM   products AS p                                   -- ① берём очередную строку p
+WHERE  p.base_price &gt; (SELECT AVG(p2.base_price)          -- ② считаем среднее…
+                       FROM   products AS p2
+                       WHERE  p2.category_id = p.category_id)  -- …только для её категории
+ORDER  BY p.category_id, p.base_price DESC;           -- ③ сравниваем, повторяем · 14 строк
+  </code></pre>
+  <div class="three-col">
+    <div class="card"><h4>Логически</h4>подзапрос выполняется для каждой строки внешнего запроса (35 раз)</div>
+    <div class="card orange-top"><h4>Физически</h4>оптимизатор может кэшировать, превратить в JOIN (Semi/Anti Join) или использовать индекс</div>
+    <div class="card green-top"><h4>Обязательно</h4>разные псевдонимы <code>p</code> и <code>p2</code>, иначе корреляция «пропадёт»</div>
+  </div>
+</section>
+
+<!-- ===================== 14a. СХЕМА: КОРРЕЛИРОВАННЫЙ ПОДЗАПРОС ПО ШАГАМ ===================== -->
+<section class="sd-corr">
+  <h2>Схема: коррелированный подзапрос — для каждой строки</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none"><span class="k">SELECT</span> p.product_name, p.category_id, p.base_price
+<span class="k">FROM</span>   products <span class="k">AS</span> p                            <span class="c">-- внешний: строка за строкой</span>
+<span class="k">WHERE</span>  p.base_price &gt;
+       <span class="h">(<span class="k">SELECT</span> <span class="f">AVG</span>(p2.base_price)</span>
+        <span class="h"><span class="k">FROM</span>   products <span class="k">AS</span> p2</span>
+        <span class="h"><span class="k">WHERE</span>  p2.category_id = <span class="m">p.category_id</span>)</span>  <span class="c">-- связь</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> p.category_id, p.base_price <span class="k">DESC</span>;     <span class="c">-- 14 строк</span></div>
+    <p class="sd-live box info" style="font-size:.54em;flex:1"><b>Нажимайте →</b>Внешний запрос берёт строки по одной и передаёт в подзапрос значение <code>p.category_id</code>. Подзапрос каждый раз считает среднее заново.</p>
+  </div>
+  <div class="wd-flow">
+    <div class="wd-panel" style="flex:1.35">
+      <p class="wd-h">Внешний запрос: products AS p</p>
+      <table class="wd-tbl">
+        <tr><th>product</th><th>cat</th><th>price</th><th>avg кат.</th><th>&gt;?</th></tr>
+        <tr data-o="1" data-cat="11"><td>Сливки 33% 0,5 л</td><td>11</td><td class="num">245</td><td class="num res">141.20</td><td class="mark yes">✔</td></tr>
+        <tr data-o="2" data-cat="11"><td>Сливки 20% 0,5 л</td><td>11</td><td class="num">165</td><td class="num res">141.20</td><td class="mark yes">✔</td></tr>
+        <tr data-o="3" data-cat="11"><td>Молоко у/п 3,2% 1 л</td><td>11</td><td class="num">112</td><td class="num res">141.20</td><td class="mark no">✘</td></tr>
+        <tr data-o="4" data-cat="11"><td>Молоко паст. 3,2% 1 л</td><td>11</td><td class="num">95</td><td class="num res">141.20</td><td class="mark no">✘</td></tr>
+        <tr data-o="5" data-cat="11"><td>Молоко паст. 2,5% 1 л</td><td>11</td><td class="num">89</td><td class="num res">141.20</td><td class="mark no">✘</td></tr>
+        <tr data-o="6" data-cat="32"><td>Соус сырный 200 г</td><td>32</td><td class="num">129</td><td class="num res">124.00</td><td class="mark yes">✔</td></tr>
+        <tr data-o="7" data-cat="32"><td>Соус сливочно-чесночный</td><td>32</td><td class="num">119</td><td class="num res">124.00</td><td class="mark no">✘</td></tr>
+      </table>
+      <p class="wd-cap">Фрагмент: категории 11 и 32 (7 из 35 строк).</p>
+    </div>
+    <div class="wd-arrow">⇄</div>
+    <div class="wd-panel">
+      <p class="wd-h">Подзапрос: products AS p2</p>
+      <span class="wd-chip">p2.category_id = <b class="sd-param" style="color:#f9c49c">?</b></span>
+      <table class="wd-tbl">
+        <tr><th>p2.product</th><th>cat</th><th>price</th></tr>
+        <tr data-c="11"><td>Сливки 33%</td><td>11</td><td class="num">245</td></tr>
+        <tr data-c="11"><td>Сливки 20%</td><td>11</td><td class="num">165</td></tr>
+        <tr data-c="11"><td>Молоко у/п 3,2%</td><td>11</td><td class="num">112</td></tr>
+        <tr data-c="11"><td>Молоко паст. 3,2%</td><td>11</td><td class="num">95</td></tr>
+        <tr data-c="11"><td>Молоко паст. 2,5%</td><td>11</td><td class="num">89</td></tr>
+        <tr data-c="32"><td>Соус сырный</td><td>32</td><td class="num">129</td></tr>
+        <tr data-c="32"><td>Соус слив.-чесн.</td><td>32</td><td class="num">119</td></tr>
+        <tr data-c="x"><td>… ещё 28 строк</td><td>…</td><td class="num">…</td></tr>
+      </table>
+      <p class="wd-total sd-avg">avg = ?</p>
+    </div>
+  </div>
+  <p class="wd-legend"><span style="background:#f9c49c"></span>текущая строка p<span style="background:#fde3cf"></span>строки, которые видит подзапрос<span style="background:#f7f8fa;border:1px solid #e3e8f2"></span>отброшены фильтром p2.category_id</p>
+  <span class="fragment sd-step" data-param="11" data-avg="avg = (245+165+112+95+89) / 5 = 141.20" data-cap="Строка p = «Сливки 33%», категория 11. Подзапрос получает параметр 11 и видит 5 строк: avg = 141.20. 245 &gt; 141.20 → <b class=&quot;green&quot;>✔ в результат</b>"></span>
+  <span class="fragment sd-step" data-param="11" data-avg="avg = 141.20" data-cap="Строка p = «Сливки 20%», категория снова 11. Логически подзапрос выполняется ещё раз с тем же параметром: 141.20. 165 &gt; 141.20 → <b class=&quot;green&quot;>✔</b>"></span>
+  <span class="fragment sd-step" data-param="11" data-avg="avg = 141.20" data-cap="«Молоко у/п 3,2%»: 112 &gt; 141.20? <b class=&quot;orange&quot;>✘ нет</b> — строка отброшена"></span>
+  <span class="fragment sd-step" data-param="11" data-avg="avg = 141.20" data-cap="«Молоко паст. 3,2%»: 95 &gt; 141.20? <b class=&quot;orange&quot;>✘ нет</b>"></span>
+  <span class="fragment sd-step" data-param="11" data-avg="avg = 141.20" data-cap="«Молоко паст. 2,5%»: 89 &gt; 141.20? <b class=&quot;orange&quot;>✘ нет</b>. Подзапрос для категории 11 выполнен уже 5 раз"></span>
+  <span class="fragment sd-step" data-param="32" data-avg="avg = (129+119) / 2 = 124.00" data-cap="Новая категория 32 — подзапрос видит другие строки: avg = 124.00. 129 &gt; 124 → <b class=&quot;green&quot;>✔</b>. С общим средним 150.06 эта строка <b>не прошла бы</b>!"></span>
+  <span class="fragment sd-step" data-param="32" data-avg="avg = 124.00" data-cap="«Соус слив.-чесн.»: 119 &gt; 124? <b class=&quot;orange&quot;>✘</b>. Итог по 7 строкам: 3 ✔ и <b>7 выполнений подзапроса</b>; на всей таблице — 35 выполнений и 14 строк в результате"></span>
+  <aside class="notes">Перед каждым кликом спрашивайте: какие строки увидит подзапрос? пройдёт ли текущая строка? На шаге 6 вернитесь к схеме некоррелированного подзапроса: там «Соус сырный» отсеялся, здесь — прошёл, потому что сравнение идёт со средним своей категории. Вопрос в конце: как избежать 35 выполнений? (Предагрегировать средние по категориям в производной таблице и сделать JOIN; оконная функция avg() OVER (PARTITION BY category_id) — модуль 8.)</aside>
+</section>
+
+<!-- ===================== 15. КЕЙС: БРАК ПО ЛИНИЯМ ===================== -->
+<section class="case-slide">
+  <h2>Кейс: партии с браком выше среднего по своей линии <span class="badge team-b">Команда Б</span></h2>
+  <div class="two-col">
+    <div style="flex:1.2">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT b.line_id,
+       b.shift,
+       COUNT(*) AS batches_above_line_avg
+FROM   production_batches AS b
+WHERE  1.0 * b.defect_qty / b.produced_qty &gt;
+       (SELECT 1.0 * SUM(b2.defect_qty)
+                   / SUM(b2.produced_qty)
+        FROM   production_batches AS b2
+        WHERE  b2.line_id = b.line_id)
+GROUP  BY b.line_id, b.shift
+ORDER  BY b.line_id, b.shift;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Линия</th><th>День</th><th>Ночь</th></tr>
+        <tr><td>1</td><td>330</td><td>298</td></tr>
+        <tr><td>2</td><td>319</td><td>314</td></tr>
+        <tr><td class="hl">3</td><td class="hl">—</td><td class="hl">627 из 627</td></tr>
+        <tr><td>4</td><td>314</td><td>270</td></tr>
+        <tr><td>5</td><td>307</td><td>273</td></tr>
+      </table>
+      <p style="font-size:.7em"><b>Вопросы к аудитории:</b> почему на Линии 3 нет строки «День»? Какие гипотезы проверить дальше — оборудование, сырьё, люди? Какие таблицы для этого нужны?</p>
+    </div>
+  </div>
+  <aside class="notes">На линиях 1,2,4,5 выше среднего — около половины партий в обеих сменах (нормальный разброс). На Линии 3 все ночные партии выше среднего линии, а ни одной дневной — брак ночной смены систематически выше (7,94 % против 1,62 %). Дальше — операторы (operator_id), перерасход молока ночью. Точка B3/B7, детально — в лабораторной команды Б.</aside>
+</section>
+
+<!-- ===================== 16. ПОСЛЕДНИЙ ЗАКАЗ И TOP-N ===================== -->
+<section>
+  <h2>Типовые задачи: последний элемент группы и top-N</h2>
+  <div class="two-col">
+    <div>
+      <h3>Последний заказ клиента</h3>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT c.customer_name,
+       o.order_number,
+       o.order_date
+FROM   customers AS c
+JOIN   orders    AS o
+       ON o.customer_id = c.customer_id
+WHERE  o.order_date =
+       (SELECT MAX(o2.order_date)
+        FROM   orders AS o2
+        WHERE  o2.customer_id = c.customer_id)
+ORDER  BY o.order_date
+LIMIT  3;
+-- ооо "Свежесть"   2025-09-06
+-- ИП Носов (Шанс)  2025-11-05
+-- ООО "Фермер"     2025-11-10
+      </code></pre>
+    </div>
+    <div>
+      <h3>2 самых дорогих SKU в категории</h3>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT p.category_id,
+       p.product_name,
+       p.base_price
+FROM   products AS p
+WHERE  (SELECT COUNT(*)
+        FROM   products AS p2
+        WHERE  p2.category_id = p.category_id
+          AND  p2.base_price  &gt; p.base_price) &lt; 2
+ORDER  BY p.category_id, p.base_price DESC;
+-- 14 строк (7 категорий × 2)
+      </code></pre>
+      <div class="box warn"><b>Нюанс</b>При равных датах/ценах строк в группе может быть больше N. Окна (модуль 8) и LATERAL (модуль 6) решают это гибче.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 16a. СХЕМА: TOP-N ЧЕРЕЗ КОРРЕЛИРОВАННЫЙ COUNT ===================== -->
+<section class="sd-corr">
+  <h2>Схема: 2 самых дорогих SKU в категории</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none"><span class="k">SELECT</span> p.category_id,
+       p.product_name,
+       p.base_price
+<span class="k">FROM</span>   products <span class="k">AS</span> p
+<span class="k">WHERE</span>  <span class="h">(<span class="k">SELECT</span> <span class="f">COUNT</span>(*)</span>                         <span class="c">-- сколько товаров</span>
+        <span class="h"><span class="k">FROM</span>   products <span class="k">AS</span> p2</span>                   <span class="c">-- той же категории</span>
+        <span class="h"><span class="k">WHERE</span>  p2.category_id = <span class="m">p.category_id</span></span>   <span class="c">-- дороже текущего?</span>
+          <span class="h"><span class="k">AND</span>  p2.base_price  &gt; <span class="m">p.base_price</span>)</span> &lt; <span class="n">2</span>
+<span class="k">ORDER</span>  <span class="k">BY</span> p.category_id, p.base_price <span class="k">DESC</span>;
+<span class="c">-- 14 строк (7 категорий × 2)</span></div>
+    <p class="sd-live box info" style="font-size:.54em;flex:1"><b>Нажимайте →</b>Идея: для каждого товара посчитать, сколько товаров <b>его категории</b> стоят дороже. Если таких меньше 2 — товар входит в топ-2.</p>
+  </div>
+  <div class="wd-flow">
+    <div class="wd-panel" style="flex:1.3">
+      <p class="wd-h">Внешний запрос: products AS p · категория 13</p>
+      <table class="wd-tbl">
+        <tr><th>product</th><th>price</th><th>COUNT дороже</th><th>&lt; 2?</th></tr>
+        <tr data-o="1"><td>Сыр Гауда 45% 1 кг</td><td class="num">780</td><td class="num res">0</td><td class="mark yes">✔</td></tr>
+        <tr data-o="2"><td>Сыр Российский 45% 1 кг</td><td class="num">690</td><td class="num res">1</td><td class="mark yes">✔</td></tr>
+        <tr data-o="3"><td>Масло сливочное 82,5% 180 г</td><td class="num">189</td><td class="num res">2</td><td class="mark no">✘</td></tr>
+        <tr data-o="4"><td>Масло сливочное 72,5% 180 г</td><td class="num">159</td><td class="num res">3</td><td class="mark no">✘</td></tr>
+        <tr data-o="5"><td>Сыр плавленый 150 г</td><td class="num">95</td><td class="num res">4</td><td class="mark no">✘</td></tr>
+      </table>
+      <p class="wd-cap">Фрагмент: категория 13 «Сыры и масло» (5 из 35 строк). Остальные категории обрабатываются так же.</p>
+    </div>
+    <div class="wd-arrow">⇄</div>
+    <div class="wd-panel">
+      <p class="wd-h">Подзапрос: products AS p2</p>
+      <span class="wd-chip">p2.category_id = 13 <span class="kw">AND</span> p2.base_price &gt; <b class="sd-param" style="color:#f9c49c">?</b></span>
+      <table class="wd-tbl">
+        <tr><th>p2.product</th><th>price</th></tr>
+        <tr data-c="13" data-id="1"><td>Сыр Гауда 45% 1 кг</td><td class="num">780</td></tr>
+        <tr data-c="13" data-id="2"><td>Сыр Российский 45% 1 кг</td><td class="num">690</td></tr>
+        <tr data-c="13" data-id="3"><td>Масло сливочное 82,5% 180 г</td><td class="num">189</td></tr>
+        <tr data-c="13" data-id="4"><td>Масло сливочное 72,5% 180 г</td><td class="num">159</td></tr>
+        <tr data-c="13" data-id="5"><td>Сыр плавленый 150 г</td><td class="num">95</td></tr>
+        <tr data-c="x" data-id="x"><td>… ещё 30 строк других категорий</td><td class="num">…</td></tr>
+      </table>
+      <p class="wd-total sd-avg">COUNT(*) = ?</p>
+    </div>
+  </div>
+  <p class="wd-legend"><span style="background:#f9c49c"></span>текущая строка p<span style="background:#fde3cf"></span>строки, которые подсчитал COUNT (та же категория и дороже)<span style="background:#f7f8fa;border:1px solid #e3e8f2"></span>не подходят под условие</p>
+  <span class="fragment sd-step" data-param="780" data-hit="" data-avg="COUNT(*) = 0" data-cap="Строка p = «Сыр Гауда», 780 руб. Подзапрос ищет в категории 13 товары дороже 780 — таких нет. COUNT = 0 &lt; 2 → <b class=&quot;green&quot;>✔ в результат</b> (место 1)"></span>
+  <span class="fragment sd-step" data-param="690" data-hit="1" data-avg="COUNT(*) = 1" data-cap="«Сыр Российский», 690 руб. Дороже него — только Гауда. COUNT = 1 &lt; 2 → <b class=&quot;green&quot;>✔</b> (место 2)"></span>
+  <span class="fragment sd-step" data-param="189" data-hit="1,2" data-avg="COUNT(*) = 2" data-cap="«Масло 82,5%», 189 руб. Дороже — Гауда и Российский. COUNT = 2, а 2 &lt; 2 ложно → <b class=&quot;orange&quot;>✘ отброшена</b>"></span>
+  <span class="fragment sd-step" data-param="159" data-hit="1,2,3" data-avg="COUNT(*) = 3" data-cap="«Масло 72,5%», 159 руб. Дороже — 3 товара. COUNT = 3 → <b class=&quot;orange&quot;>✘</b>"></span>
+  <span class="fragment sd-step" data-param="95" data-hit="1,2,3,4" data-avg="COUNT(*) = 4" data-cap="«Сыр плавленый», 95 руб. Дороже — 4 товара. COUNT = 4 → <b class=&quot;orange&quot;>✘</b>. Подзапрос выполнен 5 раз — по разу на каждую строку категории"></span>
+  <span class="fragment sd-step" data-param="—" data-hit="" data-avg="итог: 2 строки из 5" data-cap="<b>Итог по категории 13:</b> остались строки с COUNT = 0 и 1 — два самых дорогих SKU. «COUNT дороже меня &lt; N» = «моё место в рейтинге ≤ N». <b class=&quot;orange&quot;>Нюанс:</b> если бы Российский стоил 780, как Гауда, у обоих COUNT = 0, а у масла 82,5% COUNT = 2 — в результате 2 строки. А если бы масло стоило 690, у него и у Российского COUNT = 1 — в результате 3 строки вместо 2."></span>
+  <aside class="notes">Перед каждым кликом спрашивайте: сколько товаров дороже текущего? войдёт ли он в топ-2? Ключевая мысль: условие «COUNT(более дорогих) &lt; N» — это ранжирование без оконных функций. На последнем шаге обсудите нюанс с равными ценами: какой «топ» нужен бизнесу — ровно 2 строки или все, кто делит 2-е место? Как переписать на окнах: rank() / row_number() OVER (PARTITION BY category_id ORDER BY base_price DESC) — модуль 8; на LATERAL — модуль 6. Сложность: подзапрос выполняется для каждой строки (35 раз), внутри — проход по категории.</aside>
+</section>
+
+<!-- ===================== 17. КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: найдите ошибку</h2>
+  <p>Хотели «продукты дороже средней цены своей категории», получили 9 строк вместо 14. Почему?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT p.product_name
+FROM   products AS p
+WHERE  p.base_price &gt; (SELECT AVG(base_price)
+                       FROM   products
+                       WHERE  category_id = category_id);
+  </code></pre>
+  <ul class="quiz">
+    <li>AVG нельзя использовать в подзапросе в WHERE</li>
+    <li data-correct>Оба category_id относятся к внутренней таблице — условие всегда истинно, считается среднее по всей таблице</li>
+    <li>Нужно GROUP BY category_id в подзапросе</li>
+    <li>Коррелированные подзапросы не поддерживаются в WHERE</li>
+  </ul>
+  <p class="explain">Неквалифицированное имя ищется сначала в ближайшем FROM. Нужно <code>WHERE p2.category_id = p.category_id</code>. 9 строк — это «выше средней по всем продуктам».</p>
+</section>
+
+<!-- ===================== 18. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос аудитории</h2>
+  <p>Как вы обычно решаете задачу «последний заказ каждого клиента»? Кликайте по варианту, чтобы добавить голос (Shift+клик — убрать).</p>
+  <ul class="poll">
+    <li><span style="width:15em">Коррелированный подзапрос с MAX</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">JOIN с производной таблицей GROUP BY</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Оконная функция ROW_NUMBER()</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">DISTINCT ON / LATERAL</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Выгружаю в Excel</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Опрос — мостик: все варианты корректны, но различаются поведением при «ничьих» и скоростью. ROW_NUMBER — модуль 8, LATERAL — модуль 6. Excel — честный ответ, обсудить, почему это не масштабируется.</aside>
+</section>
+
+<!-- ===================== 19. РАЗДЕЛ 3 ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>EXISTS и NOT EXISTS</h2>
+  <p>Полусоединение и антисоединение: важен факт наличия строки, а не её значения</p>
+</section>
+
+<!-- ===================== 20. EXISTS ===================== -->
+<section>
+  <h2>EXISTS — полусоединение (semi join)</h2>
+  <div class="two-col">
+    <div style="flex:1.2">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- клиенты, у которых были возвраты «Истёк срок годности»
+SELECT c.customer_name, r.region_name
+FROM   customers AS c
+LEFT   JOIN regions AS r ON r.region_id = c.region_id
+WHERE  EXISTS (SELECT 1
+               FROM   orders  AS o
+               JOIN   returns AS rt ON rt.order_id = o.order_id
+               WHERE  o.customer_id = c.customer_id
+                 AND  rt.reason = 'Истёк срок годности')
+ORDER  BY r.region_name, c.customer_name;
+-- 37 клиентов; больше всего — Новосибирская обл. и Красноярский край
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.75em">
+        <li><code>EXISTS</code> = TRUE, если подзапрос вернул <b>хотя бы одну</b> строку</li>
+        <li>список SELECT неважен: <code>SELECT 1</code>, <code>SELECT *</code>, <code>SELECT NULL</code> — одно и то же</li>
+        <li>строки внешней таблицы <b>не размножаются</b> (в отличие от JOIN)</li>
+        <li>поиск останавливается на первой найденной строке</li>
+        <li>результат — только TRUE / FALSE, никогда не UNKNOWN</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 21. NOT EXISTS ===================== -->
+<section>
+  <h2>NOT EXISTS — антисоединение (anti join)</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- клиенты без заказов в последние 3 месяца
+SELECT c.customer_id, c.customer_name
+FROM   customers AS c
+WHERE  NOT EXISTS (SELECT 1
+                   FROM   orders AS o
+                   WHERE  o.customer_id = c.customer_id
+                     AND  o.order_date &gt;= DATE '2025-10-01');
+  </code></pre>
+  <table class="t" style="width:60%">
+    <tr><th>customer_id</th><th>customer_name</th></tr>
+    <tr><td>71</td><td class="hl">ооо "Свежесть"</td></tr>
+    <tr><td>73</td><td>ООО "Новый горизонт"</td></tr>
+  </table>
+  <div class="box info"><b>Аналитик, будь внимателен</b>Клиент 71 записан строчными буквами. Проверка по ИНН показывает «двойника» АО "Свежесть" (id 8) — это не потерянный клиент, а дубль в справочнике.</div>
+</section>
+
+<!-- ===================== 21a. СХЕМА: JOIN vs EXISTS vs NOT EXISTS ===================== -->
+<section>
+  <h2>Схема: EXISTS ищет первую строку, JOIN — все</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none"><span class="k">SELECT</span> c.customer_id, c.customer_name
+<span class="k">FROM</span>   customers <span class="k">AS</span> c
+<span class="k">WHERE</span>  <span class="k">EXISTS</span>  <span class="c">-- антисоединение: NOT EXISTS</span>
+       <span class="h">(<span class="k">SELECT</span> <span class="n">1</span></span>
+        <span class="h"><span class="k">FROM</span>   orders <span class="k">AS</span> o</span>
+        <span class="h"><span class="k">WHERE</span>  o.customer_id = <span class="m">c.customer_id</span></span>
+          <span class="h"><span class="k">AND</span>  o.order_date &gt;= <span class="k">DATE</span> <span class="s">'2025-10-01'</span>)</span>;</div><div class="sd-code" style="flex:none"><span class="c">-- для сравнения: обычное соединение</span>
+<span class="k">SELECT</span> c.customer_id, c.customer_name, o.order_id
+<span class="k">FROM</span>   customers <span class="k">AS</span> c
+<span class="k">JOIN</span>   orders    <span class="k">AS</span> o
+       <span class="k">ON</span> o.customer_id = c.customer_id
+<span class="k">WHERE</span>  o.order_date &gt;= <span class="k">DATE</span> <span class="s">'2025-10-01'</span>;</div>
+    <div class="box info" style="font-size:.48em;flex:1"><b>Схема ниже</b>Фрагмент: 3 клиента из 73. Для каждого клиента c подзапрос ищет заказы с 01.10.2025.</div>
+  </div>
+  <div class="wd-flow">
+    <div class="wd-panel" style="flex:.9">
+      <p class="wd-h">Внешний: customers AS c</p>
+      <table class="wd-tbl">
+        <tr><th>id</th><th>customer_name</th></tr>
+        <tr class="p1"><td>8</td><td>АО "Свежесть"</td></tr>
+        <tr class="p2"><td>71</td><td>ооо "Свежесть"</td></tr>
+        <tr class="p3"><td>73</td><td>ООО "Новый горизонт"</td></tr>
+      </table>
+      <p class="wd-cap">Строки внешнего запроса по одной передаются в подзапрос.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1">
+      <p class="wd-h">Поиск в orders для каждого c</p>
+      <table class="wd-tbl">
+        <tr><th>c</th><th>order_id</th><th>order_date</th><th></th></tr>
+        <tr class="p1 cur"><td>8</td><td>3882</td><td>2025-10-08</td><td class="ptr"><span class="wd-ptr o">найдено — стоп</span></td></tr>
+        <tr class="p1 out"><td>8</td><td>4146</td><td>2025-11-17</td><td class="ptr dim">не проверяется</td></tr>
+        <tr class="p1 out"><td>8</td><td>4302</td><td>2025-12-10</td><td class="ptr dim">не проверяется</td></tr>
+        <tr class="gap p2"><td>71</td><td colspan="2" class="dim">∅ ни одного заказа</td><td class="ptr"><span class="wd-ptr g">пусто</span></td></tr>
+        <tr class="gap p3"><td>73</td><td colspan="2" class="dim">∅ ни одного заказа</td><td class="ptr"><span class="wd-ptr g">пусто</span></td></tr>
+      </table>
+      <p class="wd-cap">EXISTS нужен лишь ответ «есть / нет»: после первой найденной строки поиск прекращается.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2" style="flex:1.25">
+      <p class="wd-h">Три разных результата</p>
+      <div class="sd-res">
+        <div>
+          <span class="sd-tag o">JOIN</span>
+          <table class="wd-tbl">
+            <tr><th>c</th><th>order</th></tr>
+            <tr class="p1"><td>8</td><td>3882</td></tr>
+            <tr class="p1"><td>8</td><td>4146</td></tr>
+            <tr class="p1"><td>8</td><td>4302</td></tr>
+          </table>
+          <p class="wd-cap">клиент <b>размножился</b> ×3</p>
+        </div>
+        <div>
+          <span class="sd-tag b">EXISTS</span>
+          <table class="wd-tbl">
+            <tr><th>c</th></tr>
+            <tr class="p1"><td>8</td></tr>
+          </table>
+          <p class="wd-cap">semi join: каждый клиент — максимум 1 раз</p>
+        </div>
+        <div>
+          <span class="sd-tag g">NOT EXISTS</span>
+          <table class="wd-tbl">
+            <tr><th>c</th></tr>
+            <tr class="p2"><td>71</td></tr>
+            <tr class="p3"><td>73</td></tr>
+          </table>
+          <p class="wd-cap">anti join: «пары не нашлось»</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="box info fragment" data-fragment-index="3" style="font-size:.54em;margin-top:.5em"><b>Правило выбора</b>Нужны столбцы второй таблицы — JOIN. Нужен только факт «есть / нет» — EXISTS / NOT EXISTS: строки не размножаются, DISTINCT не нужен, NULL не мешает (результат всегда TRUE или FALSE).</div>
+  <aside class="notes">Вопрос перед кликом 2: сколько строк клиента 8 вернёт JOIN? А EXISTS? Затем: как «починить» JOIN, чтобы получить одну строку? (DISTINCT или GROUP BY — лишняя работа и риск ошибиться в SUM по размноженным строкам.) Данные: у клиента 8 ровно 3 заказа с 01.10.2025, у 71 и 73 — ни одного (проверено на БД).</aside>
+</section>
+
+<!-- ===================== 22. ЛОВУШКА NOT IN ===================== -->
+<section>
+  <h2>Ловушка: NOT IN и NULL</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- сотрудники, которые никем не руководят
+SELECT COUNT(*)
+FROM   employees
+WHERE  employee_id NOT IN
+       (SELECT manager_id FROM employees);
+-- 0  (!)
+
+SELECT COUNT(*)
+FROM   employees AS e
+WHERE  NOT EXISTS
+       (SELECT 1
+        FROM   employees AS s
+        WHERE  s.manager_id = e.employee_id);
+-- 26
+
+-- или: ... WHERE manager_id IS NOT NULL  → 26
+      </code></pre>
+    </div>
+    <div>
+      <p style="font-size:.75em">У генерального директора <code>manager_id IS NULL</code>. Раскроем <code>5 NOT IN (1, 2, NULL)</code>:</p>
+      <table class="t">
+        <tr><th>Условие</th><th>Результат</th></tr>
+        <tr><td><code>5 &lt;&gt; 1</code></td><td>TRUE</td></tr>
+        <tr><td><code>5 &lt;&gt; 2</code></td><td>TRUE</td></tr>
+        <tr><td><code>5 &lt;&gt; NULL</code></td><td class="hl">UNKNOWN</td></tr>
+        <tr><td>TRUE AND TRUE AND UNKNOWN</td><td class="hl">UNKNOWN → строка отброшена</td></tr>
+      </table>
+      <div class="box warn"><b>Правило</b>Для «нет связанных строк» по умолчанию используйте <code>NOT EXISTS</code>. <code>NOT IN</code> — только если столбец подзапроса <code>NOT NULL</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 22a. СХЕМА: NOT IN vs NOT EXISTS НА NULL ===================== -->
+<section>
+  <h2>Схема: почему NOT IN «ломается» на NULL, а NOT EXISTS — нет</h2>
+  <p class="wd-cap" style="margin:0 0 .3em">Задача: посчитать категории без дочерних. В <code>product_categories</code> 3 корневые (<code>parent_category_id IS NULL</code>) и 7 подкатегорий.</p>
+  <div class="sd-top"><div class="sd-code" style="flex:1"><span class="c">-- ② NOT IN: результат 0 (!)</span>
+<span class="k">SELECT</span> <span class="f">COUNT</span>(*)
+<span class="k">FROM</span>   product_categories
+<span class="k">WHERE</span>  category_id <span class="k">NOT IN</span>
+       <span class="h">(<span class="k">SELECT</span> parent_category_id</span>  <span class="c">-- ①</span>
+        <span class="h"><span class="k">FROM</span>   product_categories)</span>;</div><div class="sd-code" style="flex:1.15"><span class="c">-- ③ NOT EXISTS: результат 7</span>
+<span class="k">SELECT</span> <span class="f">COUNT</span>(*)
+<span class="k">FROM</span>   product_categories <span class="k">AS</span> pc
+<span class="k">WHERE</span>  <span class="k">NOT EXISTS</span>
+       <span class="h">(<span class="k">SELECT</span> <span class="n">1</span></span>
+        <span class="h"><span class="k">FROM</span>   product_categories <span class="k">AS</span> s</span>
+        <span class="h"><span class="k">WHERE</span>  s.parent_category_id = <span class="m">pc.category_id</span>)</span>;</div></div>
+  <div class="wd-flow">
+    <div class="wd-panel" style="flex:.85">
+      <p class="wd-h">① Подзапрос → набор</p>
+      <div class="sd-set"><span class="sd-v null">NULL</span><span class="sd-v null">NULL</span><span class="sd-v null">NULL</span><span class="sd-v">1</span><span class="sd-v">1</span><span class="sd-v">1</span><span class="sd-v">2</span><span class="sd-v">2</span><span class="sd-v">3</span><span class="sd-v">3</span></div>
+      <p class="wd-cap">10 значений, среди них <b class="orange">NULL</b> — у корневых категорий нет родителя.</p>
+      <p class="wd-cap">Проверяем категорию <b>12</b> «Кисломолочные» — у неё точно нет дочерних.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1">
+      <p class="wd-h">② 12 NOT IN (…) = 12 &lt;&gt; ALL (…)</p>
+      <table class="wd-tbl">
+        <tr><th>сравнение</th><th>результат</th></tr>
+        <tr><td>12 &lt;&gt; 1</td><td class="yes">TRUE</td></tr>
+        <tr><td>12 &lt;&gt; 2</td><td class="yes">TRUE</td></tr>
+        <tr><td>12 &lt;&gt; 3</td><td class="yes">TRUE</td></tr>
+        <tr><td>12 &lt;&gt; NULL</td><td class="unk">UNKNOWN</td></tr>
+        <tr class="gap"><td><b>AND</b> всех</td><td class="unk">UNKNOWN</td></tr>
+      </table>
+      <p class="wd-cap">WHERE пропускает только TRUE → строка 12 <b class="orange">отброшена</b>. То же для любой категории → <b class="orange">0 строк</b>.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2">
+      <p class="wd-h">③ NOT EXISTS (… = 12)</p>
+      <table class="wd-tbl">
+        <tr><th>s.parent</th><th>= 12 ?</th></tr>
+        <tr class="miss"><td>NULL ×3</td><td class="mark dim">UNKNOWN → не подходит</td></tr>
+        <tr class="miss"><td>1, 1, 1</td><td class="mark no">FALSE</td></tr>
+        <tr class="miss"><td>2, 2</td><td class="mark no">FALSE</td></tr>
+        <tr class="miss"><td>3, 3</td><td class="mark no">FALSE</td></tr>
+        <tr class="gap hit"><td>найдено строк: 0</td><td class="mark yes">NOT EXISTS = TRUE</td></tr>
+      </table>
+      <p class="wd-cap">NULL просто «не находится» и не портит ответ. Результат — <b class="green">7 строк</b>.</p>
+    </div>
+  </div>
+  <div class="box warn fragment" data-fragment-index="3" style="font-size:.54em;margin-top:.5em"><b>Суть</b><code>NOT IN</code> должен доказать «не равно <i>каждому</i>» — а про NULL это доказать нельзя. <code>NOT EXISTS</code> спрашивает «нашлась ли строка?» — на это всегда есть ответ TRUE или FALSE.</div>
+  <aside class="notes">Вопрос после клика 1: почему результат UNKNOWN, а не TRUE — ведь 12 явно не равно «пустоте»? (NULL — «неизвестное значение»: вдруг там 12.) Вопрос после клика 2: а что вернёт категория 1? (1 &lt;&gt; 1 = FALSE → FALSE AND … = FALSE; её отбросят правильно.) Исправление NOT IN: WHERE parent_category_id IS NOT NULL в подзапросе — тоже 7 строк. Проверено на БД.</aside>
+</section>
+
+<!-- ===================== 23. КВИЗ 4 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: NOT IN на справочнике категорий</h2>
+  <p>В <code>product_categories</code> 10 строк: 3 верхнего уровня (<code>parent_category_id IS NULL</code>) и 7 подкатегорий. Сколько строк вернёт запрос «категории, у которых нет дочерних»?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*)
+FROM   product_categories
+WHERE  category_id NOT IN (SELECT parent_category_id FROM product_categories);
+  </code></pre>
+  <ul class="quiz">
+    <li>7</li>
+    <li>3</li>
+    <li data-correct>0</li>
+    <li>10</li>
+  </ul>
+  <p class="explain">В подзапросе есть NULL (у категорий верхнего уровня) → NOT IN всегда UNKNOWN. С NOT EXISTS — 7 строк (проверено на БД).</p>
+</section>
+
+<!-- ===================== 24. ПЛАНЫ ===================== -->
+<section>
+  <h2>Что делает оптимизатор: EXPLAIN</h2>
+  <div class="three-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+EXPLAIN
+SELECT c.customer_id
+FROM   customers c
+WHERE  EXISTS (
+  SELECT 1 FROM orders o
+  WHERE o.customer_id
+      = c.customer_id);
+      </code></pre>
+      <div class="box ok"><b>Nested Loop Semi Join</b>Index Only Scan using ix_orders_customer</div>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+EXPLAIN
+SELECT c.customer_id
+FROM   customers c
+WHERE  NOT EXISTS (
+  SELECT 1 FROM orders o
+  WHERE o.customer_id
+      = c.customer_id);
+      </code></pre>
+      <div class="box ok"><b>Nested Loop Anti Join</b>тот же индекс, остановка на первой строке</div>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+EXPLAIN
+SELECT c.customer_id
+FROM   customers c
+WHERE  c.customer_id NOT IN (
+  SELECT o.customer_id
+  FROM   orders o);
+      </code></pre>
+      <div class="box warn"><b>Filter: NOT (hashed SubPlan 1)</b>весь подзапрос в хэш; при большом объёме — построчный SubPlan</div>
+    </div>
+  </div>
+  <p class="small">Коррелированный ≠ медленный: EXISTS/NOT EXISTS оптимизатор превращает в соединения. Медленным бывает скалярный коррелированный подзапрос в SELECT по большой таблице без индекса.</p>
+</section>
+
+<!-- ===================== 25. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Почему NOT IN не превращается в Anti Join?</h2>
+  <p>Для <code>NOT EXISTS</code> PostgreSQL строит Anti Join, а для внешне похожего <code>NOT IN</code> — нет.</p>
+  <ul>
+    <li>Что мешает оптимизатору считать их эквивалентными?</li>
+    <li>Изменится ли что-то, если столбец подзапроса объявлен <code>NOT NULL</code>?</li>
+    <li>Какое правило код-ревью вы бы ввели в команде аналитиков?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: семантика различается при NULL — NOT IN может дать UNKNOWN для всех строк, Anti Join так не умеет; поэтому планировщик оставляет SubPlan. Даже при NOT NULL-столбце PostgreSQL 16 не переписывает NOT IN в Anti Join (это оптимизация, которой нет в ядре). Правило: «NOT IN (подзапрос) — запрещено, используем NOT EXISTS; NOT IN (список констант) — можно».</aside>
+</section>
+
+<!-- ===================== 26. РАЗДЕЛ 4 ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Подзапросы в HAVING и ORDER BY. Подзапрос или JOIN?</h2>
+</section>
+
+<!-- ===================== 27. HAVING И ORDER BY ===================== -->
+<section>
+  <h2>Подзапросы в HAVING и ORDER BY</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- менеджеры со средней скидкой выше средней
+SELECT o.employee_id,
+       e.full_name,
+       ROUND(AVG(oi.discount_pct), 2) AS avg_discount
+FROM   orders      AS o
+JOIN   order_items AS oi ON oi.order_id = o.order_id
+JOIN   employees   AS e  ON e.employee_id = o.employee_id
+GROUP  BY o.employee_id, e.full_name
+HAVING AVG(oi.discount_pct) &gt;
+       (SELECT AVG(discount_pct) FROM order_items)
+ORDER  BY avg_discount DESC;
+-- 10 Соколов 18.02 · 60 Попов 8.21
+      </code></pre>
+    </div>
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- клиенты по объёму возвратов
+SELECT c.customer_name
+FROM   customers AS c
+ORDER  BY (SELECT COALESCE(SUM(r.quantity), 0)
+           FROM   returns r
+           JOIN   orders  o ON o.order_id = r.order_id
+           WHERE  o.customer_id = c.customer_id) DESC
+LIMIT  3;
+-- АО "Перекрёсток Регион"
+-- АО "Сатурн"
+-- АО "Полюс"
+      </code></pre>
+      <div class="box info"><b>Заметьте</b>Все три лидера по возвратам — из Сибири. Совпадение?</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 28. ПОДЗАПРОС ИЛИ JOIN ===================== -->
+<section>
+  <h2>Подзапрос или JOIN?</h2>
+  <div class="two-col" style="gap:1em">
+    <div>
+      <pre class="small-code" style="margin-top:0"><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*) FROM customers
+WHERE  customer_id IN (SELECT customer_id
+                       FROM   orders
+                       WHERE  channel = 'Маркетплейс');
+-- 3
+
+SELECT COUNT(*) FROM customers c
+JOIN   orders o ON o.customer_id = c.customer_id
+             AND o.channel = 'Маркетплейс';
+-- 175 — строки размножились по заказам
+      </code></pre>
+    </div>
+    <div>
+      <table class="t" style="font-size:.5em;margin-top:0">
+        <tr><th>Нужно</th><th>Выбор</th></tr>
+        <tr><td>только факт наличия / отсутствия</td><td><code>EXISTS</code>, <code>IN</code></td></tr>
+        <tr><td>«нет связанных строк»</td><td><code>NOT EXISTS</code></td></tr>
+        <tr><td>столбцы второй таблицы в результате</td><td><code>JOIN</code></td></tr>
+        <tr><td>несколько агрегатов по связанной таблице</td><td><code>JOIN</code> + <code>GROUP BY</code> или LATERAL</td></tr>
+        <tr><td>сравнение с показателем группы</td><td>коррелированный подзапрос или JOIN с производной таблицей</td></tr>
+      </table>
+    </div>
+  </div>
+  <h3 style="font-size:.7em;margin:.3em 0 .2em;color:var(--accent2)">Антипаттерн: несколько коррелированных подзапросов к одной таблице</h3>
+  <div class="two-col" style="gap:1em">
+    <div>
+      <pre class="small-code" style="margin:0"><code class="language-sql" data-trim data-noescape>
+-- ✘ 3 подзапроса = 3 прохода по orders на КАЖДОГО клиента
+SELECT c.customer_name,
+       (SELECT COUNT(*)          FROM orders o
+        WHERE  o.customer_id = c.customer_id) AS orders_cnt,
+       (SELECT MIN(o.order_date) FROM orders o
+        WHERE  o.customer_id = c.customer_id) AS first_order,
+       (SELECT MAX(o.order_date) FROM orders o
+        WHERE  o.customer_id = c.customer_id) AS last_order
+FROM   customers AS c;
+-- план: SubPlan 1, 3, 5 — каждый loops=73 → 219 запусков, 4.8 мс
+      </code></pre>
+    </div>
+    <div class="fragment">
+      <pre class="small-code" style="margin:0"><code class="language-sql" data-trim data-noescape>
+-- ✔ один проход: LEFT JOIN + GROUP BY
+SELECT c.customer_name,
+       COUNT(o.order_id)  AS orders_cnt,   -- не COUNT(*)!
+       MIN(o.order_date)  AS first_order,
+       MAX(o.order_date)  AS last_order
+FROM   customers AS c
+LEFT   JOIN orders AS o ON o.customer_id = c.customer_id
+GROUP  BY c.customer_id, c.customer_name;
+-- план: Hash Right Join + HashAggregate, 2.2 мс
+-- результат тот же: Лента-Сервис 146 · 2024-01-02 · 2025-12-28
+      </code></pre>
+    </div>
+  </div>
+  <aside class="notes">Сначала покажите антипаттерн и спросите: сколько раз СУБД обратится к orders? (3 × 73 = 219; в EXPLAIN ANALYZE — три SubPlan с loops=73.) Затем клик — исправление. Вопросы: почему LEFT, а не просто JOIN? (Клиент без заказов, id 73, пропал бы.) Почему COUNT(o.order_id), а не COUNT(*)? (Для клиента без заказов LEFT JOIN даёт одну строку с NULL — COUNT(*) насчитал бы 1, COUNT(o.order_id) даёт 0.) На 73 клиентах разница 2×, на миллионе — порядки. Ещё одна ловушка: если добавить в JOIN order_items ради выручки, COUNT(o.order_id) размножится по позициям — тогда COUNT(DISTINCT o.order_id) или предагрегация в производной таблице. Цифры проверены на БД.</aside>
+</section>
+
+<!-- ===================== 29. КЕЙС: КРЕДИТНЫЙ ЛИМИТ ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «отгружаем должникам?» <span class="badge team-a">Команда А</span></h2>
+  <p style="font-size:.8em">Служба безопасности утверждает: «Отгрузки клиентам с долгом выше лимита блокируются системой». Проверим.</p>
+  <div class="two-col">
+    <div style="flex:1.3">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT c.customer_name, c.credit_limit
+FROM   customers AS c
+WHERE  EXISTS (
+  SELECT 1
+  FROM   orders AS o
+  WHERE  o.customer_id = c.customer_id
+    AND  o.shipped_date IS NOT NULL
+    AND  (SELECT COALESCE(SUM(i.amount), 0)
+          FROM   invoices i JOIN orders o2 ON o2.order_id = i.order_id
+          WHERE  o2.customer_id = c.customer_id       -- корреляция с c
+            AND  i.invoice_date &lt; o.shipped_date)      -- корреляция с o
+       - (SELECT COALESCE(SUM(p.amount), 0)
+          FROM   payments p
+          JOIN   invoices i  ON i.invoice_id = p.invoice_id
+          JOIN   orders   o2 ON o2.order_id  = i.order_id
+          WHERE  o2.customer_id = c.customer_id
+            AND  p.payment_date &lt; o.shipped_date) &gt; c.credit_limit);
+      </code></pre>
+    </div>
+    <div>
+      <p style="font-size:.7em"><b>Обсудите в парах (3 мин):</b></p>
+      <ol style="font-size:.68em">
+        <li>Что вернёт запрос, если утверждение СБ верно?</li>
+        <li>На каких уровнях здесь корреляция?</li>
+        <li>Как узнать, сколько отгрузок и на какую сумму прошло «сверх лимита»?</li>
+      </ol>
+    </div>
+  </div>
+  <aside class="notes">Запрос возвращает 1 строку — ООО "Торговый дом Вектор", лимит 3 млн, текущий долг 6,9 млн. Детализация (в лабораторной А-7): 22 отгрузки с 03.07.2025 по 27.12.2025 на 4,11 млн руб. Корреляция двухуровневая: скалярные подзапросы ссылаются и на c (клиент), и на o (конкретная отгрузка). Не раскрывайте цифры до лабораторной — пусть команда А получит их сама.</aside>
+</section>
+
+<!-- ===================== 30. ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: спроектируйте подзапрос</h2>
+  <p style="font-size:.75em">Не пишите код сразу. На листе/доске: какой вид подзапроса, где он стоит, на что ссылается, какой ожидаемый масштаб результата.</p>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      «Какие продукты продаются по цене ниже себестоимости, и с какого момента это началось?»
+      <ul><li>где взять себестоимость — JOIN или скалярный подзапрос?</li><li>как посчитать убыток в рублях?</li><li>как проверить, началось ли это в 2025 г.?</li></ul></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      «У каких поставщиков мы покупаем дороже, чем могли бы?»
+      <ul><li>что считать «могли бы»: среднюю, минимальную, среднюю за тот же квартал?</li><li>где нужна корреляция и по каким столбцам?</li><li>как превратить это в рубли?</li></ul></div>
+  </div>
+  <span class="timer">⏱ 10 мин</span>
+  <aside class="notes">Цель — проговорить дизайн до кода. Команда А должна прийти к коррелированному скалярному подзапросу к products и разбивке по кварталам (убыток по маслу есть с 2024 г., т.к. standard_cost актуальный, — хороший повод обсудить ограничения данных). Команда Б — к сравнению со средней по материалу в том же периоде и к «лучшей цене» как минимуму средних цен поставщиков. Решения — в лабораторной (А-1, Б-1, Б-2).</aside>
+</section>
+
+<!-- ===================== 31. ОБСУЖДЕНИЕ: АНОМАЛИЯ ===================== -->
+<section class="discussion-slide">
+  <h2>«Выше среднего» — это уже аномалия?</h2>
+  <p>Запрос «закупки дороже средней цены своего материала» вернул <b>1 157 из 2 328</b> позиций.</p>
+  <ul>
+    <li>Почему почти половина? Это ошибка запроса?</li>
+    <li>Как сформулировать критерий, который выделит действительно подозрительные закупки?</li>
+    <li>Какие факторы могут законно поднимать цену (сезон, инфляция, объём партии)?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: по определению среднего примерно половина значений выше него — это не аномалия. Нужен порог (на 10 % выше), сравнение в том же периоде (квартал — снимает тренд цены молочного жира +28 % в 2025 г.), сравнение с лучшей альтернативой. С уточнённым критерием (+10 % к средней за квартал) остаётся 11 пар «поставщик × материал», 10 из них — один поставщик.</aside>
+</section>
+
+<!-- ===================== 32. ИТОГОВЫЙ КВИЗ ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: выберите лучший инструмент</h2>
+  <p>Нужно найти материалы, которые <b>ни разу не списывались</b>. В <code>material_writeoffs.material_id</code> NULL быть не может (NOT NULL). Какой вариант <b>надёжнее</b> всего на будущее?</p>
+  <ul class="quiz">
+    <li><code>WHERE material_id NOT IN (SELECT material_id FROM material_writeoffs)</code></li>
+    <li data-correct><code>WHERE NOT EXISTS (SELECT 1 FROM material_writeoffs w WHERE w.material_id = m.material_id)</code></li>
+    <li><code>JOIN material_writeoffs w ON w.material_id &lt;&gt; m.material_id</code></li>
+    <li><code>WHERE material_id &lt;&gt; ANY (SELECT material_id FROM material_writeoffs)</code></li>
+  </ul>
+  <p class="explain">Сегодня NOT IN тоже сработает, но NOT EXISTS не зависит от NULL и даёт Anti Join. JOIN с &lt;&gt; размножает строки, а &lt;&gt; ANY истинно почти всегда.</p>
+</section>
+
+<!-- ===================== 33. ЛАБОРАТОРНАЯ ===================== -->
+<section>
+  <h2>Лабораторная работа №5</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ul><li>продажи ниже себестоимости</li><li>менеджеры со скидкой выше средней, скидки «&gt; ALL»</li><li>«уснувшие» клиенты (NOT EXISTS)</li><li>продукты с долей возвратов выше средней</li><li>долг выше лимита и отгрузки после превышения (EXISTS)</li></ul></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ul><li>закупки дороже средней цены материала</li><li>переплата к лучшей цене</li><li>поставщики без отклонённых поставок (NOT EXISTS)</li><li>брак выше среднего по своей линии</li><li>закупали и списывали (EXISTS), перерасход сверх нормы</li></ul></div>
+  </div>
+  <p class="small">Инструкция: <code>module_05/lab.md</code> · 45 мин в аудитории + 25 мин самостоятельно · защита 10 мин · итог — «Вывод для руководства» с цифрами.</p>
+</section>
+
+<!-- ===================== 34. ИТОГИ ===================== -->
+<section>
+  <h2>Что запомнить</h2>
+  <div class="two-col">
+    <div>
+      <ul style="font-size:.78em">
+        <li>Скалярный подзапрос: ≥ 2 строк — ошибка, 0 строк — <code>NULL</code></li>
+        <li><code>ALL</code> на пустом наборе — TRUE; на наборе с NULL — не TRUE</li>
+        <li>Коррелированный подзапрос = «показатель своей группы»; следите за псевдонимами</li>
+        <li><span class="orange">NOT IN + NULL = пустой результат</span>. По умолчанию — <code>NOT EXISTS</code></li>
+        <li>EXISTS/NOT EXISTS превращаются в Semi/Anti Join — это быстро</li>
+        <li>JOIN — когда нужны столбцы и агрегаты второй таблицы; EXISTS — когда нужен только факт</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box ok"><b>Инструмент аналитика</b>Подзапрос позволяет сравнить каждую строку с «нормой» — средним, лимитом, лучшей ценой — и найти отклонения, то есть потери.</div>
+      <div class="box info"><b>Следующий модуль — 6 «Объединение наборов»</b>UNION/INTERSECT/EXCEPT соберут разрозненные события (счета, оплаты, брак, простои) в единую ленту, а LATERAL решит top-N на группу элегантнее, чем коррелированный COUNT.</div>
+    </div>
+  </div>
+  <aside class="notes">Домашнее задание: доделать задания ★ лабораторной. Попросить команды сохранить «Вывод для руководства» — он пойдёт в итоговую защиту (модуль 12).</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Схема «коррелированный подзапрос»: подсветка текущей строки p и строк, видимых подзапросу (фрагменты .sd-step)
+function sdUpdate(slide){
+  if(!slide||!slide.classList.contains('sd-corr')) return;
+  var steps=slide.querySelectorAll('.sd-step'), k=slide.querySelectorAll('.sd-step.visible').length;
+  var st=k>0?steps[k-1]:null, cat=st?st.getAttribute('data-param'):null;
+  slide.querySelectorAll('tr[data-o]').forEach(function(tr){
+    var i=+tr.getAttribute('data-o');
+    tr.classList.toggle('cur',i===k); tr.classList.toggle('out',k>0&&i>k);
+    tr.classList.toggle('hit',k>=steps.length&&!!tr.querySelector('td.yes'));
+    tr.querySelectorAll('td.res,td.mark').forEach(function(td){td.style.color=(k>0&&i<=k)?'':'transparent';});
+  });
+  var hl=st&&st.hasAttribute('data-hit')?st.getAttribute('data-hit').split(','):null;
+  slide.querySelectorAll('tr[data-c]').forEach(function(tr){
+    var hit=hl?hl.indexOf(tr.getAttribute('data-id'))>=0:(cat!==null&&tr.getAttribute('data-c')===cat);
+    tr.classList.toggle('inf',hit); tr.classList.toggle('out',cat!==null&&!hit);
+  });
+  var p=slide.querySelector('.sd-param'); if(p) p.textContent=cat||'?';
+  var a=slide.querySelector('.sd-avg'); if(a){ if(!a.hasAttribute('data-orig')) a.setAttribute('data-orig',a.innerHTML); a.innerHTML=st?st.getAttribute('data-avg'):a.getAttribute('data-orig'); }
+  var live=slide.querySelector('.sd-live');
+  if(live){
+    if(!live.hasAttribute('data-orig')) live.setAttribute('data-orig',live.innerHTML);
+    live.innerHTML=st?'<b>Шаг '+k+' из '+steps.length+'</b>'+st.getAttribute('data-cap'):live.getAttribute('data-orig');
+  }
+}
+['ready','slidechanged','fragmentshown','fragmenthidden'].forEach(function(ev){
+  Reveal.on(ev,function(){sdUpdate(Reveal.getCurrentSlide());});
+});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
