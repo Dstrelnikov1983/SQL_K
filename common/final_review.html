@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Обзор курса — подготовка к итоговому тесту</title>
+<!--
+  Обзорная презентация курса «Углублённый SQL»: краткое содержание модулей 1–12
+  для подготовки к финальному квизу (final_quiz.html).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Квизы на слайдах — новые вопросы для самопроверки (не повторяют финальный квиз).
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+.card ul{margin-top:.2em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2;vertical-align:top}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p,.section-slide li{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+.section-slide ul{font-size:.75em;margin-top:.8em}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}
+.badge.team-b{background:var(--accent6)}
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+/* --- порядок выполнения --- */
+.steps{list-style:none;margin:0!important;padding:0;font-size:.66em}
+.steps li{display:flex;gap:10px;align-items:center;margin:.22em 0}
+.steps .n{flex:0 0 1.7em;height:1.7em;border-radius:50%;background:var(--accent1);color:#fff;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li.hot .n{background:var(--accent2)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +» · Обзор курса</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Обзор модулей 1–12</div>
+  <h1>Повторяем курс перед итоговым тестом</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">Главное из каждого модуля: синтаксис, ловушки, вопросы для самопроверки</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · учебная БД «Питание +» (схема <code>pitanie</code>)</div>
+  <aside class="notes">Презентация для самостоятельной подготовки и для обзорного занятия (60–90 мин) перед финальным квизом. Квизы на слайдах — новые вопросы, не повторяют финальный квиз.</aside>
+</section>
+
+<!-- ===================== 2. КАК ПОЛЬЗОВАТЬСЯ ===================== -->
+<section>
+  <h2>Как готовиться по этой презентации</h2>
+  <div class="two-col">
+    <div>
+      <ul style="font-size:.78em">
+        <li>На каждый модуль — <b>шпаргалка</b>, <b class="orange">ловушки</b> и <b class="green">квиз</b> для самопроверки</li>
+        <li>Кликните по варианту ответа: верный подсветится и появится пояснение</li>
+        <li>Ошиблись — откройте <code>examples.sql</code> этого модуля и выполните пример на учебной БД</li>
+        <li><code>Esc</code> — обзор всех слайдов, переход сразу к нужному модулю</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box info"><b>Финальный квиз</b>31 вопрос · 30 минут · 1 балл за вопрос. В вопросах с несколькими ответами балл даётся только за полностью верный набор.</div>
+      <div class="box warn"><b>Чаще всего теряют баллы на</b>NULL, рамке окна по умолчанию, условии в <code>ON</code> против <code>WHERE</code> и поведении транзакции после ошибки.</div>
+      <div class="box ok"><b>Порог «уверенного уровня»</b>75 % и выше.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. КАРТА КУРСА ===================== -->
+<section>
+  <h2>Карта курса: 12 модулей</h2>
+  <table class="t">
+    <tr><th>№</th><th>Модуль</th><th>Ключевые конструкции</th><th>Что проверяют в тесте</th></tr>
+    <tr><td>1</td><td>Сортировка и фильтрация</td><td>WHERE, LIKE, ~, NULLS LAST, FETCH FIRST</td><td>OFFSET/FETCH, WITH TIES</td></tr>
+    <tr><td>2</td><td>Типы данных и функции</td><td>numeric, ::, to_char, date_trunc, CASE</td><td>приведение типов, даты, строки</td></tr>
+    <tr><td>3</td><td>Несколько таблиц</td><td>INNER/LEFT/FULL/CROSS, SELF-JOIN</td><td>условие в ON или в WHERE</td></tr>
+    <tr><td>4</td><td>Группировка</td><td>GROUP BY, HAVING, FILTER, ROLLUP, CUBE</td><td>число строк с итогами, HAVING</td></tr>
+    <tr><td>5</td><td>Подзапросы</td><td>скалярные, IN/ANY/ALL, EXISTS</td><td>NOT IN и NULL, ошибка скалярного</td></tr>
+    <tr><td>6</td><td>Операции над наборами</td><td>UNION [ALL], INTERSECT, EXCEPT, LATERAL</td><td>дубли, APPLY → LATERAL</td></tr>
+    <tr><td>7</td><td>Модификация данных</td><td>INSERT … SELECT, UPDATE … FROM, MERGE</td><td>MERGE, RETURNING</td></tr>
+    <tr><td>8</td><td>Оконные функции</td><td>RANK, SUM OVER, ROWS/RANGE, LAG/LEAD</td><td>ранги, рамка по умолчанию</td></tr>
+    <tr><td>9</td><td>CTE, представления, функции</td><td>WITH [RECURSIVE], VIEW, RETURNS TABLE</td><td>рекурсия, табличные функции</td></tr>
+    <tr><td>10</td><td>PL/pgSQL</td><td>DO, переменные, циклы, EXCEPTION, EXECUTE</td><td>циклы, перехват ошибок, RAISE</td></tr>
+    <tr><td>11</td><td>Транзакции</td><td>BEGIN, SAVEPOINT, FOR UPDATE, изоляция</td><td>ошибка в транзакции, deadlock</td></tr>
+    <tr><td>12</td><td>Хранимые процедуры</td><td>CREATE PROCEDURE, CALL, системные представления</td><td>процедура против функции, sp_who</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 4. ПОРЯДОК ВЫПОЛНЕНИЯ ===================== -->
+<section>
+  <h2>Главная схема курса: логический порядок выполнения запроса</h2>
+  <div class="two-col">
+    <div style="flex:1.25">
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+SELECT   c.customer_type,                          -- 6
+         date_trunc('month', o.order_date) AS mon, -- 6
+         SUM(oi.quantity * oi.unit_price
+             * (1 - oi.discount_pct / 100))  AS revenue,
+         RANK() OVER (PARTITION BY c.customer_type
+                      ORDER BY SUM(oi.quantity * oi.unit_price
+                               * (1 - oi.discount_pct / 100)) DESC)
+                                             AS rnk -- 5
+FROM     pitanie.orders      AS o                   -- 1
+JOIN     pitanie.order_items AS oi ON oi.order_id = o.order_id
+JOIN     pitanie.customers   AS c  ON c.customer_id = o.customer_id
+WHERE    o.status &lt;&gt; 'Отменён'                      -- 2
+GROUP BY c.customer_type,
+         date_trunc('month', o.order_date)          -- 3
+HAVING   COUNT(DISTINCT o.order_id) &gt;= 10           -- 4
+ORDER BY c.customer_type, rnk                       -- 8
+LIMIT    20;                                        -- 9
+      </code></pre>
+    </div>
+    <div style="flex:.75">
+      <ol class="steps">
+        <li><span class="n">1</span><b>FROM / JOIN</b> — собрать строки</li>
+        <li><span class="n">2</span><b>WHERE</b> — отфильтровать строки</li>
+        <li><span class="n">3</span><b>GROUP BY</b> — сформировать группы</li>
+        <li><span class="n">4</span><b>HAVING</b> — отфильтровать группы</li>
+        <li class="hot"><span class="n">5</span><b>Оконные функции</b></li>
+        <li><span class="n">6</span><b>SELECT</b> — выражения, алиасы</li>
+        <li><span class="n">7</span><b>DISTINCT</b>, затем UNION / EXCEPT…</li>
+        <li><span class="n">8</span><b>ORDER BY</b> — алиасы уже видны</li>
+        <li><span class="n">9</span><b>LIMIT / OFFSET / FETCH</b></li>
+      </ol>
+      <div class="box warn" style="font-size:.6em"><b>Отсюда следуют правила</b>Алиас из SELECT нельзя в WHERE и HAVING · агрегат нельзя в WHERE · окно нельзя в WHERE и HAVING — только через подзапрос/CTE.</div>
+    </div>
+  </div>
+  <aside class="notes">Попросите слушателей до показа пунктов назвать порядок самостоятельно. Статусы заказов в БД: Новый, В работе, Отгружен, Доставлен, Отменён.</aside>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 1 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Сортировка и фильтрация</h2>
+  <ul><li>предикаты WHERE и их приоритет</li><li>NULL и трёхзначная логика</li><li>ORDER BY, LIMIT, OFFSET … FETCH, WITH TIES</li></ul>
+</section>
+
+<section>
+  <h2>М1. Фильтрация и NULL</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT customer_name, email, region_id
+FROM   pitanie.customers
+WHERE  customer_type IN ('Розница', 'HoReCa')
+  AND  registration_date &gt;= DATE '2024-01-01'
+  AND  registration_date &lt;  DATE '2025-01-01'
+  AND  (email IS NULL
+        OR email !~* '^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]+$')
+  AND  region_id IS DISTINCT FROM 1;
+      </code></pre>
+      <ul style="font-size:.66em">
+        <li>Приоритет: <code>NOT</code> → <code>AND</code> → <code>OR</code>; ставьте скобки</li>
+        <li>Период — полуоткрытый интервал <code>&gt;=</code> … <code>&lt;</code>, а не BETWEEN для timestamp</li>
+        <li><code>BETWEEN a AND b</code> включает обе границы</li>
+        <li><code>LIKE</code> / <code>ILIKE</code> (без регистра): <code>%</code> — любые символы, <code>_</code> — один</li>
+        <li>Регулярные выражения: <code>~</code>, <code>~*</code>, <code>!~</code>, <code>!~*</code></li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Выражение</th><th>Результат</th></tr>
+        <tr><td><code>NULL = NULL</code></td><td class="hl">NULL (UNKNOWN)</td></tr>
+        <tr><td><code>NULL &lt;&gt; 1</code></td><td class="hl">NULL</td></tr>
+        <tr><td><code>NULL IS NULL</code></td><td>TRUE</td></tr>
+        <tr><td><code>NULL IS DISTINCT FROM 1</code></td><td>TRUE</td></tr>
+        <tr><td><code>TRUE OR NULL</code></td><td>TRUE</td></tr>
+        <tr><td><code>FALSE AND NULL</code></td><td>FALSE</td></tr>
+        <tr><td><code>TRUE AND NULL</code></td><td class="hl">NULL</td></tr>
+        <tr><td><code>COALESCE(NULL, 0)</code></td><td>0</td></tr>
+        <tr><td><code>NULLIF(5, 5)</code></td><td>NULL</td></tr>
+      </table>
+      <div class="box warn"><b>WHERE пропускает только TRUE</b>Строки, где условие дало UNKNOWN, отбрасываются. <code>region_id &lt;&gt; 1</code> не вернёт клиентов с <code>region_id IS NULL</code>.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М1. Сортировка и ограничение результата</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- топ-5 самых дорогих продуктов + все «равные» пятому
+SELECT product_name, base_price
+FROM   pitanie.products
+ORDER  BY base_price DESC
+FETCH  FIRST 5 ROWS WITH TIES;
+
+-- третья страница по 20 строк
+SELECT invoice_number, amount
+FROM   pitanie.invoices
+ORDER  BY amount DESC, invoice_id   -- уникальный «добивающий» ключ
+LIMIT  20 OFFSET 40;
+
+-- keyset-пагинация: «после последней показанной»
+SELECT invoice_id, invoice_number, amount
+FROM   pitanie.invoices
+WHERE  invoice_id &gt; 1240
+ORDER  BY invoice_id
+LIMIT  20;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>T-SQL</th><th>PostgreSQL</th></tr>
+        <tr><td><code>TOP (5)</code></td><td><code>LIMIT 5</code> / <code>FETCH FIRST 5 ROWS ONLY</code></td></tr>
+        <tr><td><code>TOP (5) WITH TIES</code></td><td><code>FETCH FIRST 5 ROWS WITH TIES</code> (PG 13+)</td></tr>
+        <tr><td><code>OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY</code></td><td>то же или <code>LIMIT 20 OFFSET 40</code></td></tr>
+        <tr><td><code>ORDER BY NEWID()</code></td><td><code>ORDER BY random()</code></td></tr>
+      </table>
+      <div class="box info"><b>NULL при сортировке в PostgreSQL</b>NULL считается «больше всех»: <code>ASC</code> → в конце, <code>DESC</code> → в начале. Управление: <code>NULLS FIRST</code> / <code>NULLS LAST</code>.</div>
+      <div class="box warn"><b>Без ORDER BY порядок не гарантирован</b>LIMIT без сортировки возвращает «какие-то» строки. WITH TIES требует ORDER BY.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М1: NULL в сортировке</h2>
+  <p style="font-size:.8em">У трёх клиентов не заполнен <code>email</code>. Где они окажутся в результате?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT customer_name, email
+FROM   pitanie.customers
+ORDER  BY email DESC;
+  </code></pre>
+  <ul class="quiz">
+    <li>В конце списка</li>
+    <li data-correct>В начале списка</li>
+    <li>Не попадут в результат</li>
+    <li>Запрос завершится ошибкой</li>
+  </ul>
+  <p class="explain">В PostgreSQL NULL при сортировке считается больше любого значения, поэтому при <code>DESC</code> идёт первым. Чтобы убрать их вниз, допишите <code>NULLS LAST</code>. В SQL Server поведение обратное: NULL считается наименьшим.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 2 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Типы данных и встроенные функции</h2>
+  <ul><li>numeric против float, приведение типов</li><li>строки, даты, интервалы</li><li>CASE, COALESCE, NULLIF</li></ul>
+</section>
+
+<section>
+  <h2>М2. Типы и приведение</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Выражение</th><th>Результат</th></tr>
+        <tr><td><code>7 / 2</code></td><td class="hl">3 (целочисленное деление)</td></tr>
+        <tr><td><code>7 / 2.0</code>, <code>7::numeric / 2</code></td><td>3.5000000000000000</td></tr>
+        <tr><td><code>'42'::integer</code></td><td>42</td></tr>
+        <tr><td><code>'12.7'::integer</code></td><td class="hl">ошибка invalid input syntax</td></tr>
+        <tr><td><code>'12.7'::numeric::integer</code></td><td>13 (округление)</td></tr>
+        <tr><td><code>TRUNC(12.7)</code></td><td>12</td></tr>
+        <tr><td><code>ROUND(2.345, 2)</code></td><td>2.35</td></tr>
+        <tr><td><code>0.1 + 0.2 = 0.3</code></td><td>true (numeric)</td></tr>
+        <tr><td><code>0.1::float8 + 0.2::float8 = 0.3</code></td><td class="hl">false</td></tr>
+        <tr><td><code>100 / NULLIF(0, 0)</code></td><td>NULL вместо ошибки</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="box ok"><b>Деньги — только numeric</b><code>numeric(p, s)</code> — точная десятичная арифметика; <code>real/float8</code> — двоичные, с погрешностью.</div>
+      <div class="box info"><b>Два синтаксиса приведения</b><code>CAST(x AS numeric)</code> — стандарт SQL, <code>x::numeric</code> — PostgreSQL. Результат одинаковый.</div>
+      <div class="box warn"><b>ИНН, телефон, артикул — строки</b>Иначе теряются ведущие нули и появляются «числа» вроде 7.7e+11.</div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- доля брака в процентах: не забудьте 100.0
+SELECT line_id,
+       ROUND(100.0 * SUM(defect_qty)
+             / NULLIF(SUM(produced_qty), 0), 2) AS defect_pct
+FROM   pitanie.production_batches
+GROUP  BY line_id;
+      </code></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М2. Строки и даты</h2>
+  <div class="two-col">
+    <div>
+      <h3>Строки</h3>
+      <table class="t">
+        <tr><th>Выражение</th><th>Результат</th></tr>
+        <tr><td><code>'А' || NULL</code></td><td class="hl">NULL</td></tr>
+        <tr><td><code>concat('А', NULL, 'Б')</code></td><td>'АБ'</td></tr>
+        <tr><td><code>concat_ws(', ', 'А', NULL, 'Б')</code></td><td>'А, Б'</td></tr>
+        <tr><td><code>UPPER(TRIM('  ооо  '))</code></td><td>'ООО'</td></tr>
+        <tr><td><code>split_part('П240101-1Д', '-', 2)</code></td><td>'1Д'</td></tr>
+        <tr><td><code>SUBSTRING('П240101' FROM 2 FOR 6)</code></td><td>'240101'</td></tr>
+        <tr><td><code>regexp_replace(phone, '\D', '', 'g')</code></td><td>только цифры</td></tr>
+        <tr><td><code>LENGTH('Сыр')</code></td><td>3 (символа)</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Даты и интервалы</h3>
+      <table class="t">
+        <tr><th>Выражение</th><th>Тип результата</th></tr>
+        <tr><td><code>date − date</code></td><td>integer (дни)</td></tr>
+        <tr><td><code>timestamp − timestamp</code></td><td>interval</td></tr>
+        <tr><td><code>date + 7</code></td><td>date</td></tr>
+        <tr><td><code>date + INTERVAL '1 month'</code></td><td>timestamp</td></tr>
+        <tr><td><code>'2025-01-31' + 1 month</code></td><td>2025-02-28 (прижим к концу месяца)</td></tr>
+        <tr><td><code>date_trunc('month', d)</code></td><td>1-е число месяца, 00:00</td></tr>
+        <tr><td><code>EXTRACT(EPOCH FROM interval) / 3600</code></td><td>часы (numeric)</td></tr>
+        <tr><td><code>to_char(d, 'YYYY-MM')</code></td><td>text</td></tr>
+        <tr><td><code>AGE(d2, d1)</code></td><td>interval «годы, месяцы, дни»</td></tr>
+      </table>
+      <div class="box warn"><b>Незакрытые простои</b><code>end_time IS NULL</code> → длительность NULL. Используйте <code>COALESCE(end_time, now())</code> осознанно.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М2. CASE: две формы</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT oi.order_item_id,
+       oi.discount_pct,
+       CASE
+           WHEN oi.discount_pct = 0   THEN 'без скидки'
+           WHEN oi.discount_pct &lt;= 10 THEN 'по политике'
+           ELSE 'сверх политики'
+       END AS discount_band,
+       CASE o.channel                    -- простая форма
+           WHEN 'Маркетплейс' THEN 'онлайн'
+           ELSE 'офлайн'
+       END AS channel_group
+FROM   pitanie.order_items AS oi
+JOIN   pitanie.orders      AS o ON o.order_id = oi.order_id;
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.72em">
+        <li>Ветки проверяются <b>сверху вниз</b>, срабатывает первая TRUE</li>
+        <li>Без <code>ELSE</code> результат — <b class="orange">NULL</b></li>
+        <li>Все ветки должны давать совместимый тип</li>
+        <li>Простая форма <code>CASE x WHEN NULL</code> никогда не сработает — нужна поисковая форма с <code>IS NULL</code></li>
+        <li>CASE — выражение: можно в SELECT, WHERE, ORDER BY, GROUP BY и внутри агрегатов</li>
+      </ul>
+      <div class="box info"><b>Сокращения</b><code>COALESCE(a, b, c)</code> — первое не-NULL. <code>NULLIF(a, b)</code> — NULL, если a = b. <code>GREATEST</code> / <code>LEAST</code> игнорируют NULL.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М2: тип результата</h2>
+  <p style="font-size:.8em">Что вернёт выражение?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT DATE '2025-03-10' - DATE '2025-03-01';
+  </code></pre>
+  <ul class="quiz">
+    <li><code>interval '9 days'</code></li>
+    <li data-correct><code>9</code> (integer)</li>
+    <li><code>2025-00-09</code></li>
+    <li>Ошибка: даты нельзя вычитать</li>
+  </ul>
+  <p class="explain">Разность двух <code>date</code> — целое число дней. Разность двух <code>timestamp</code> — <code>interval</code>. Для просрочки оплаты (<code>payment_date − due_date</code>) удобно именно число.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 3 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Извлечение данных из нескольких таблиц</h2>
+  <ul><li>CROSS, INNER, LEFT, RIGHT, FULL JOIN</li><li>условие в ON против WHERE, anti-join</li><li>SELF-JOIN и «размножение» строк</li></ul>
+</section>
+
+<section>
+  <h2>М3. Виды соединений</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Вид</th><th>Что вернёт</th></tr>
+        <tr><td><code>CROSS JOIN</code></td><td>каждую строку A с каждой строкой B (|A| × |B|)</td></tr>
+        <tr><td><code>[INNER] JOIN</code></td><td>только пары, где условие TRUE</td></tr>
+        <tr><td><code>LEFT JOIN</code></td><td>все строки A; без пары — NULL в столбцах B</td></tr>
+        <tr><td><code>RIGHT JOIN</code></td><td>все строки B (зеркально LEFT)</td></tr>
+        <tr><td><code>FULL JOIN</code></td><td>все строки обеих таблиц</td></tr>
+        <tr><td><code>JOIN … USING (col)</code></td><td>равенство одноимённых столбцов, столбец один раз</td></tr>
+        <tr><td><code>NATURAL JOIN</code></td><td>по всем одноимённым столбцам — опасно</td></tr>
+      </table>
+      <div class="box info"><b>JOIN = декартово произведение + фильтр</b>Удобная модель для подсчёта строк в задачах теста.</div>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- счета без единой оплаты (anti-join)
+SELECT i.invoice_number,
+       i.amount,
+       c.customer_name
+FROM   pitanie.invoices  AS i
+JOIN   pitanie.orders    AS o ON o.order_id    = i.order_id
+JOIN   pitanie.customers AS c ON c.customer_id = o.customer_id
+LEFT   JOIN pitanie.payments AS p
+       ON p.invoice_id = i.invoice_id
+WHERE  p.payment_id IS NULL;
+      </code></pre>
+      <div class="box warn"><b>Проверка «нет пары»</b>Проверяйте на NULL столбец правой таблицы, который в принципе не может быть NULL (первичный ключ).</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М3. Главная ловушка: условие в ON или в WHERE</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- A: все клиенты + их заказы за 2025 год
+SELECT c.customer_name, COUNT(o.order_id) AS orders_2025
+FROM   pitanie.customers AS c
+LEFT   JOIN pitanie.orders AS o
+       ON  o.customer_id = c.customer_id
+       AND o.order_date &gt;= DATE '2025-01-01'
+GROUP  BY c.customer_name;
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- B: клиенты без заказов в 2025 исчезли!
+SELECT c.customer_name, COUNT(o.order_id) AS orders_2025
+FROM   pitanie.customers AS c
+LEFT   JOIN pitanie.orders AS o
+       ON  o.customer_id = c.customer_id
+WHERE  o.order_date &gt;= DATE '2025-01-01'
+GROUP  BY c.customer_name;
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.72em">
+        <li>Условие на <b>правую</b> таблицу LEFT JOIN в <code>WHERE</code> отбрасывает строки с NULL → LEFT превращается в INNER</li>
+        <li>Условие на <b>левую</b> таблицу в <code>ON</code> не фильтрует левую — её строки сохраняются все</li>
+        <li>Используйте <code>COUNT(o.order_id)</code>, а не <code>COUNT(*)</code>: иначе клиент без заказов даст 1</li>
+      </ul>
+      <div class="box warn"><b>Размножение строк</b>Соединение «один ко многим» с двумя дочерними таблицами (позиции + оплаты) умножает строки: суммы завышаются. Агрегируйте каждую ветку отдельно, потом соединяйте.</div>
+      <div class="box info"><b>SELF-JOIN</b><code>employees e JOIN employees m ON m.employee_id = e.manager_id</code> — сотрудник и его руководитель.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М3: CROSS JOIN</h2>
+  <p style="font-size:.8em">В <code>production_lines</code> 5 строк, в календаре на январь — 31 день. Сколько строк вернёт запрос?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT l.line_id, d::date AS day
+FROM   pitanie.production_lines AS l
+CROSS  JOIN generate_series(DATE '2025-01-01',
+                            DATE '2025-01-31',
+                            INTERVAL '1 day') AS d;
+  </code></pre>
+  <ul class="quiz">
+    <li>31</li>
+    <li>36</li>
+    <li data-correct>155</li>
+    <li>5</li>
+  </ul>
+  <p class="explain">CROSS JOIN — декартово произведение: 5 × 31 = 155. Такая «сетка» линия × день нужна, чтобы потом LEFT JOIN-ом показать дни без выпуска нулями.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 4 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Группирование и агрегирование</h2>
+  <ul><li>COUNT, SUM, AVG и NULL, FILTER</li><li>WHERE против HAVING</li><li>ROLLUP, CUBE, GROUPING SETS, GROUPING()</li></ul>
+</section>
+
+<section>
+  <h2>М4. Агрегаты и HAVING</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT o.employee_id,
+       COUNT(*)                        AS items,
+       COUNT(DISTINCT o.order_id)      AS orders,
+       ROUND(AVG(oi.discount_pct), 2)  AS avg_disc,
+       COUNT(*) FILTER (WHERE oi.discount_pct &gt; 10)
+                                       AS over_policy,
+       STRING_AGG(DISTINCT o.channel, ', ') AS channels
+FROM   pitanie.orders      AS o
+JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+WHERE  o.order_date &gt;= DATE '2025-01-01'      -- строки
+GROUP  BY o.employee_id
+HAVING AVG(oi.discount_pct) &gt; 10              -- группы
+ORDER  BY avg_disc DESC;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Функция</th><th>Как считает NULL</th></tr>
+        <tr><td><code>COUNT(*)</code></td><td>все строки</td></tr>
+        <tr><td><code>COUNT(col)</code></td><td>только не-NULL</td></tr>
+        <tr><td><code>COUNT(DISTINCT col)</code></td><td>уникальные не-NULL</td></tr>
+        <tr><td><code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code></td><td>игнорируют NULL; на пустом наборе → NULL</td></tr>
+      </table>
+      <ul style="font-size:.66em">
+        <li>В SELECT — только столбцы из GROUP BY и агрегаты</li>
+        <li><code>WHERE</code> — до группировки, агрегаты в нём запрещены</li>
+        <li><code>HAVING</code> — после, по агрегатам</li>
+        <li><code>FILTER (WHERE …)</code> — условная агрегация вместо <code>SUM(CASE …)</code></li>
+      </ul>
+      <div class="box warn"><b>Среднее от процентов ≠ процент от сумм</b>Долю брака считайте как <code>SUM(defect) / SUM(produced)</code>, а не <code>AVG(defect_pct)</code>: «дробь носят в двух карманах».</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М4. Итоги: ROLLUP, CUBE, GROUPING SETS</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT CASE WHEN GROUPING(shift) = 1
+            THEN 'Итого' ELSE shift END        AS shift,
+       CASE WHEN GROUPING(line_id) = 1
+            THEN 'Все линии'
+            ELSE line_id::text END             AS line,
+       SUM(defect_qty)                          AS defects
+FROM   pitanie.production_batches
+GROUP  BY ROLLUP (shift, line_id)
+ORDER  BY GROUPING(shift), shift,
+          GROUPING(line_id), line_id;
+      </code></pre>
+      <div class="box info"><b>GROUPING(col)</b> = 1, если столбец «свёрнут» в итоговой строке. Отличает итог от настоящего NULL в данных.</div>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Конструкция</th><th>Наборы группировки</th><th>Для n столбцов</th></tr>
+        <tr><td><code>ROLLUP (a, b)</code></td><td>(a, b), (a), ()</td><td>n + 1</td></tr>
+        <tr><td><code>CUBE (a, b)</code></td><td>(a, b), (a), (b), ()</td><td>2<sup>n</sup></td></tr>
+        <tr><td><code>GROUPING SETS ((a), (b))</code></td><td>ровно перечисленные</td><td>—</td></tr>
+      </table>
+      <div class="box ok"><b>Как считать строки результата</b>Сложите число групп по каждому набору. 2 смены × 5 линий: ROLLUP = 10 + 2 + 1 = 13; CUBE = 10 + 2 + 5 + 1 = 18.</div>
+      <div class="box warn"><b>Порядок в ROLLUP важен</b><code>ROLLUP (shift, line_id)</code> даёт подытоги по сменам, <code>ROLLUP (line_id, shift)</code> — по линиям.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М4: COUNT и NULL</h2>
+  <p style="font-size:.8em">В таблице 4 строки, значения <code>v</code>: 10, NULL, 20, NULL. Что вернёт запрос?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT COUNT(*), COUNT(v), AVG(v)
+FROM   (VALUES (10), (NULL), (20), (NULL)) AS t (v);
+  </code></pre>
+  <ul class="quiz">
+    <li>4, 4, 7.5</li>
+    <li>2, 2, 15</li>
+    <li data-correct>4, 2, 15</li>
+    <li>4, 2, 7.5</li>
+  </ul>
+  <p class="explain"><code>COUNT(*)</code> считает строки (4), <code>COUNT(v)</code> — не-NULL значения (2). <code>AVG</code> делит сумму на число не-NULL: 30 / 2 = 15. Если NULL означает «ноль», нужно <code>AVG(COALESCE(v, 0))</code> = 7.5.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 5 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">05</div>
+  <h2>Вложенные запросы</h2>
+  <ul><li>скалярные, многострочные, табличные</li><li>коррелированные подзапросы</li><li>EXISTS / NOT EXISTS и ловушка NOT IN</li></ul>
+</section>
+
+<section>
+  <h2>М5. Виды подзапросов</h2>
+  <table class="t">
+    <tr><th>Вид</th><th>Где пишут</th><th>Пример</th><th>Особенность</th></tr>
+    <tr><td>Скалярный</td><td>SELECT, WHERE, HAVING</td><td><code>price &gt; (SELECT AVG(price) …)</code></td><td>0 строк → NULL; &gt; 1 строки → <b class="orange">ошибка</b></td></tr>
+    <tr><td>Многострочный</td><td>WHERE с IN, ANY, ALL</td><td><code>id IN (SELECT …)</code></td><td><code>&gt; ALL (пусто)</code> → TRUE; <code>= ANY (пусто)</code> → FALSE</td></tr>
+    <tr><td>Табличный</td><td>FROM (производная таблица)</td><td><code>FROM (SELECT …) AS t</code></td><td>алиас обязателен до PG 16</td></tr>
+    <tr><td>Коррелированный</td><td>любое место</td><td><code>WHERE x &gt; (SELECT AVG … WHERE t2.k = t1.k)</code></td><td>логически — для каждой строки внешнего</td></tr>
+    <tr><td>EXISTS</td><td>WHERE</td><td><code>WHERE EXISTS (SELECT 1 …)</code></td><td>важен только факт наличия строки</td></tr>
+  </table>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- партии с браком выше среднего по СВОЕЙ линии (коррелированный подзапрос)
+SELECT b.batch_number, b.line_id, b.shift,
+       ROUND(100.0 * b.defect_qty / b.produced_qty, 2) AS defect_pct
+FROM   pitanie.production_batches AS b
+WHERE  1.0 * b.defect_qty / b.produced_qty &gt;
+       (SELECT SUM(x.defect_qty)::numeric / SUM(x.produced_qty)
+        FROM   pitanie.production_batches AS x
+        WHERE  x.line_id = b.line_id);
+  </code></pre>
+</section>
+
+<section>
+  <h2>М5. EXISTS против IN: ловушка NULL</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- регионы без дистрибьюторов
+-- ✘ у одного дистрибьютора region_id IS NULL → 0 строк
+SELECT r.region_name
+FROM   pitanie.regions AS r
+WHERE  r.region_id NOT IN (
+       SELECT c.region_id
+       FROM   pitanie.customers AS c
+       WHERE  c.customer_type = 'Дистрибьютор');
+
+-- ✔ безопасная форма → 2 региона
+SELECT r.region_name
+FROM   pitanie.regions AS r
+WHERE  NOT EXISTS (
+       SELECT 1
+       FROM   pitanie.customers AS c
+       WHERE  c.customer_type = 'Дистрибьютор'
+         AND  c.region_id = r.region_id);
+      </code></pre>
+    </div>
+    <div>
+      <div class="box warn"><b>Почему NOT IN ломается</b><code>x NOT IN (1, NULL)</code> = <code>x &lt;&gt; 1 AND x &lt;&gt; NULL</code> = <code>… AND UNKNOWN</code> → никогда не TRUE.</div>
+      <ul style="font-size:.7em">
+        <li><code>EXISTS</code> — полусоединение (semi join): строка внешнего запроса выводится один раз, даже если совпадений много</li>
+        <li><code>NOT EXISTS</code> — антисоединение (anti join), NULL не боится</li>
+        <li>В EXPLAIN: <code>Hash Semi Join</code>, <code>Hash Anti Join</code></li>
+        <li>Что писать в <code>SELECT</code> внутри EXISTS — неважно (<code>SELECT 1</code>)</li>
+      </ul>
+      <div class="box info"><b>Подзапрос или JOIN?</b>Нужны столбцы второй таблицы → JOIN. Нужен только факт наличия → EXISTS (нет размножения строк).</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М5: пустой скалярный подзапрос</h2>
+  <p style="font-size:.8em">Клиента с <code>customer_id = 99999</code> не существует. Что вернёт запрос?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT 'Лимит: ' || COALESCE(
+         (SELECT credit_limit::text
+          FROM   pitanie.customers
+          WHERE  customer_id = 99999),
+         'не задан') AS info;
+  </code></pre>
+  <ul class="quiz">
+    <li>Ноль строк</li>
+    <li>Ошибка: подзапрос не вернул строк</li>
+    <li data-correct><code>Лимит: не задан</code></li>
+    <li><code>NULL</code></li>
+  </ul>
+  <p class="explain">Скалярный подзапрос, не нашедший строк, возвращает NULL, а не «ноль строк». COALESCE подставляет текст по умолчанию. Ошибкой закончился бы подзапрос, вернувший больше одной строки.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 6 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">06</div>
+  <h2>Объединение наборов</h2>
+  <ul><li>UNION, UNION ALL, INTERSECT, EXCEPT</li><li>приоритет операций, NULL в наборах</li><li>LATERAL вместо CROSS / OUTER APPLY</li></ul>
+</section>
+
+<section>
+  <h2>М6. Операции над множествами</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- единый журнал потерь производства
+SELECT 'Брак'     AS source,
+       b.production_date AS event_date,
+       b.line_id
+FROM   pitanie.production_batches AS b
+WHERE  b.defect_qty &gt; 0
+UNION ALL
+SELECT 'Простой',
+       d.start_time::date,
+       d.line_id
+FROM   pitanie.equipment_downtime AS d
+ORDER  BY event_date;    -- один ORDER BY в конце
+      </code></pre>
+      <div class="box info"><b>Требования к наборам</b>Одинаковое число столбцов, совместимые типы по позициям. Имена столбцов берутся из <b>первого</b> запроса.</div>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Операция</th><th>Результат</th><th>Дубли</th></tr>
+        <tr><td><code>UNION</code></td><td>A ∪ B</td><td>удаляет (во всём результате)</td></tr>
+        <tr><td><code>UNION ALL</code></td><td>A + B</td><td>сохраняет, быстрее</td></tr>
+        <tr><td><code>INTERSECT</code></td><td>A ∩ B</td><td>удаляет</td></tr>
+        <tr><td><code>EXCEPT</code></td><td>A − B</td><td>удаляет</td></tr>
+        <tr><td><code>INTERSECT ALL</code></td><td></td><td>min(m, n) копий</td></tr>
+        <tr><td><code>EXCEPT ALL</code></td><td></td><td>max(m − n, 0) копий</td></tr>
+      </table>
+      <ul style="font-size:.66em">
+        <li><code>INTERSECT</code> связывает сильнее, чем <code>UNION</code> и <code>EXCEPT</code>; остальные — слева направо. Ставьте скобки</li>
+        <li>В операциях над наборами NULL считаются <b>равными</b> друг другу (в отличие от <code>NOT IN</code>)</li>
+        <li>T-SQL: <code>EXCEPT</code> — так же; Oracle: <code>MINUS</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М6. LATERAL = APPLY</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- 3 крупнейших заказа каждого клиента
+SELECT c.customer_name, t.order_number, t.total
+FROM   pitanie.customers AS c
+CROSS  JOIN LATERAL (
+       SELECT o.order_number,
+              SUM(oi.quantity * oi.unit_price) AS total
+       FROM   pitanie.orders      AS o
+       JOIN   pitanie.order_items AS oi
+              ON oi.order_id = o.order_id
+       WHERE  o.customer_id = c.customer_id  -- ссылка «наружу»
+       GROUP  BY o.order_number
+       ORDER  BY total DESC
+       LIMIT  3
+) AS t;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>T-SQL</th><th>PostgreSQL</th></tr>
+        <tr><td><code>CROSS APPLY (…)</code></td><td><code>CROSS JOIN LATERAL (…) AS x</code></td></tr>
+        <tr><td><code>OUTER APPLY (…)</code></td><td><code>LEFT JOIN LATERAL (…) AS x ON TRUE</code></td></tr>
+      </table>
+      <ul style="font-size:.7em">
+        <li>Подзапрос во FROM видит столбцы таблиц <b>левее</b> себя</li>
+        <li>CROSS — клиенты без заказов выпадут; LEFT … ON TRUE — останутся с NULL</li>
+        <li>Функции во FROM (<code>generate_series</code>, <code>unnest</code>, табличные функции) неявно LATERAL</li>
+      </ul>
+      <div class="box ok"><b>Когда LATERAL</b>«Top-N для каждого», несколько столбцов из коррелированного подзапроса, вызов табличной функции с параметром из строки.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М6: приоритет операций</h2>
+  <p style="font-size:.8em">Сколько строк вернёт запрос?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT 1 UNION SELECT 2
+INTERSECT
+SELECT 3;
+  </code></pre>
+  <ul class="quiz">
+    <li>0</li>
+    <li data-correct>1</li>
+    <li>2</li>
+    <li>3</li>
+  </ul>
+  <p class="explain"><code>INTERSECT</code> выполняется раньше: <code>SELECT 1 UNION (SELECT 2 INTERSECT SELECT 3)</code> = <code>{1} ∪ ∅</code> = одна строка со значением 1. Если бы операции шли слева направо, получилось бы 0 строк.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 7 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">07</div>
+  <h2>Модификация данных</h2>
+  <ul><li>INSERT … SELECT, RETURNING, IDENTITY</li><li>UPDATE … FROM, DELETE … USING, TRUNCATE</li><li>INSERT … ON CONFLICT и MERGE</li></ul>
+</section>
+
+<section>
+  <h2>М7. INSERT, UPDATE, DELETE</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE TABLE price_alert (
+    alert_id   integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    product_id integer NOT NULL,
+    old_price  numeric(10,2),
+    new_price  numeric(10,2)
+);
+
+INSERT INTO price_alert (product_id, new_price)
+SELECT product_id, base_price
+FROM   pitanie.products
+WHERE  base_price &lt; standard_cost
+RETURNING alert_id, product_id;
+
+-- UPDATE по данным другой таблицы
+UPDATE price_alert AS a
+SET    old_price = ph.price
+FROM   pitanie.price_history AS ph
+WHERE  ph.product_id = a.product_id
+  AND  ph.valid_to IS NULL
+RETURNING a.*;
+
+-- DELETE по соединению
+DELETE FROM price_alert AS a
+USING  pitanie.products AS p
+WHERE  p.product_id = a.product_id
+  AND  NOT p.is_active;
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.68em">
+        <li><b>Сначала SELECT, потом UPDATE</b> — с тем же WHERE, внутри <code>BEGIN … ROLLBACK</code> для проверки</li>
+        <li><code>RETURNING</code> ≈ T-SQL <code>OUTPUT</code>: в PG 16 — у INSERT, UPDATE, DELETE (у MERGE — с PG 17)</li>
+        <li><code>GENERATED ALWAYS AS IDENTITY</code>: явное значение — ошибка (нужно <code>OVERRIDING SYSTEM VALUE</code>); <code>BY DEFAULT</code> — разрешено</li>
+        <li>Не используйте <code>MAX(id) + 1</code> — гонка между сессиями</li>
+        <li>В UPDATE … FROM каждой целевой строке должна соответствовать одна строка источника</li>
+      </ul>
+      <table class="t">
+        <tr><th></th><th>DELETE</th><th>TRUNCATE</th></tr>
+        <tr><td>WHERE</td><td>есть</td><td>нет — вся таблица</td></tr>
+        <tr><td>Откат в транзакции</td><td>да</td><td class="hl">да (в PostgreSQL)</td></tr>
+        <tr><td>Строковые триггеры</td><td>срабатывают</td><td>нет</td></tr>
+        <tr><td>Сброс IDENTITY</td><td>нет</td><td><code>RESTART IDENTITY</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М7. UPSERT и MERGE</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- UPSERT: нужен уникальный индекс / ограничение
+INSERT INTO stock (material_id, qty)
+VALUES (2, 5), (3, 7)
+ON CONFLICT (material_id)
+DO UPDATE SET qty = stock.qty + EXCLUDED.qty;
+      </code></pre>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- MERGE (PostgreSQL 15+)
+MERGE INTO products_copy AS p
+USING new_price_list     AS n
+   ON p.sku = n.sku
+WHEN MATCHED AND n.price IS DISTINCT FROM p.base_price THEN
+     UPDATE SET base_price = n.price
+WHEN NOT MATCHED THEN
+     INSERT (sku, product_name, base_price)
+     VALUES (n.sku, n.product_name, n.price);
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th></th><th>ON CONFLICT</th><th>MERGE (PG 16)</th></tr>
+        <tr><td>Нужен уникальный ключ</td><td>да</td><td>нет, любое условие</td></tr>
+        <tr><td>DELETE в ветке</td><td>нет</td><td>да</td></tr>
+        <tr><td>Безопасен при конкуренции</td><td class="green">да, атомарно</td><td>возможна ошибка уникальности</td></tr>
+        <tr><td>RETURNING</td><td>да</td><td>нет (с PG 17)</td></tr>
+        <tr><td><code>NOT MATCHED BY SOURCE</code></td><td>—</td><td>нет (с PG 17)</td></tr>
+      </table>
+      <div class="box info"><b>EXCLUDED</b> — строка, которую пытались вставить. В MERGE строки цели, которых нет в источнике, в PG 16 не изменяются.</div>
+    </div>
+  </div>
+  <aside class="notes">Таблицы stock, products_copy, new_price_list создаются в личной схеме слушателя (см. module_07/practice.md).</aside>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М7: TRUNCATE и ROLLBACK</h2>
+  <p style="font-size:.8em">В личной таблице <code>t</code> 100 строк. Сколько строк в ней после выполнения?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+BEGIN;
+TRUNCATE t;
+ROLLBACK;
+
+SELECT COUNT(*) FROM t;
+  </code></pre>
+  <ul class="quiz">
+    <li>0 — TRUNCATE не откатывается</li>
+    <li data-correct>100</li>
+    <li>Ошибка: TRUNCATE нельзя внутри транзакции</li>
+    <li>Зависит от размера таблицы</li>
+  </ul>
+  <p class="explain">В PostgreSQL TRUNCATE транзакционен, как и почти все DDL-команды: ROLLBACK возвращает данные. Это отличие от Oracle и MySQL, где TRUNCATE фиксируется сразу.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 8 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">08</div>
+  <h2>Оконные функции</h2>
+  <ul><li>OVER (PARTITION BY … ORDER BY … рамка)</li><li>ранжирование, агрегаты, смещение</li><li>рамка по умолчанию и ловушка LAST_VALUE</li></ul>
+</section>
+
+<section>
+  <h2>М8. Анатомия окна</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+SELECT production_date,
+       line_id,
+       defect_qty,
+       SUM(defect_qty) OVER w_run        AS defects_running,
+       AVG(defect_qty) OVER (
+           PARTITION BY line_id
+           ORDER BY production_date
+           ROWS BETWEEN 6 PRECEDING
+                    AND CURRENT ROW)      AS ma7,
+       LAG(defect_qty) OVER w_run        AS prev_defects,
+       ROUND(100.0 * defect_qty
+             / SUM(defect_qty) OVER (PARTITION BY line_id), 2)
+                                          AS share_pct
+FROM   pitanie.production_batches
+WINDOW w_run AS (PARTITION BY line_id
+                 ORDER BY production_date, batch_id);
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.7em">
+        <li>Окно <b>не схлопывает</b> строки, в отличие от GROUP BY</li>
+        <li><code>PARTITION BY</code> — группы; <code>ORDER BY</code> — порядок внутри; рамка — какие строки видит функция</li>
+        <li>Считается <b>после</b> WHERE / GROUP BY / HAVING → нельзя в WHERE; фильтр по окну — через подзапрос или CTE (в PG нет <code>QUALIFY</code>)</li>
+        <li>Можно «окно над агрегатом»: <code>SUM(SUM(x)) OVER ()</code></li>
+        <li><code>WINDOW w AS (…)</code> — именованное окно</li>
+      </ul>
+      <table class="t">
+        <tr><th>Группа</th><th>Функции</th></tr>
+        <tr><td>Ранжирование</td><td>ROW_NUMBER, RANK, DENSE_RANK, NTILE, PERCENT_RANK, CUME_DIST</td></tr>
+        <tr><td>Агрегатные</td><td>SUM, AVG, COUNT, MIN, MAX … OVER</td></tr>
+        <tr><td>Смещения</td><td>LAG, LEAD, FIRST_VALUE, LAST_VALUE, NTH_VALUE</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М8. Ранги и рамка окна</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>v</th><th>ROW_NUMBER</th><th>RANK</th><th>DENSE_RANK</th></tr>
+        <tr><td>100</td><td>1</td><td>1</td><td>1</td></tr>
+        <tr><td>100</td><td>2</td><td>1</td><td>1</td></tr>
+        <tr><td>90</td><td>3</td><td class="hl">3</td><td class="hl">2</td></tr>
+        <tr><td>80</td><td>4</td><td>4</td><td>3</td></tr>
+      </table>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- топ-2 продукта по выручке в каждой категории
+SELECT *
+FROM  (SELECT p.category_id, p.product_name,
+              SUM(oi.quantity * oi.unit_price) AS revenue,
+              DENSE_RANK() OVER (
+                  PARTITION BY p.category_id
+                  ORDER BY SUM(oi.quantity * oi.unit_price) DESC
+              ) AS rnk
+       FROM   pitanie.order_items AS oi
+       JOIN   pitanie.products    AS p
+              ON p.product_id = oi.product_id
+       GROUP  BY p.category_id, p.product_name) AS t
+WHERE  rnk &lt;= 2;
+      </code></pre>
+    </div>
+    <div>
+      <div class="box warn"><b>Рамка по умолчанию</b>Есть <code>ORDER BY</code> → <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>: строки с равным ключом (peers) входят вместе. Нет <code>ORDER BY</code> → вся секция.</div>
+      <table class="t">
+        <tr><th>Режим</th><th>Единица отсчёта</th></tr>
+        <tr><td><code>ROWS</code></td><td>физические строки</td></tr>
+        <tr><td><code>RANGE</code></td><td>значение ключа (<code>INTERVAL '7 days' PRECEDING</code>)</td></tr>
+        <tr><td><code>GROUPS</code></td><td>группы равных значений</td></tr>
+      </table>
+      <div class="box warn"><b>LAST_VALUE</b>С рамкой по умолчанию вернёт текущую строку (её последнего «пира»). Нужна рамка <code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>.</div>
+      <div class="box info"><b>LAG / LEAD</b><code>LAG(x, n, default)</code>: нет строки → default (или NULL).</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М8: где можно писать окно?</h2>
+  <p style="font-size:.8em">Что произойдёт при выполнении запроса?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT batch_number, defect_qty
+FROM   pitanie.production_batches
+WHERE  RANK() OVER (ORDER BY defect_qty DESC) &lt;= 10;
+  </code></pre>
+  <ul class="quiz">
+    <li>Вернутся 10 партий с наибольшим браком</li>
+    <li>Вернутся 10 партий плюс «равные» десятой</li>
+    <li data-correct>Ошибка: оконные функции не допускаются в WHERE</li>
+    <li>Вернутся все партии</li>
+  </ul>
+  <p class="explain">Окна вычисляются после WHERE, поэтому в WHERE их ещё «нет». Решение — обернуть запрос с RANK в подзапрос или CTE и фильтровать по <code>rnk</code> снаружи.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 9 =============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">09</div>
+  <h2>Представления, табличные функции и CTE</h2>
+  <ul><li>WITH и WITH RECURSIVE</li><li>VIEW, WITH CHECK OPTION, MATERIALIZED VIEW</li><li>RETURNS TABLE, изменчивость функций</li></ul>
+</section>
+
+<section>
+  <h2>М9. CTE и рекурсия</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+WITH RECURSIVE org AS (
+    -- якорь: с кого начинаем
+    SELECT employee_id, full_name, manager_id,
+           1 AS lvl,
+           full_name::text AS path
+    FROM   pitanie.employees
+    WHERE  manager_id IS NULL
+    UNION ALL
+    -- рекурсивная часть: ссылается на org
+    SELECT e.employee_id, e.full_name, e.manager_id,
+           o.lvl + 1,
+           o.path || ' → ' || e.full_name
+    FROM   pitanie.employees AS e
+    JOIN   org               AS o ON e.manager_id = o.employee_id
+)
+SELECT lvl, path
+FROM   org
+ORDER  BY path;
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.7em">
+        <li>CTE <code>WITH имя AS (…)</code> виден только в своём запросе; можно строить цепочку CTE</li>
+        <li>PG 12+: CTE встраивается в запрос; <code>MATERIALIZED</code> — вычислить один раз, <code>NOT MATERIALIZED</code> — встроить</li>
+        <li>Рекурсия: якорь <code>UNION [ALL]</code> рекурсивная часть; останавливается, когда шаг вернул 0 строк</li>
+        <li>Защита от циклов: массив пути или <code>CYCLE … SET … USING</code> (PG 14+)</li>
+        <li>Слово <code>RECURSIVE</code> обязательно в PG (в T-SQL его нет)</li>
+        <li>Генерация календаря: <code>generate_series</code> или рекурсивный CTE</li>
+      </ul>
+      <div class="box info"><b>Временная таблица</b><code>CREATE TEMP TABLE</code> живёт до конца сессии; можно индексировать и переиспользовать в разных запросах.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М9. Представления и табличные функции</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE VIEW v_revenue AS
+SELECT o.order_id, o.order_date, o.customer_id,
+       SUM(oi.quantity * oi.unit_price
+           * (1 - oi.discount_pct / 100)) AS revenue
+FROM   pitanie.orders      AS o
+JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+GROUP  BY o.order_id, o.order_date, o.customer_id;
+
+CREATE MATERIALIZED VIEW mv_revenue_month AS
+SELECT date_trunc('month', order_date) AS mon,
+       SUM(revenue)                    AS revenue
+FROM   v_revenue
+GROUP  BY 1;
+
+REFRESH MATERIALIZED VIEW mv_revenue_month;
+
+CREATE FUNCTION f_top_customers(p_year int, p_n int)
+RETURNS TABLE (customer_id int, revenue numeric)
+LANGUAGE sql STABLE AS $$
+    SELECT customer_id, SUM(revenue)
+    FROM   v_revenue
+    WHERE  EXTRACT(YEAR FROM order_date) = p_year
+    GROUP  BY customer_id
+    ORDER  BY 2 DESC
+    LIMIT  p_n
+$$;
+
+SELECT * FROM f_top_customers(2025, 5);
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Объект</th><th>Хранит данные</th><th>Актуальность</th></tr>
+        <tr><td>VIEW</td><td>нет, только текст запроса</td><td>всегда свежие</td></tr>
+        <tr><td>MATERIALIZED VIEW</td><td>да, снимок</td><td class="hl">до REFRESH</td></tr>
+        <tr><td>Табличная функция</td><td>нет</td><td>свежие, с параметрами</td></tr>
+      </table>
+      <ul style="font-size:.64em">
+        <li>Простое представление над одной таблицей — обновляемое; <code>WITH CHECK OPTION</code> запрещает вставить строку, которую само представление не увидит</li>
+        <li><code>REFRESH … CONCURRENTLY</code> требует уникального индекса</li>
+        <li>Изменчивость: <code>IMMUTABLE</code> (зависит только от аргументов), <code>STABLE</code> (не меняется в пределах запроса), <code>VOLATILE</code> (по умолчанию)</li>
+        <li><code>RETURNS TABLE</code> / <code>RETURNS SETOF</code> → вызов во FROM; ≈ inline TVF в T-SQL</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М9: материализованное представление</h2>
+  <p style="font-size:.8em">Вчера создали <code>mv_revenue_month</code>. Сегодня в <code>orders</code> добавили 50 заказов. Что покажет <code>SELECT * FROM mv_revenue_month</code>?</p>
+  <ul class="quiz">
+    <li>Свежие данные, включая новые заказы</li>
+    <li data-correct>Данные на момент создания или последнего REFRESH</li>
+    <li>Ошибку: представление устарело</li>
+    <li>Пустой результат до REFRESH</li>
+  </ul>
+  <p class="explain">Материализованное представление хранит снимок результата. Обновить его можно только командой <code>REFRESH MATERIALIZED VIEW</code>. Обычное VIEW выполняет свой запрос заново при каждом обращении.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 10 ============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">10</div>
+  <h2>Программные элементы: PL/pgSQL</h2>
+  <ul><li>DO, переменные, SELECT … INTO</li><li>IF, CASE, циклы</li><li>динамический SQL и обработка ошибок</li></ul>
+</section>
+
+<section>
+  <h2>М10. Блок, переменные, управление потоком</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+DO $$
+DECLARE
+    v_limit   pitanie.customers.credit_limit%TYPE;
+    v_cust    pitanie.customers%ROWTYPE;
+    v_debt    numeric := 0;
+    c_max     CONSTANT numeric := 1.2;
+    r         record;
+BEGIN
+    SELECT * INTO STRICT v_cust
+    FROM   pitanie.customers
+    WHERE  customer_id = 17;
+
+    v_limit := v_cust.credit_limit;
+
+    FOR r IN SELECT i.invoice_id, i.amount
+             FROM   pitanie.invoices AS i
+             JOIN   pitanie.orders   AS o ON o.order_id = i.order_id
+             WHERE  o.customer_id = v_cust.customer_id
+    LOOP
+        v_debt := v_debt + r.amount;
+        EXIT WHEN v_debt &gt; v_limit * c_max;
+    END LOOP;
+
+    IF v_debt &gt; v_limit THEN
+        RAISE NOTICE '% : долг % при лимите %',
+                     v_cust.customer_name, v_debt, v_limit;
+    ELSIF v_debt = 0 THEN
+        RAISE NOTICE 'Счетов нет';
+    END IF;
+END
+$$;
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.66em">
+        <li><code>DO $$ … $$</code> — анонимный блок; <code>$$</code> — долларовые кавычки</li>
+        <li>Присваивание <code>:=</code>; <code>%TYPE</code>, <code>%ROWTYPE</code>, <code>record</code> — тип «по образцу»</li>
+        <li><code>SELECT … INTO</code>: 0 строк → NULL и <code>FOUND = false</code>; много строк → первая</li>
+        <li><code>INTO STRICT</code>: 0 строк → <code>NO_DATA_FOUND</code>, &gt; 1 → <code>TOO_MANY_ROWS</code></li>
+        <li>Циклы: <code>LOOP … EXIT WHEN</code>, <code>WHILE</code>, <code>FOR i IN 1..10</code> (счётчик объявляется неявно), <code>FOR r IN SELECT</code>, <code>FOREACH x IN ARRAY</code></li>
+        <li><code>PERFORM</code> — выполнить запрос и отбросить результат</li>
+      </ul>
+      <div class="box warn"><b>Цикл или запрос?</b>Построчная обработка в цикле почти всегда медленнее одного <code>UPDATE … FROM</code>. Цикл — когда логика действительно пошаговая.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М10. Динамический SQL и ошибки</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+DO $$
+DECLARE
+    v_tab text := 'production_batches';
+    v_cnt bigint;
+    v_msg text;
+BEGIN
+    EXECUTE format('SELECT COUNT(*) FROM pitanie.%I
+                    WHERE line_id = $1', v_tab)
+    INTO  v_cnt
+    USING 3;
+
+    IF v_cnt = 0 THEN
+        RAISE EXCEPTION 'Нет партий на линии %', 3
+              USING ERRCODE = 'P0001',
+                    HINT    = 'Проверьте line_id';
+    END IF;
+EXCEPTION
+    WHEN division_by_zero THEN
+        RAISE NOTICE 'Деление на ноль';
+    WHEN OTHERS THEN
+        GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+        RAISE NOTICE 'Ошибка % : %', SQLSTATE, v_msg;
+END
+$$;
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Задача</th><th>Как правильно</th></tr>
+        <tr><td>Имя таблицы / столбца</td><td><code>format('%I', name)</code></td></tr>
+        <tr><td>Строковый литерал</td><td><code>format('%L', value)</code></td></tr>
+        <tr><td>Значение параметра</td><td><code>EXECUTE … USING $1</code></td></tr>
+        <tr><td>Склейка <code>'…' || input</code></td><td class="hl">SQL-инъекция</td></tr>
+      </table>
+      <ul style="font-size:.64em">
+        <li>Уровни RAISE: DEBUG, LOG, INFO, NOTICE, WARNING, <b>EXCEPTION</b> (прерывает выполнение)</li>
+        <li><code>RAISE EXCEPTION … USING ERRCODE</code> ≈ T-SQL <code>THROW</code>; по умолчанию SQLSTATE <code>P0001</code></li>
+        <li>В обработчике: <code>SQLSTATE</code> (код), <code>SQLERRM</code> (текст)</li>
+        <li><code>BEGIN … EXCEPTION … END</code> ≈ <code>TRY … CATCH</code></li>
+      </ul>
+      <div class="box warn"><b>Блок с EXCEPTION = неявный SAVEPOINT</b>При ошибке все изменения, сделанные в этом блоке, откатываются, а выполнение продолжается после блока.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М10: SELECT … INTO без строк</h2>
+  <p style="font-size:.8em">Партии с номером <code>'НЕТ-ТАКОЙ'</code> не существует. Что выведет блок?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+DO $$
+DECLARE
+    v_qty integer := -1;
+BEGIN
+    SELECT produced_qty INTO v_qty
+    FROM   pitanie.production_batches
+    WHERE  batch_number = 'НЕТ-ТАКОЙ';
+
+    RAISE NOTICE 'qty=%, found=%', v_qty, FOUND;
+END
+$$;
+  </code></pre>
+  <ul class="quiz">
+    <li><code>qty=-1, found=f</code></li>
+    <li data-correct><code>qty=&lt;NULL&gt;, found=f</code></li>
+    <li>Ошибка <code>query returned no rows</code></li>
+    <li><code>qty=0, found=f</code></li>
+  </ul>
+  <p class="explain">Без <code>STRICT</code> пустой результат присваивает переменной NULL (прежнее значение -1 теряется), а <code>FOUND</code> становится false. С <code>INTO STRICT</code> была бы ошибка <code>NO_DATA_FOUND</code>.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 11 ============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">11</div>
+  <h2>Транзакции</h2>
+  <ul><li>ACID, BEGIN / COMMIT / ROLLBACK, SAVEPOINT</li><li>ошибки внутри транзакции</li><li>блокировки, deadlock, уровни изоляции</li></ul>
+</section>
+
+<section>
+  <h2>М11. Транзакции и ошибки</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+BEGIN;
+
+INSERT INTO payments_copy (invoice_id, payment_date, amount)
+VALUES (1201, CURRENT_DATE, 150000);
+
+SAVEPOINT before_notify;
+
+INSERT INTO notify_log (invoice_id, msg)
+VALUES (1201, 'Оплата получена');
+-- ошибка? → откат только до точки сохранения
+ROLLBACK TO SAVEPOINT before_notify;
+
+COMMIT;   -- платёж зафиксирован
+      </code></pre>
+      <div class="box info"><b>ACID</b>Атомарность · Согласованность · Изоляция · Долговечность. В psql и DBeaver по умолчанию автокоммит: каждая команда — своя транзакция.</div>
+    </div>
+    <div>
+      <div class="box warn"><b>Ошибка в транзакции: PostgreSQL ≠ SQL Server</b>После любой ошибки транзакция переходит в состояние <i>aborted</i>: все следующие команды отвечают <code>current transaction is aborted</code> (25P02), а <code>COMMIT</code> фактически выполняет <code>ROLLBACK</code>. Частичной фиксации не бывает.</div>
+      <ul style="font-size:.68em">
+        <li>«Пережить» ошибку можно только через <code>SAVEPOINT</code> или блок <code>EXCEPTION</code> в PL/pgSQL</li>
+        <li><code>ROLLBACK TO SAVEPOINT</code> отменяет изменения после точки, транзакция продолжается</li>
+        <li>Держите транзакции <b>короткими</b>: никаких пауз на ввод пользователя внутри</li>
+        <li>Граница транзакции = бизнес-операция («оплата счёта»), а не отдельный оператор</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">payments_copy и notify_log — учебные таблицы личной схемы из module_11/practice.md.</aside>
+</section>
+
+<section>
+  <h2>М11. Блокировки и уровни изоляции</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- резерв сырья без «потерянного обновления»
+BEGIN;
+SELECT qty
+FROM   stock
+WHERE  material_id = 5
+FOR UPDATE;             -- ждём, пока другие отпустят
+-- FOR UPDATE NOWAIT    -- сразу ошибка, если занято
+-- FOR UPDATE SKIP LOCKED -- пропустить занятые (очереди)
+UPDATE stock SET qty = qty - 100 WHERE material_id = 5;
+COMMIT;
+
+-- кто кого блокирует
+SELECT pid, state, wait_event_type, query,
+       pg_blocking_pids(pid) AS blocked_by
+FROM   pg_stat_activity
+WHERE  datname = current_database();
+      </code></pre>
+      <div class="box warn"><b>Deadlock</b>Две транзакции ждут друг друга → через <code>deadlock_timeout</code> (1 с) PG прерывает одну с ошибкой <b>40P01</b>. Профилактика: единый порядок блокировок (по возрастанию id), короткие транзакции, повтор.</div>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Уровень</th><th>Грязное чтение</th><th>Неповтор. чтение</th><th>Фантомы</th><th>Сериализ. аномалии</th></tr>
+        <tr><td>READ UNCOMMITTED*</td><td class="green">нет</td><td>да</td><td>да</td><td>да</td></tr>
+        <tr><td><b>READ COMMITTED</b> (по умолч.)</td><td class="green">нет</td><td>да</td><td>да</td><td>да</td></tr>
+        <tr><td>REPEATABLE READ</td><td class="green">нет</td><td class="green">нет</td><td class="green">нет**</td><td>да (write skew)</td></tr>
+        <tr><td>SERIALIZABLE</td><td class="green">нет</td><td class="green">нет</td><td class="green">нет</td><td class="green">нет</td></tr>
+      </table>
+      <p class="small">* в PG ведёт себя как READ COMMITTED. ** в PG снимок исключает фантомы, хотя стандарт их допускает.</p>
+      <ul style="font-size:.64em">
+        <li><b>MVCC</b>: читатели не блокируют писателей и наоборот</li>
+        <li>REPEATABLE READ: снимок на всю транзакцию; при конкурентном изменении той же строки — ошибка <b>40001</b></li>
+        <li>SERIALIZABLE (SSI) может откатить транзакцию с <b>40001</b> — приложение должно <b>повторить</b> её</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М11: снимок в REPEATABLE READ</h2>
+  <p style="font-size:.8em">Сессия 1 открыла транзакцию и прочитала остаток (500). Сессия 2 изменила его на 300 и зафиксировала. Что увидит сессия 1 при повторном чтении?</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- Сессия 1
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+SELECT qty FROM stock WHERE material_id = 5;   -- 500
+--   ... сессия 2: UPDATE stock SET qty = 300 ...; COMMIT;
+SELECT qty FROM stock WHERE material_id = 5;   -- ?
+COMMIT;
+  </code></pre>
+  <ul class="quiz">
+    <li>300</li>
+    <li data-correct>500</li>
+    <li>Ошибка 40001 при чтении</li>
+    <li>Сессия 1 будет ждать снятия блокировки</li>
+  </ul>
+  <p class="explain">На REPEATABLE READ транзакция видит снимок, сделанный при первом запросе, поэтому снова прочитает 500. На READ COMMITTED было бы 300. Ошибка 40001 возникла бы, если бы сессия 1 попыталась <b>изменить</b> эту строку.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ МОДУЛЬ 12 ============================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">12</div>
+  <h2>Хранимые процедуры</h2>
+  <ul><li>FUNCTION против PROCEDURE, CALL, параметры</li><li>транзакции внутри процедуры, безопасность</li><li>системные представления вместо sp_*</li></ul>
+</section>
+
+<section>
+  <h2>М12. Процедура: создание и вызов</h2>
+  <div class="two-col">
+    <div>
+      <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE PROCEDURE sp_register_payment(
+    p_invoice_id integer,
+    p_amount     numeric,
+    INOUT p_left numeric DEFAULT NULL
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pitanie, pg_temp
+AS $$
+DECLARE
+    v_amount numeric;
+BEGIN
+    IF p_amount &lt;= 0 THEN                       -- 1. проверки
+        RAISE EXCEPTION 'Сумма должна быть &gt; 0';
+    END IF;
+
+    SELECT amount INTO STRICT v_amount          -- 2. блокировка
+    FROM   invoices
+    WHERE  invoice_id = p_invoice_id
+    FOR UPDATE;
+
+    INSERT INTO payments (payment_id, invoice_id,   -- 3. изменение
+                          payment_date, amount, payment_method)
+    SELECT COALESCE(MAX(payment_id), 0) + 1, p_invoice_id,
+           CURRENT_DATE, p_amount, 'Банк'
+    FROM   payments;
+
+    SELECT v_amount - SUM(amount) INTO p_left
+    FROM   payments
+    WHERE  invoice_id = p_invoice_id;
+END
+$$;
+
+CALL sp_register_payment(p_invoice_id =&gt; 1201, p_amount =&gt; 50000);
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th></th><th>FUNCTION</th><th>PROCEDURE (PG 11+)</th></tr>
+        <tr><td>Вызов</td><td>в выражении: <code>SELECT f()</code></td><td><code>CALL p()</code></td></tr>
+        <tr><td>Результат</td><td>RETURNS значение / таблица</td><td>INOUT, OUT (PG 14+), refcursor</td></tr>
+        <tr><td>COMMIT / ROLLBACK внутри</td><td class="hl">нельзя</td><td class="green">можно*</td></tr>
+        <tr><td>В SELECT</td><td>да</td><td>нет</td></tr>
+      </table>
+      <p class="small">* если CALL выполнен вне явного <code>BEGIN</code> и не внутри блока с EXCEPTION.</p>
+      <ul style="font-size:.62em">
+        <li>Параметры: <code>DEFAULT</code>, именованный вызов <code>=&gt;</code>, перегрузка по типам</li>
+        <li><code>SECURITY DEFINER</code> — с правами владельца; обязательно <code>SET search_path</code></li>
+        <li><code>REVOKE EXECUTE … FROM PUBLIC</code> + <code>GRANT EXECUTE … TO role</code>: менеджер может провести оплату, но не править таблицу</li>
+      </ul>
+      <div class="box warn" style="font-size:.6em"><b>MAX()+1 здесь — только для учебной таблицы</b>В реальной системе ключ платежа генерирует IDENTITY или последовательность.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>М12. «Системные процедуры»: T-SQL → PostgreSQL</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>T-SQL</th><th>PostgreSQL</th></tr>
+        <tr><td><code>sp_who</code>, <code>sp_who2</code></td><td><code>pg_stat_activity</code></td></tr>
+        <tr><td><code>sp_lock</code></td><td><code>pg_locks</code>, <code>pg_blocking_pids()</code></td></tr>
+        <tr><td><code>KILL spid</code></td><td><code>pg_cancel_backend(pid)</code> / <code>pg_terminate_backend(pid)</code></td></tr>
+        <tr><td><code>sp_helptext</code></td><td><code>pg_get_functiondef(oid)</code>, <code>\sf</code> в psql</td></tr>
+        <tr><td><code>sp_help</code>, <code>sp_columns</code></td><td><code>information_schema.columns</code>, <code>\d</code></td></tr>
+        <tr><td><code>sp_spaceused</code></td><td><code>pg_total_relation_size()</code>, <code>pg_size_pretty()</code></td></tr>
+        <tr><td><code>sp_configure</code></td><td><code>SHOW</code>, <code>pg_settings</code>, <code>SET</code></td></tr>
+        <tr><td><code>PRINT</code></td><td><code>RAISE NOTICE</code></td></tr>
+      </table>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- исходный код процедуры
+SELECT pg_get_functiondef(p.oid)
+FROM   pg_proc      AS p
+JOIN   pg_namespace AS n ON n.oid = p.pronamespace
+WHERE  p.proname = 'sp_register_payment';
+
+-- долгие активные запросы
+SELECT pid, usename, now() - query_start AS duration,
+       left(query, 60) AS query
+FROM   pg_stat_activity
+WHERE  state = 'active'
+ORDER  BY duration DESC;
+      </code></pre>
+      <div class="box info"><b>Вместо sp_* в PostgreSQL</b>системные представления (<code>pg_catalog</code>, <code>information_schema</code>) и функции.</div>
+    </div>
+  </div>
+</section>
+
+<section class="quiz-slide">
+  <h2>Квиз М12: COMMIT в функции</h2>
+  <p style="font-size:.8em">Что произойдёт при вызове <code>SELECT f_close_month();</code>, если внутри функции после UPDATE стоит <code>COMMIT</code>?</p>
+  <ul class="quiz">
+    <li>UPDATE зафиксируется, функция продолжит работу</li>
+    <li data-correct>Ошибка <code>invalid transaction termination</code>: в функции нельзя управлять транзакцией</li>
+    <li>COMMIT будет проигнорирован</li>
+    <li>Функция зафиксирует транзакцию после возврата результата</li>
+  </ul>
+  <p class="explain">Функция выполняется внутри транзакции вызывающего запроса и не может её завершить. Для «закрытия месяца» с фиксацией по шагам нужна <code>PROCEDURE</code>, вызванная через <code>CALL</code> вне явного блока транзакции.</p>
+</section>
+
+<!-- ===================================================================== -->
+<!-- ============================ ИТОГ =================================== -->
+<!-- ===================================================================== -->
+<section class="section-slide">
+  <div class="num">✓</div>
+  <h2>Сводка перед тестом</h2>
+  <ul><li>топ-12 ловушек курса</li><li>соответствие T-SQL ↔ PostgreSQL</li><li>что повторить, если остались сомнения</li></ul>
+</section>
+
+<section>
+  <h2>Топ-12 ловушек курса</h2>
+  <div class="two-col">
+    <div class="card orange-top">
+      <ol style="font-size:.95em">
+        <li><code>col &lt;&gt; 1</code> не возвращает NULL — нужен <code>IS DISTINCT FROM</code></li>
+        <li><code>7 / 2 = 3</code>: целочисленное деление</li>
+        <li><code>'12.7'::integer</code> — ошибка; сначала <code>::numeric</code></li>
+        <li>Условие по правой таблице LEFT JOIN в WHERE превращает его в INNER</li>
+        <li>Соединение с двумя дочерними таблицами размножает строки и завышает суммы</li>
+        <li>Среднее от процентов ≠ процент от сумм</li>
+      </ol>
+    </div>
+    <div class="card orange-top">
+      <ol start="7" style="font-size:.95em">
+        <li><code>NOT IN</code> с NULL в подзапросе → пустой результат</li>
+        <li>Скалярный подзапрос с &gt; 1 строкой — ошибка; с 0 строк — NULL</li>
+        <li><code>UNION</code> удаляет дубли и внутри первого набора</li>
+        <li>Рамка по умолчанию — <code>RANGE</code> с «пирами»; LAST_VALUE = текущая строка</li>
+        <li>После ошибки транзакция в PG «сломана» до ROLLBACK; COMMIT = ROLLBACK</li>
+        <li>COMMIT допустим в процедуре, но не в функции</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Шпаргалка: T-SQL ↔ PostgreSQL</h2>
+  <div class="two-col">
+    <table class="t">
+      <tr><th>T-SQL</th><th>PostgreSQL</th></tr>
+      <tr><td><code>TOP (n) [WITH TIES]</code></td><td><code>LIMIT n</code> / <code>FETCH FIRST n ROWS [WITH TIES]</code></td></tr>
+      <tr><td><code>ISNULL(a, b)</code></td><td><code>COALESCE(a, b)</code></td></tr>
+      <tr><td><code>GETDATE()</code></td><td><code>now()</code>, <code>CURRENT_DATE</code></td></tr>
+      <tr><td><code>DATEADD(month, 1, d)</code></td><td><code>d + INTERVAL '1 month'</code></td></tr>
+      <tr><td><code>DATEDIFF(day, a, b)</code></td><td><code>b::date - a::date</code></td></tr>
+      <tr><td><code>CONVERT(int, x)</code></td><td><code>x::integer</code>, <code>CAST</code></td></tr>
+      <tr><td><code>a + b</code> (строки)</td><td><code>a || b</code>, <code>concat()</code></td></tr>
+      <tr><td><code>CROSS / OUTER APPLY</code></td><td><code>CROSS JOIN LATERAL</code> / <code>LEFT JOIN LATERAL … ON TRUE</code></td></tr>
+    </table>
+    <table class="t">
+      <tr><th>T-SQL</th><th>PostgreSQL</th></tr>
+      <tr><td><code>OUTPUT inserted.*</code></td><td><code>RETURNING *</code></td></tr>
+      <tr><td><code>IDENTITY(1,1)</code></td><td><code>GENERATED … AS IDENTITY</code></td></tr>
+      <tr><td><code>WITH cte</code> (рекурсивный)</td><td><code>WITH RECURSIVE cte</code></td></tr>
+      <tr><td><code>DECLARE @x int</code></td><td><code>DECLARE x int;</code> в блоке PL/pgSQL</td></tr>
+      <tr><td><code>TRY … CATCH</code></td><td><code>BEGIN … EXCEPTION WHEN … END</code></td></tr>
+      <tr><td><code>THROW</code> / <code>RAISERROR</code></td><td><code>RAISE EXCEPTION … USING ERRCODE</code></td></tr>
+      <tr><td><code>EXEC sp_executesql</code></td><td><code>EXECUTE format(…) USING …</code></td></tr>
+      <tr><td><code>EXEC proc</code></td><td><code>CALL proc()</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Где повторить, если остались сомнения</h2>
+  <table class="t">
+    <tr><th>Тема</th><th>Что открыть</th></tr>
+    <tr><td>NULL, фильтрация, LIMIT / FETCH</td><td><code>module_01/examples.sql</code>, слайды «Трёхзначная логика», «WITH TIES»</td></tr>
+    <tr><td>Приведение типов, даты, строки</td><td><code>module_02/examples.sql</code>, «Матрица преобразований типов»</td></tr>
+    <tr><td>JOIN, ON против WHERE</td><td><code>module_03/examples.sql</code>, «Классическая ловушка»</td></tr>
+    <tr><td>ROLLUP / CUBE, HAVING</td><td><code>module_04/examples.sql</code>, «Квиз: сколько строк?»</td></tr>
+    <tr><td>EXISTS, NOT IN, скалярные подзапросы</td><td><code>module_05/examples.sql</code></td></tr>
+    <tr><td>Наборы, LATERAL</td><td><code>module_06/examples.sql</code></td></tr>
+    <tr><td>MERGE, RETURNING, ON CONFLICT</td><td><code>module_07/practice.md</code></td></tr>
+    <tr><td>Окна, рамки, LAG / LEAD</td><td><code>module_08/examples.sql</code>, «Схема: ROWS, RANGE и GROUPS»</td></tr>
+    <tr><td>Рекурсивные CTE, представления, функции</td><td><code>module_09/examples.sql</code></td></tr>
+    <tr><td>PL/pgSQL: циклы, EXCEPTION, EXECUTE</td><td><code>module_10/examples.sql</code></td></tr>
+    <tr><td>Транзакции, блокировки, изоляция</td><td><code>module_11/practice.md</code> (две сессии)</td></tr>
+    <tr><td>Процедуры, системные представления</td><td><code>module_12/examples.sql</code></td></tr>
+  </table>
+</section>
+
+<section class="title-slide">
+  <h1>Удачи на итоговом тесте!</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">31 вопрос · 30 минут · читайте условие до конца</div>
+  <ul style="font-size:.72em;margin-top:1em">
+    <li>Проверяйте, нет ли в данных NULL — это меняет ответ чаще всего</li>
+    <li>В задачах «сколько строк» считайте по шагам логического порядка выполнения</li>
+    <li>В вопросах с несколькими ответами проверьте каждый вариант отдельно</li>
+  </ul>
+  <div class="meta">Финальный квиз: <code>quizzes/final_quiz.html</code></div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
