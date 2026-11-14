@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 7 — Модификация данных</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+
+/* --- схемы выполнения DML (как в модуле 5: wd-/sd-) --- */
+.wd-flow{display:flex;align-items:stretch;gap:.5em}
+.wd-panel{flex:1;min-width:0;background:#fff;border:1px solid #e3e8f2;border-radius:8px;padding:8px 10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.wd-arrow{display:flex;align-items:center;font-size:1.3em;color:var(--accent1);font-weight:800}
+.wd-h{font-size:.5em;font-weight:700;color:var(--accent1);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .25em}
+.wd-chip{display:inline-block;font-family:Consolas,'Courier New',monospace;font-size:.46em;background:var(--code-bg);
+  color:#d4d4d4;border-radius:5px;padding:2px 8px;margin:0 0 .4em}
+.wd-chip .kw{color:#569cd6;font-weight:700}
+.wd-cap{font-size:.46em;color:var(--muted);margin:.4em 0 0;line-height:1.35}
+.reveal table.wd-tbl{border-collapse:separate;border-spacing:0 2px;font-size:.44em;width:100%;margin:0}
+.reveal table.wd-tbl th{color:var(--muted);font-weight:600;text-align:left;padding:2px 6px;border:none;
+  border-bottom:1px solid #e3e8f2}
+.reveal table.wd-tbl td{padding:3px 6px;border:none;background:#f7f8fa}
+.reveal table.wd-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.reveal table.wd-tbl tr.hit td{background:#e3f3da}
+.reveal table.wd-tbl tr.hit td:first-child{border-left:5px solid var(--accent6)}
+.reveal table.wd-tbl tr.upd td{background:#eaf0fb}
+.reveal table.wd-tbl tr.upd td:first-child{border-left:5px solid var(--accent1)}
+.reveal table.wd-tbl tr.ins td{background:#fde3cf}
+.reveal table.wd-tbl tr.ins td:first-child{border-left:5px solid var(--accent2)}
+.reveal table.wd-tbl tr.miss td{color:#9aa4b2}
+.reveal table.wd-tbl tr.ph td{background:none;color:var(--muted);font-weight:700;font-size:.9em;padding:4px 2px 0}
+.reveal table.wd-tbl td.res{color:var(--accent2);font-weight:700}
+.reveal table.wd-tbl td.old{color:#9aa4b2;text-decoration:line-through}
+.reveal table.wd-tbl td.yes{color:var(--accent6);font-weight:800;text-align:center}
+.reveal table.wd-tbl td.no{color:var(--accent2);font-weight:800;text-align:center}
+.wd-total{font-size:.5em;margin-top:.35em;font-weight:700;color:var(--accent2)}
+.sd-tag{display:inline-block;border-radius:10px;padding:0 8px;font-size:.9em;font-weight:700;color:#fff;white-space:nowrap}
+.sd-tag.b{background:var(--accent1)}.sd-tag.g{background:#8a94a6}.sd-tag.o{background:var(--accent2)}
+.sd-code{display:block;background:var(--code-bg);color:#d4d4d4;border-radius:8px;padding:8px 16px;font-family:Consolas,'Courier New',monospace;font-size:.44em;line-height:1.45;white-space:pre;text-align:left;box-shadow:0 3px 12px rgba(0,0,0,.18);margin:0 0 .4em;overflow:hidden}
+.sd-code .k{color:#569cd6;font-weight:700}.sd-code .f{color:#dcdcaa}.sd-code .s{color:#ce9178}.sd-code .n{color:#b5cea8}.sd-code .c{color:#6a9955;font-style:italic}
+.sd-code .h{background:rgba(237,125,49,.38);border-radius:3px}
+.sd-top{display:flex;gap:.6em;align-items:stretch;margin:0 0 .4em}
+.sd-top>*{margin:0!important}
+.sd-count{display:flex;align-items:center;gap:.5em;font-size:.5em;margin:.3em 0}
+.sd-count b{font-size:1.5em;min-width:1.6em;text-align:right}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 7</div>
+  <h1>Модификация данных</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">INSERT, UPDATE, DELETE, UPSERT и MERGE — исправляем учёт «Питание +» без риска</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 2 ак. ч.</div>
+  <aside class="notes">Модуль переводит слушателей от чтения к изменению данных. Главный акцент — безопасность: личная схема, SELECT перед UPDATE, транзакция с ROLLBACK.</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план занятия</h2>
+  <div class="two-col">
+    <div>
+      <h3>После модуля вы сможете</h3>
+      <ul>
+        <li>добавлять строки: <code>VALUES</code>, <code>INSERT … SELECT</code>, <code>DEFAULT</code>, <code>RETURNING</code></li>
+        <li>генерировать ключи: identity, sequence — и не писать <code>MAX()+1</code></li>
+        <li>изменять и удалять по условию и по соединению: <code>UPDATE … FROM</code>, <code>DELETE … USING</code></li>
+        <li>сливать данные: <code>ON CONFLICT</code> и <code>MERGE</code></li>
+        <li>экспериментировать безопасно: <code>BEGIN … ROLLBACK</code></li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Время</th><th>Блок</th></tr>
+        <tr><td>0–5</td><td>Вступление, опрос, личная схема</td></tr>
+        <tr><td>5–15</td><td>INSERT и генерация ключей</td></tr>
+        <tr><td>15–27</td><td>UPDATE, безопасная практика</td></tr>
+        <tr><td>27–35</td><td>DELETE, TRUNCATE, каскад</td></tr>
+        <tr><td>35–45</td><td>UPSERT и MERGE, кейс</td></tr>
+        <tr><td>45–80</td><td class="hl">Лабораторная работа (А / Б)</td></tr>
+        <tr><td>80–90</td><td>Защита выводов, итоги</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: ваш опыт изменения данных</h2>
+  <p>Приходилось ли вам выполнять <code>UPDATE</code> или <code>DELETE</code> на «живой» базе (работа, практика, проект)?</p>
+  <ul class="poll">
+    <li><span style="width:15em">Да, регулярно</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Пару раз, было страшно</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Только в учебной БД</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:15em">Однажды удалил(а) лишнее…</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Попросите тех, кто «удалял лишнее», рассказать коротко, что случилось и как восстанавливали. Это хороший заход к теме транзакций и бэкапов.</aside>
+</section>
+
+<!-- ===================== 4. МОСТ ===================== -->
+<section>
+  <h2>Где мы в сюжете «Питание +»</h2>
+  <div class="two-col">
+    <div class="card"><h4>Модули 1–6: читаем</h4>
+      Нашли: дубли клиентов, «грязные» e-mail и телефоны, масло ниже себестоимости, долг «Вектора» 6,9 млн при лимите 3 млн,
+      переплату АгроСнаб-М, незакрытые простои.</div>
+    <div class="card orange-top"><h4>Модуль 7: исправляем</h4>
+      Чистим справочники, объединяем дубли, загружаем новый прайс и предложения поставщиков, ведём собственные
+      таблицы — стоп-листы, карты соответствий.</div>
+  </div>
+  <div class="box warn"><b>Главное правило</b>Схема <code>pitanie</code> — общая и только для чтения. Всё, что меняет данные, выполняется в вашей личной схеме <code>stud_&lt;фамилия&gt;</code>.</div>
+</section>
+
+<!-- ===================== 5. РАЗДЕЛ ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Подготовка: личная схема</h2>
+  <p>Песочница, которая переживёт модули 9–12</p>
+</section>
+
+<!-- ===================== 6. ЛИЧНАЯ СХЕМА ===================== -->
+<section>
+  <h2>Скрипт <code>00_personal_schema.sql</code></h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SET course.stud_schema = 'stud_ivanov';      -- латиница, строчные
+-- выполнить module_07/scripts/00_personal_schema.sql целиком (DBeaver: Alt+X)
+
+-- внутри — DO-блок с динамическим SQL:
+EXECUTE format('CREATE TABLE %I.%I (LIKE pitanie.%I INCLUDING ALL)', v_schema, t, t);
+EXECUTE format('INSERT INTO %I.%I SELECT * FROM pitanie.%I',        v_schema, t, t);
+-- + 30 внешних ключей, PK -&gt; GENERATED BY DEFAULT AS IDENTITY, search_path
+  </code></pre>
+  <table class="t">
+    <tr><th>Что копирует <code>LIKE … INCLUDING ALL</code></th><th>Что НЕ копирует</th></tr>
+    <tr><td>столбцы, NOT NULL, DEFAULT, CHECK, PK, UNIQUE, индексы, комментарии</td><td class="hl">внешние ключи и данные — их добавляет скрипт</td></tr>
+  </table>
+  <div class="box ok"><b>Результат</b><code>Готово: схема stud_ivanov, таблиц 23, строк скопировано 65905</code></div>
+</section>
+
+<!-- ===================== 7. search_path ===================== -->
+<section>
+  <h2>search_path: куда на самом деле пишет запрос</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+SET search_path TO stud_ivanov, pitanie, public;   -- в КАЖДОМ новом сеансе
+
+SELECT current_schema()               AS write_schema,   -- stud_ivanov
+       current_setting('search_path') AS search_path;
+  </code></pre>
+  <ul>
+    <li>Неуточнённое имя <code>customers</code> ищется слева направо → ваша копия.</li>
+    <li>Новые объекты создаются в <b>первой</b> схеме пути.</li>
+    <li>Сброс данных к исходным: <code>01_reset_data.sql</code> (ваши таблицы не удаляются).</li>
+  </ul>
+  <div class="box warn"><b>Ловушка</b>Новое окно редактора DBeaver = новый сеанс. Если <code>current_schema()</code> вернул <code>pitanie</code> — остановитесь.</div>
+</section>
+
+<!-- ===================== 8. РАЗДЕЛ INSERT ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>INSERT — добавление строк</h2>
+  <p>VALUES · INSERT … SELECT · DEFAULT · RETURNING · ключи</p>
+</section>
+
+<!-- ===================== 9. INSERT VALUES ===================== -->
+<section>
+  <h2>INSERT … VALUES: одна и несколько строк</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+CREATE TABLE m07_call_log (
+    call_id     integer      GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_id integer      NOT NULL REFERENCES customers (customer_id),
+    call_date   date         NOT NULL DEFAULT current_date,
+    topic       varchar(100) NOT NULL,
+    result      varchar(30)  NOT NULL DEFAULT 'Без результата'
+);
+
+INSERT INTO m07_call_log (customer_id, call_date, topic, result)
+VALUES (1,  DATE '2026-01-12', 'Напоминание о долге',        'Обещан платёж'),
+       (53, DATE '2026-01-19', 'График оплат',               'График согласован'),
+       (7,  DEFAULT,           'Предложение по прайсу 2026', DEFAULT);
+  </code></pre>
+  <div class="box info"><b>Хорошая практика</b>Всегда перечисляйте столбцы явно: запрос не сломается, когда в таблицу добавят новый столбец.</div>
+</section>
+
+<!-- ===================== 10. INSERT SELECT RETURNING ===================== -->
+<section>
+  <h2>INSERT … SELECT и RETURNING</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- план обзвона клиентов без e-mail
+INSERT INTO m07_call_log
+       (customer_id, call_date, topic)
+SELECT c.customer_id,
+       DATE '2026-01-26',
+       'Уточнить e-mail для ЭДО'
+FROM   customers AS c
+WHERE  c.email IS NULL;
+-- INSERT 0 21
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+INSERT INTO m07_call_log
+       (customer_id, topic)
+VALUES (23, 'Промо-акция')
+RETURNING call_id,
+          call_date,
+          result;
+-- call_id | call_date | result
+--       5 | сегодня   | Без результата
+      </code></pre>
+    </div>
+  </div>
+  <ul>
+    <li>Столбцы <code>SELECT</code> сопоставляются со списком <code>INSERT</code> <b>по позиции</b>, не по имени.</li>
+    <li><code>RETURNING</code> возвращает вставленные строки — ключ, значения DEFAULT — без второго запроса.</li>
+  </ul>
+</section>
+
+<!-- ===================== 11. КЛЮЧИ ===================== -->
+<section>
+  <h2>Генерация ключей</h2>
+  <table class="t">
+    <tr><th>Способ</th><th>Как</th><th>Плюсы / минусы</th></tr>
+    <tr><td><b>IDENTITY</b> (SQL-стандарт)</td><td><code>GENERATED {ALWAYS | BY DEFAULT} AS IDENTITY</code></td><td>привязан к столбцу; ALWAYS запрещает ручной ключ</td></tr>
+    <tr><td><b>SEQUENCE</b></td><td><code>CREATE SEQUENCE s; nextval('s')</code></td><td>общий счётчик, номера документов <code>ПР-2026-00001</code></td></tr>
+    <tr><td><code>serial</code></td><td>устаревший синоним sequence + DEFAULT</td><td>в новых таблицах — identity</td></tr>
+    <tr><td class="hl">MAX()+1</td><td><code>SELECT max(id)+1 …</code></td><td class="hl">гонки, дубли, полный просмотр индекса</td></tr>
+  </table>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- в pitanie ключи — простые integer; в личной схеме скрипт 00 сделал так:
+ALTER TABLE customers
+    ALTER COLUMN customer_id ADD GENERATED BY DEFAULT AS IDENTITY (START WITH 74);
+  </code></pre>
+  <div class="box info"><b>T-SQL ↔ PostgreSQL</b><code>IDENTITY(1,1)</code> → <code>GENERATED … AS IDENTITY</code>; <code>SCOPE_IDENTITY()</code> / <code>OUTPUT inserted.id</code> → <code>RETURNING id</code>; <code>SET IDENTITY_INSERT ON</code> → <code>OVERRIDING SYSTEM VALUE</code></div>
+</section>
+
+<!-- ===================== 12. ОБСУЖДЕНИЕ MAX+1 ===================== -->
+<section class="discussion-slide">
+  <h2>Почему не MAX()+1?</h2>
+  <p>Два менеджера одновременно регистрируют претензию поставщику:</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+INSERT INTO m07_supplier_note (note_id, supplier_name)
+SELECT max(note_id) + 1, 'Вставка через MAX()+1'
+FROM   m07_supplier_note;
+  </code></pre>
+  <ol>
+    <li>Что получит второй сеанс? Что будет, если PK нет?</li>
+    <li>В демо после <code>MAX()+1</code> следующая вставка через identity упала: <code>duplicate key … m07_supplier_note_pkey</code>. Почему?</li>
+    <li>Sequence не откатывается при <code>ROLLBACK</code> — в нумерации будут «дырки». Это проблема?</li>
+  </ol>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">1) Оба прочитают одинаковый MAX (snapshot), второй получит duplicate key; без PK — два одинаковых id. 2) Счётчик identity ничего не знает о «ручном» id 14 — nextval выдал 14. Лечение: setval(pg_get_serial_sequence(...), max). 3) Дырки — нормально для суррогатного ключа; если нужна сплошная нумерация (счета-фактуры по закону) — отдельный механизм с блокировкой, обсудим в модуле 11.</aside>
+</section>
+
+<!-- ===================== 13. КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: GENERATED ALWAYS</h2>
+  <p>Столбец <code>call_id integer GENERATED ALWAYS AS IDENTITY</code>. Что произойдёт при <code>INSERT INTO m07_call_log (call_id, customer_id, topic) VALUES (1000, 1, 'X')</code>?</p>
+  <ul class="quiz">
+    <li>Строка вставится с call_id = 1000</li>
+    <li>Значение 1000 будет проигнорировано, вставится следующее из счётчика</li>
+    <li data-correct>Ошибка: cannot insert a non-DEFAULT value into column "call_id"</li>
+    <li>Строка вставится, а счётчик продолжит с 1001</li>
+  </ul>
+  <p class="explain">ALWAYS запрещает явное значение. Обойти можно только явно: <code>INSERT … OVERRIDING SYSTEM VALUE VALUES (1000, …)</code>. Режим BY DEFAULT принял бы 1000, но счётчик об этом не узнает.</p>
+</section>
+
+<!-- ===================== 14. РАЗДЕЛ UPDATE ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>UPDATE — изменение строк</h2>
+  <p>выражения · CASE · UPDATE … FROM · подзапросы · RETURNING</p>
+</section>
+
+<!-- ===================== 15. БЕЗОПАСНАЯ ПРАКТИКА ===================== -->
+<section>
+  <h2>Правило: сначала SELECT, потом UPDATE — в транзакции</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- 1. Что и сколько изменим?
+SELECT count(*) FROM orders WHERE shipped_date &gt; required_date;   -- 984
+
+-- 2. Изменяем в транзакции
+BEGIN;
+UPDATE orders
+SET    comment = concat_ws('; ', btrim(comment),
+                           'Отгрузка с опозданием ' || (shipped_date - required_date) || ' дн.')
+WHERE  shipped_date &gt; required_date;                              -- UPDATE 984 ✔ совпало
+
+-- 3. Проверяем результат
+SELECT order_id, comment FROM orders WHERE shipped_date &gt; required_date LIMIT 3;
+
+-- 4. Решаем
+ROLLBACK;   -- или COMMIT;
+  </code></pre>
+  <div class="box ok"><b>Сверяйте счётчик</b>Ответ сервера <code>UPDATE n</code> должен совпасть с числом из шага 1. Не совпал — <code>ROLLBACK</code> и разбираться.</div>
+</section>
+
+<!-- ===================== 16. ВЫРАЖЕНИЯ И CASE ===================== -->
+<section>
+  <h2>Выражения, CASE и ловушка NULL</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+UPDATE raw_materials
+SET    min_stock = CASE material_group
+         WHEN 'Молочное сырьё'
+              THEN round(min_stock * 1.10, 0)
+         WHEN 'Упаковка'
+              THEN round(min_stock * 0.90, 0)
+         ELSE min_stock
+       END
+WHERE  material_group IN ('Молочное сырьё',
+                          'Упаковка');
+-- UPDATE 8
+      </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>comment</th><th><code>comment || '; ' || x</code></th><th><code>concat_ws('; ', comment, x)</code></th></tr>
+        <tr><td>'Срочно!'</td><td>'Срочно!; x'</td><td>'Срочно!; x'</td></tr>
+        <tr><td>NULL</td><td class="hl">NULL — пометка потеряна</td><td>'x'</td></tr>
+      </table>
+      <div class="box warn"><b>Без WHERE</b><code>UPDATE products SET base_price = base_price * 1.05;</code> → <code>UPDATE 35</code>: весь прайс.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 17. UPDATE FROM ===================== -->
+<section>
+  <h2>UPDATE … FROM: изменение по данным другой таблицы</h2>
+  <p style="font-size:.62em;margin:0 0 .2em">Коммерческий отдел прислал короткий файл с новыми ценами на молочную продукцию. Обновим <code>products</code> по совпадению <code>sku</code>.</p>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- таблица-источник: 4 новые цены
+CREATE TEMP TABLE price_change (
+    sku       varchar(20)   PRIMARY KEY,
+    new_price numeric(10,2) NOT NULL
+);
+INSERT INTO price_change VALUES
+    ('MLK-001',  94.00),
+    ('MLK-004', 172.00),
+    ('MLK-005', 259.00),
+    ('MLK-099', 120.00);   -- такого SKU нет
+
+BEGIN;
+UPDATE products AS p
+SET    base_price = pc.new_price
+FROM   price_change AS pc
+WHERE  pc.sku = p.sku
+RETURNING p.product_id, p.sku, p.base_price;
+-- UPDATE 3
+ROLLBACK;
+      </code></pre>
+    </div>
+    <div>
+      <ul style="font-size:.66em">
+        <li><code>FROM</code> добавляет вторую таблицу, а <code>WHERE</code> задаёт условие соединения.</li>
+        <li>В <code>SET</code> доступны столбцы источника: <code>pc.new_price</code>.</li>
+        <li>Меняются только строки цели, у которых нашлась пара. Строка источника без пары (<code>MLK-099</code>) ни на что не влияет.</li>
+        <li>Целевую таблицу в <code>FROM</code> <b>не повторяем</b>. (T-SQL: <code>UPDATE p SET … FROM products p JOIN …</code>.)</li>
+      </ul>
+      <div class="box warn" style="font-size:.62em"><b>Ловушка</b>Если для одной строки цели в источнике окажется несколько строк, PostgreSQL молча возьмёт одну из них, причём неизвестно какую. Источник должен давать одну строку на ключ, поэтому здесь у <code>sku</code> стоит PRIMARY KEY (или агрегируйте источник).</div>
+      <div class="box info" style="font-size:.58em"><b>Посложнее — в examples.sql (3.4б)</b>Пересчёт <code>standard_cost</code>: в источнике в <code>FROM</code> стоит подзапрос с рецептурой и средними ценами закупок.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 17a. СХЕМА: UPDATE FROM ===================== -->
+<section>
+  <h2>Схема: как выполняется UPDATE … FROM</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none"><span class="k">UPDATE</span> products <span class="k">AS</span> p                <span class="c">-- ③ цель: что меняем</span>
+<span class="k">SET</span>    base_price = <span class="h">pc.new_price</span>   <span class="c">-- ③ значение из источника</span>
+<span class="k">FROM</span>   <span class="h">price_change <span class="k">AS</span> pc</span>     <span class="c">-- ① источник</span>
+<span class="k">WHERE</span>  <span class="h">pc.sku = p.sku</span>          <span class="c">-- ② соединение</span>
+<span class="k">RETURNING</span> p.product_id, p.sku, p.base_price;</div>
+    <div class="box info" style="font-size:.5em;flex:1"><b>Как читать схему</b>По сути это <b>JOIN</b> цели с источником. ① Берём строки источника. ② Соединяем их со строками <code>products</code> по <code>sku</code>, как в обычном INNER JOIN. ③ В каждой строке цели, которая нашла пару, <code>SET</code> записывает новое значение. Строки без пары не трогаются. Нажимайте →</div>
+  </div>
+  <div class="wd-flow">
+    <div class="wd-panel" style="flex:.8">
+      <p class="wd-h">① Источник price_change</p>
+      <table class="wd-tbl">
+        <tr><th>sku</th><th>new_price</th></tr>
+        <tr><td>MLK-001</td><td class="num">94.00</td></tr>
+        <tr><td>MLK-004</td><td class="num">172.00</td></tr>
+        <tr><td>MLK-005</td><td class="num">259.00</td></tr>
+        <tr class="miss"><td>MLK-099</td><td class="num">120.00</td></tr>
+      </table>
+      <p class="wd-cap">4 строки, по одной на SKU (PRIMARY KEY).</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1" style="flex:1.4">
+      <p class="wd-h">② Соединение pc.sku = p.sku</p>
+      <table class="wd-tbl">
+        <tr><th>p.sku</th><th>p.base_price</th><th>pc.new_price</th><th>пара?</th></tr>
+        <tr class="hit"><td>MLK-001</td><td class="num">89.00</td><td class="num">94.00</td><td class="yes">✔</td></tr>
+        <tr class="miss"><td>MLK-002</td><td class="num">95.00</td><td>—</td><td class="no">✘</td></tr>
+        <tr class="miss"><td>MLK-003</td><td class="num">112.00</td><td>—</td><td class="no">✘</td></tr>
+        <tr class="hit"><td>MLK-004</td><td class="num">165.00</td><td class="num">172.00</td><td class="yes">✔</td></tr>
+        <tr class="hit"><td>MLK-005</td><td class="num">245.00</td><td class="num">259.00</td><td class="yes">✔</td></tr>
+        <tr class="ph"><td colspan="4">… ещё 30 строк products: пары нет ✘</td></tr>
+        <tr class="miss"><td><i>нет в products</i></td><td>—</td><td class="num">120.00 (MLK-099)</td><td class="no">✘</td></tr>
+      </table>
+      <p class="wd-cap">Работает как INNER JOIN: в обработку попадают только пары. У MLK-099 нет строки-цели, поэтому её никуда не вставят и не обновят.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2">
+      <p class="wd-h">③ SET в строках цели</p>
+      <table class="wd-tbl">
+        <tr><th>product_id · sku</th><th>было</th><th>стало</th></tr>
+        <tr class="hit"><td>1 · MLK-001</td><td class="num old">89.00</td><td class="num res">94.00</td></tr>
+        <tr class="miss"><td>2 · MLK-002</td><td class="num">95.00</td><td class="num">95.00</td></tr>
+        <tr class="miss"><td>3 · MLK-003</td><td class="num">112.00</td><td class="num">112.00</td></tr>
+        <tr class="hit"><td>4 · MLK-004</td><td class="num old">165.00</td><td class="num res">172.00</td></tr>
+        <tr class="hit"><td>5 · MLK-005</td><td class="num old">245.00</td><td class="num res">259.00</td></tr>
+      </table>
+      <p class="wd-total">UPDATE 3 (сверяйте с ожиданием!)</p>
+      <p class="wd-cap">RETURNING вернёт 3 строки с <b>новыми</b> ценами. Остальные 32 товара не изменились.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 18. RETURNING OLD/NEW, подзапрос ===================== -->
+<section>
+  <h2>Подзапрос в WHERE и «старое → новое» в RETURNING</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- лимит −20 % клиентам с &gt;3 отменами
+UPDATE customers AS c
+SET    credit_limit = c.credit_limit * 0.8
+WHERE  (SELECT count(*)
+        FROM   orders AS o
+        WHERE  o.customer_id = c.customer_id
+          AND  o.status = 'Отменён') &gt; 3;
+-- UPDATE 18
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- PG 16: RETURNING видит только новую строку
+UPDATE products AS p
+SET    base_price = old.base_price + 10
+FROM   products AS old
+WHERE  old.product_id = p.product_id
+  AND  p.product_id IN (13, 14)
+RETURNING p.product_id,
+          old.base_price AS old_price,
+          p.base_price   AS new_price;
+-- 13 | 189.00 | 199.00
+      </code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>T-SQL ↔ PostgreSQL</b><code>OUTPUT deleted.x, inserted.x</code> → в PG 16 приём с самосоединением; в PG 18 появились <code>RETURNING old.*, new.*</code>.</div>
+</section>
+
+<!-- ===================== 19. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Кто должен исправлять «грязные» данные?</h2>
+  <p>В CRM 32 e-mail с пробелами и заглавными буквами, 50 телефонов в разных форматах, 4 дубля клиентов. Аналитик может исправить всё за 5 минут одним <code>UPDATE</code>.</p>
+  <ul>
+    <li>Стоит ли аналитику править данные в учётной системе напрямую?</li>
+    <li>Что будет завтра, когда менеджер заведёт нового клиента?</li>
+    <li>Где правильнее «лечить»: в источнике, при загрузке (ETL), в представлении для отчётов?</li>
+  </ul>
+  <span class="timer">⏱ 5 мин</span>
+  <aside class="notes">Ожидаемые ответы: прямые правки в продуктиве — только по регламенту, с журналом и согласованием владельца данных; иначе проблема вернётся — нужны ограничения (CHECK на формат, UNIQUE на ИНН), маски ввода, дедупликация при загрузке. Для аналитики — витрина/представление с очисткой (модуль 9). Наша личная схема — как раз «витрина», где мы показываем эффект исправлений.</aside>
+</section>
+
+<!-- ===================== 20. РАЗДЕЛ DELETE ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>DELETE и TRUNCATE</h2>
+  <p>условие · DELETE … USING · внешние ключи · каскад · архив</p>
+</section>
+
+<!-- ===================== 21. DELETE ===================== -->
+<section>
+  <h2>DELETE с условием и по соединению</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- позиции отменённых заказов
+BEGIN;
+DELETE FROM order_items AS oi
+USING  orders AS o
+WHERE  o.order_id = oi.order_id
+  AND  o.status = 'Отменён';
+-- DELETE 653
+ROLLBACK;
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+DELETE FROM customers
+WHERE  customer_id = 72;
+-- ERROR: update or delete on table
+-- "customers" violates foreign key
+-- constraint "orders_customer_id_fkey"
+-- on table "orders"
+      </code></pre>
+    </div>
+  </div>
+  <div class="box ok"><b>FK — ваш союзник</b>Внешний ключ не даёт оставить заказы без клиента. Сначала перенесите заказы (UPDATE), потом удаляйте.</div>
+  <div class="box info"><b>T-SQL ↔ PostgreSQL</b><code>DELETE oi FROM order_items oi JOIN orders o …</code> → <code>DELETE FROM order_items oi USING orders o WHERE …</code></div>
+</section>
+
+<!-- ===================== 22. КАСКАД И АРХИВ ===================== -->
+<section>
+  <h2>Каскадное удаление и перенос в архив</h2>
+  <div class="two-col">
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+CREATE TABLE m07_claim_item (
+  claim_item_id integer GENERATED ALWAYS
+                AS IDENTITY PRIMARY KEY,
+  claim_id      integer NOT NULL
+     REFERENCES m07_claim (claim_id)
+     ON DELETE CASCADE,
+  po_item_id    integer NOT NULL
+     REFERENCES purchase_order_items,
+  claim_qty     numeric(14,2) NOT NULL
+);
+DELETE FROM m07_claim WHERE supplier_id = 1;
+-- 1 претензия + 5 позиций
+      </code></pre>
+    </div>
+    <div>
+      <pre><code class="language-sql" data-trim data-noescape>
+-- переместить одной командой
+WITH moved AS (
+    DELETE FROM m07_call_log
+    WHERE  call_date &lt; DATE '2026-01-20'
+    RETURNING *
+)
+INSERT INTO m07_call_archive
+SELECT * FROM moved;
+-- INSERT 0 2
+      </code></pre>
+      <p class="small">Варианты FK: NO ACTION (по умолчанию), RESTRICT, CASCADE, SET NULL, SET DEFAULT.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 23. TRUNCATE vs DELETE ===================== -->
+<section>
+  <h2>TRUNCATE vs DELETE</h2>
+  <table class="t">
+    <tr><th></th><th>DELETE</th><th>TRUNCATE</th></tr>
+    <tr><td>Условие WHERE</td><td>да</td><td>нет — вся таблица</td></tr>
+    <tr><td>Скорость на больших таблицах</td><td>построчно</td><td>мгновенно (новый файл)</td></tr>
+    <tr><td>Триггеры ON DELETE</td><td>срабатывают</td><td>нет (есть ON TRUNCATE)</td></tr>
+    <tr><td>Identity</td><td>не меняется</td><td><code>RESTART IDENTITY</code></td></tr>
+    <tr><td>На таблицу ссылаются FK</td><td>проверка построчно</td><td class="hl">ошибка без <code>CASCADE</code></td></tr>
+    <tr><td>RETURNING</td><td>да</td><td>нет</td></tr>
+    <tr><td>Откат в транзакции</td><td>да</td><td class="hl">да (в PostgreSQL)</td></tr>
+  </table>
+  <div class="box warn"><b>CASCADE опасен</b><code>TRUNCATE customers CASCADE</code> очистит и <code>orders</code>, и всё, что ссылается на <code>orders</code>. Скрипт <code>01_reset_data.sql</code> заранее перечисляет такие таблицы.</div>
+</section>
+
+<!-- ===================== 24. КВИЗ 2 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: TRUNCATE в транзакции</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+BEGIN;
+TRUNCATE m07_call_archive RESTART IDENTITY;
+ROLLBACK;
+SELECT count(*) FROM m07_call_archive;
+  </code></pre>
+  <ul class="quiz">
+    <li>0 — TRUNCATE не транзакционен</li>
+    <li data-correct>2 — данные вернулись, как были до BEGIN</li>
+    <li>Ошибка: TRUNCATE нельзя выполнять внутри транзакции</li>
+    <li>2, но identity сброшен в 1</li>
+  </ul>
+  <p class="explain">В PostgreSQL TRUNCATE полностью транзакционен: откат возвращает и данные, и счётчик identity. В Oracle и MySQL TRUNCATE — DDL с неявным COMMIT.</p>
+</section>
+
+<!-- ===================== 25. РАЗДЕЛ UPSERT/MERGE ===================== -->
+<section class="section-slide">
+  <div class="num">05</div>
+  <h2>UPSERT и MERGE</h2>
+  <p>«вставить или обновить» · слияние источника с целью</p>
+</section>
+
+<!-- ===================== 26. ON CONFLICT ===================== -->
+<section>
+  <h2>INSERT … ON CONFLICT</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+INSERT INTO m07_edo_contact AS t (customer_id, email)
+VALUES (1, 'buh@vektor-td.ru'),
+       (6, 'zakaz@vkusdom.ru'),          -- адрес не изменился
+       (7, 'edo@magnit-region.ru')       -- новой строки ещё нет
+ON CONFLICT (customer_id) DO UPDATE
+SET    email      = EXCLUDED.email,      -- EXCLUDED = строка, которую пытались вставить
+       updated_at = now(),
+       version    = t.version + 1
+WHERE  t.email IS DISTINCT FROM EXCLUDED.email
+RETURNING customer_id, version, (xmax = 0) AS inserted;
+-- 1 | 2 | false      7 | 1 | true      (id 6 не тронут)
+  </code></pre>
+  <div class="two-col">
+    <div class="box info"><b>Варианты</b><code>DO NOTHING</code> — пропустить дубликаты; <code>DO UPDATE … WHERE</code> — обновить только изменившееся.</div>
+    <div class="box warn"><b>Требования</b>Нужен UNIQUE/PK на столбцах конфликта. Один ключ дважды в одной команде → <code>cannot affect row a second time</code>.</div>
+  </div>
+</section>
+
+<!-- ===================== 27. MERGE ===================== -->
+<section>
+  <h2>MERGE (PostgreSQL 15+): новый прайс-лист → products</h2>
+  <pre><code class="language-sql" data-trim data-noescape>
+MERGE INTO products AS p
+USING price_list_2026 AS pl
+   ON p.sku = pl.sku
+WHEN MATCHED AND p.base_price &lt;&gt; pl.price THEN
+    UPDATE SET base_price = pl.price
+WHEN MATCHED THEN
+    DO NOTHING
+WHEN NOT MATCHED THEN
+    INSERT (sku, product_name, category_id, unit, weight_kg, shelf_life_days,
+            base_price, standard_cost, is_active, launch_date)
+    VALUES (pl.sku, pl.product_name, pl.category_id, pl.unit, pl.weight_kg,
+            pl.shelf_life_days, pl.price, pl.standard_cost, TRUE, pl.valid_from);
+-- MERGE 26  = 23 изменения цены + 3 новых SKU (id 36–38 выдал identity)
+  </code></pre>
+  <ul>
+    <li><code>WHEN</code>-ветки проверяются по порядку, срабатывает первая подходящая.</li>
+    <li>Строка цели может совпасть только с <b>одной</b> строкой источника — иначе <code>MERGE command cannot affect row a second time</code>.</li>
+  </ul>
+</section>
+
+<!-- ===================== 27a. СХЕМА: MERGE ===================== -->
+<section>
+  <h2>Схема: как MERGE раскладывает строки по веткам</h2>
+  <div class="sd-top"><div class="sd-code" style="flex:none;font-size:.4em"><span class="k">MERGE INTO</span> products <span class="k">AS</span> p
+<span class="k">USING</span> price_list_2026 <span class="k">AS</span> pl                    <span class="c">-- источник: 36 строк</span>
+   <span class="k">ON</span> <span class="h">p.sku = pl.sku</span>                         <span class="c">-- ① сопоставление</span>
+<span class="k">WHEN MATCHED AND</span> <span class="h">p.base_price &lt;&gt; pl.price</span> <span class="k">THEN</span>  <span class="c">-- ② цена изменилась</span>
+    <span class="k">UPDATE SET</span> base_price = pl.price
+<span class="k">WHEN MATCHED THEN</span>                             <span class="c">-- ③ цена та же</span>
+    <span class="k">DO NOTHING</span>
+<span class="k">WHEN NOT MATCHED THEN</span>                         <span class="c">-- ④ нового SKU нет в products</span>
+    <span class="k">INSERT</span> (sku, product_name, category_id, unit, weight_kg, shelf_life_days,
+            base_price, standard_cost, is_active, launch_date)
+    <span class="k">VALUES</span> (pl.sku, pl.product_name, pl.category_id, pl.unit, pl.weight_kg,
+            pl.shelf_life_days, pl.price, pl.standard_cost, <span class="k">TRUE</span>, pl.valid_from);</div>
+    <div class="box info" style="font-size:.48em;flex:1"><b>Как читать схему</b>① Каждую строку источника ищем в цели по условию <code>ON</code>, как при LEFT JOIN источника к цели. Затем проверяем <code>WHEN</code>-ветки <b>сверху вниз</b>, и срабатывает первая подходящая: ② UPDATE, ③ DO NOTHING, ④ INSERT. Строки цели без пары в источнике MERGE в PG 16 не трогает. Нажимайте →</div>
+  </div>
+  <div class="wd-flow">
+    <div class="wd-panel" style="flex:1.6">
+      <p class="wd-h">① Источник ⟕ цель по ON p.sku = pl.sku · фрагмент</p>
+      <table class="wd-tbl">
+        <tr><th>pl.sku</th><th>pl.price</th><th>p.base_price</th><th>ветка</th></tr>
+        <tr class="upd"><td>KSM-007</td><td class="num">47.00</td><td class="num">45.00</td><td><span class="sd-tag b">② UPDATE</span></td></tr>
+        <tr class="upd"><td>SHK-006</td><td class="num">95.00</td><td class="num">99.00</td><td><span class="sd-tag b">② UPDATE</span></td></tr>
+        <tr class="miss"><td>KSM-008</td><td class="num">65.00</td><td class="num">65.00</td><td><span class="sd-tag g">③ NOTHING</span></td></tr>
+        <tr class="miss"><td>SYR-001</td><td class="num">189.00</td><td class="num">189.00</td><td><span class="sd-tag g">③ NOTHING</span></td></tr>
+        <tr class="ins"><td>KSM-009</td><td class="num">89.00</td><td><i>нет пары</i></td><td><span class="sd-tag o">④ INSERT</span></td></tr>
+        <tr class="ins"><td>BAK-004</td><td class="num">189.00</td><td><i>нет пары</i></td><td><span class="sd-tag o">④ INSERT</span></td></tr>
+      </table>
+      <p class="wd-cap">SHK-006 подешевел, но условие <code>&lt;&gt;</code> срабатывает в обе стороны. У KSM-008 тоже есть пара, но ветка ② не подошла, и сработала следующая, ③.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="1">→</div>
+    <div class="wd-panel fragment" data-fragment-index="1">
+      <p class="wd-h">Итог по 36 строкам источника</p>
+      <div class="sd-count"><b class="blue">23</b><span class="sd-tag b">② UPDATE</span> цена изменилась</div>
+      <div class="sd-count"><b style="color:#8a94a6">10</b><span class="sd-tag g">③ DO NOTHING</span> цена та же</div>
+      <div class="sd-count"><b class="orange">3</b><span class="sd-tag o">④ INSERT</span> KSM-009, SHK-007, BAK-004</div>
+      <p class="wd-total">MERGE 26 = 23 + 3</p>
+      <p class="wd-cap">Строки с DO NOTHING в счётчик не входят: 26 + 10 = 36.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">+</div>
+    <div class="wd-panel fragment" data-fragment-index="2" style="flex:.9">
+      <p class="wd-h">Цель без пары в источнике</p>
+      <table class="wd-tbl">
+        <tr><th>p.sku</th><th>статус</th></tr>
+        <tr class="miss"><td>SOU-002</td><td>не тронут</td></tr>
+        <tr class="miss"><td>PEC-006</td><td>не тронут</td></tr>
+      </table>
+      <p class="wd-cap">Этих SKU нет в прайсе 2026, но MERGE их не закрывает. Ветка <code>WHEN NOT MATCHED BY SOURCE</code> есть только в PG 17+, а в PG 16 для этого нужен отдельный <code>UPDATE … WHERE NOT EXISTS</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 28. T-SQL vs PG MERGE ===================== -->
+<section>
+  <h2>MERGE: T-SQL ↔ PostgreSQL 16</h2>
+  <table class="t">
+    <tr><th>T-SQL</th><th>PostgreSQL 16</th></tr>
+    <tr><td><code>WHEN NOT MATCHED [BY TARGET]</code></td><td><code>WHEN NOT MATCHED</code></td></tr>
+    <tr><td><code>WHEN NOT MATCHED BY SOURCE THEN DELETE/UPDATE</code></td><td class="hl">нет (появилось в PG 17) → отдельная команда</td></tr>
+    <tr><td><code>OUTPUT $action, inserted.*, deleted.*</code></td><td class="hl">нет (RETURNING в MERGE — PG 17)</td></tr>
+    <tr><td>обязательная <code>;</code></td><td>обычная команда</td></tr>
+    <tr><td>—</td><td><code>THEN DO NOTHING</code></td></tr>
+  </table>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- обходной путь для «NOT MATCHED BY SOURCE»: в той же транзакции
+UPDATE products AS p
+SET    is_active = FALSE, discontinued_date = DATE '2025-12-31'
+WHERE  p.is_active
+  AND  NOT EXISTS (SELECT 1 FROM price_list_2026 AS pl WHERE pl.sku = p.sku);
+-- 1 строка: SOU-002 «Соус сливочно-чесночный»
+  </code></pre>
+</section>
+
+<!-- ===================== 29. КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: UPSERT или MERGE?</h2>
+  <p>Ежедневно загружаем остатки склада (ключ — material_id): новые материалы вставить, существующие обновить, <b>отсутствующие в выгрузке — обнулить</b>. Что выбрать в PostgreSQL 16?</p>
+  <ul class="quiz">
+    <li>Только INSERT … ON CONFLICT DO UPDATE</li>
+    <li>Один MERGE с WHEN NOT MATCHED BY SOURCE</li>
+    <li data-correct>MERGE (или ON CONFLICT) + отдельный UPDATE … WHERE NOT EXISTS в одной транзакции</li>
+    <li>DELETE всех строк и INSERT заново</li>
+  </ul>
+  <p class="explain">В PG 16 нет NOT MATCHED BY SOURCE, поэтому «обнулить отсутствующие» — отдельной командой. Транзакция гарантирует, что отчёты не увидят промежуточное состояние. DELETE+INSERT теряет историю и ломает FK.</p>
+</section>
+
+<!-- ===================== 30. ОБСУЖДЕНИЕ SCD2 ===================== -->
+<section class="discussion-slide">
+  <h2>История цен: почему одной MERGE не обойтись?</h2>
+  <p>В <code>price_history</code> у каждого товара одна действующая цена (<code>valid_to IS NULL</code>). Пришёл прайс 2026: 23 цены изменились.</p>
+  <ul>
+    <li>Что нужно сделать со строкой старой цены? А с новой?</li>
+    <li>Почему <code>MERGE … ON ph.product_id = p.product_id AND ph.valid_to IS NULL</code> не решает задачу полностью?</li>
+    <li>Что увидит отчёт, если между двумя командами пройдёт сбой?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Для изменившегося SKU нужно И закрыть старую строку (UPDATE valid_to), И вставить новую (INSERT) — MERGE выполняет для одной строки источника одно действие. Решение: UPDATE … FROM (UPDATE 23) + INSERT … SELECT WHERE NOT EXISTS открытой цены (INSERT 23) в одной транзакции. Альтернатива — источник с UNION ALL (две строки на SKU с разным ключом сопоставления) — сложнее читать. При сбое без транзакции — товары без действующей цены. Это задание А6 лабораторной.</aside>
+</section>
+
+<!-- ===================== 31. КЕЙС ===================== -->
+<section class="case-slide">
+  <h2>Кейс: новый прайс — старая проблема</h2>
+  <div class="two-col">
+    <div>
+      <p>Коммерческая служба прислала прайс 2026: 22 SKU подорожали на 4–6 %, белый шоколад подешевел. Масло сливочное — <b>без изменений</b>.</p>
+      <table class="t">
+        <tr><th>SKU</th><th>Цена</th><th>Себест.</th><th>Маржа 2025</th></tr>
+        <tr><td>SYR-001 Масло 82,5 %</td><td>189</td><td>205</td><td class="hl">−3,87 млн</td></tr>
+        <tr><td>SYR-002 Масло 72,5 %</td><td>159</td><td>151</td><td class="hl">−0,31 млн</td></tr>
+      </table>
+      <p class="small">При цене = себестоимость × 1,2 (блок 7 examples.sql): +2,82 млн и +2,21 млн на тех же объёмах.</p>
+    </div>
+    <div class="card orange-top">
+      <h4>Вопросы</h4>
+      <ol style="font-size:1.1em">
+        <li>Почему проблему не заметили при подготовке прайса?</li>
+        <li>Какой <code>UPDATE</code> вы предложите и как его проверить до <code>COMMIT</code>?</li>
+        <li>Какие данные нужны от <span class="badge team-b">Команды Б</span>, чтобы понять причину роста себестоимости?</li>
+      </ol>
+    </div>
+  </div>
+  <aside class="notes">Прайс строится от прошлого прайса (+%), а не от себестоимости; себестоимость выросла с 03.2025 из-за молочного жира (+28–30 %, B8). UPDATE в транзакции + расчёт маржи на объёмах 2025 + ROLLBACK — эксперимент «что если». От команды Б — динамика цены молочного жира (модуль 8, LAG).</aside>
+</section>
+
+<!-- ===================== 32. ГРУППОВАЯ РАБОТА ===================== -->
+<section class="group-slide">
+  <h2>Лабораторная работа: наводим порядок в данных</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ol>
+        <li>Чистка e-mail (32) и телефонов (50)</li>
+        <li>Карта дублей по ИНН, перенос 179 заказов, удаление 4 дублей</li>
+        <li>MERGE прайса 2026 и история цен (SCD-2)</li>
+        <li>Цена масла выше себестоимости — CTE с UPDATE/INSERT</li>
+        <li>Стоп-лист должников + блокировка отгрузок</li>
+      </ol></div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ol>
+        <li>Таблица контрактных цен (INSERT … SELECT, 40 пар)</li>
+        <li>MERGE коммерческих предложений по ИНН</li>
+        <li>Закрыть 4 незакрытых простоя оценкой длительности</li>
+        <li>Найти и удалить задвоенные приёмки (сбой WMS)</li>
+        <li>UPSERT новых норм, стоп-лист поставщиков</li>
+      </ol></div>
+  </div>
+  <p class="small">Инструкция — <code>module_07/lab.md</code>. Перед стартом: <code>01_reset_data.sql</code> + скрипты загрузки своей команды.</p>
+  <span class="timer">⏱ 35 мин</span>
+</section>
+
+<!-- ===================== 33. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: самая опасная операция</h2>
+  <p>Какая команда, по-вашему, чаще всего приводит к инцидентам с данными?</p>
+  <ul class="poll">
+    <li><span style="width:16em">UPDATE без (точного) WHERE</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">DELETE / TRUNCATE … CASCADE</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">UPDATE … FROM с дублями источника</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:16em">MERGE / UPSERT при повторном запуске</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">Правильного ответа нет — обсудите, как каждая из ошибок обнаруживается: счётчик строк, контрольный запрос, идемпотентность скрипта (повторный запуск не должен менять результат).</aside>
+</section>
+
+<!-- ===================== 34. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>Безопасность</h4>
+      <ul><li>личная схема и <code>current_schema()</code></li><li>SELECT перед UPDATE/DELETE</li><li><code>BEGIN … ROLLBACK</code> для «что если»</li><li>сверяйте счётчик строк</li></ul></div>
+    <div class="card orange-top"><h4>Синтаксис PG</h4>
+      <ul><li><code>RETURNING</code> вместо OUTPUT</li><li><code>UPDATE … FROM</code>, <code>DELETE … USING</code></li><li>identity, а не MAX()+1</li><li>CTE с DELETE/UPDATE … RETURNING</li></ul></div>
+    <div class="card green-top"><h4>Слияние</h4>
+      <ul><li><code>ON CONFLICT</code> — нужен UNIQUE</li><li><code>MERGE</code>: одна строка источника на строку цели</li><li>NOT MATCHED BY SOURCE — отдельной командой</li><li>скрипты загрузки — идемпотентны</li></ul></div>
+  </div>
+</section>
+
+<!-- ===================== 35. МОСТ ===================== -->
+<section>
+  <h2>Дальше: модуль 8 «Оконные функции»</h2>
+  <div class="two-col">
+    <div>
+      <p>Сегодня мы <b>исправили</b> данные. Следующий шаг — увидеть <b>динамику</b>:</p>
+      <ul>
+        <li>когда именно подорожал молочный жир — <code>LAG</code>;</li>
+        <li>когда долг «Вектора» перешёл лимит — нарастающий итог;</li>
+        <li>какие клиенты дают 80 % выручки — ABC через <code>SUM() OVER</code>;</li>
+        <li>как растут простои Линии 2 месяц за месяцем.</li>
+      </ul>
+    </div>
+    <div class="box info"><b>Домашнее задание</b>Завершите лабораторную; сохраните SQL-файл решений. Выполните <code>01_reset_data.sql</code>: модули 9–12 начинаются с чистых данных личной схемы.</div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
