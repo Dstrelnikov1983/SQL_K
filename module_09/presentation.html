@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модуль 9 — Представления, табличные функции и CTE</title>
+<!--
+  Корпоративный шаблон презентаций курса «Углублённый SQL».
+  Цвета: Accent 1 #4472C4 (заголовки), Accent 2 #ED7D31 (важное), Accent 6 #70AD47 (успех).
+  Навигация: стрелки / пробел; Esc — обзор слайдов; F — полный экран; S — заметки докладчика.
+  Типы слайдов (класс у <section>):
+    title-slide       — титульный
+    section-slide     — разделитель раздела
+    discussion-slide  — вопрос для обсуждения   (оранжевый фон)
+    quiz-slide        — квиз/опрос              (зелёный фон, интерактивные варианты .quiz)
+    group-slide       — работа в группах        (голубой фон)
+    case-slide        — кейс для анализа        (серый фон, бейджи команд)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/vs2015.min.css">
+<style>
+:root{
+  --accent1:#4472C4; --accent2:#ED7D31; --accent6:#70AD47;
+  --text:#2c3e50; --muted:#6b7280; --bg-soft:#f5f7fb; --code-bg:#1e1e1e;
+}
+.reveal{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:30px;color:var(--text);}
+.reveal .slides{text-align:left;}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{color:var(--accent1);font-family:'Segoe UI',Tahoma,sans-serif;
+  text-transform:none;letter-spacing:-.01em;font-weight:700;}
+.reveal h1{font-size:1.9em}.reveal h2{font-size:1.35em;margin-bottom:.5em}.reveal h3{font-size:1.05em}
+.reveal section{height:100%;}
+.reveal ul,.reveal ol{display:block;margin-left:1.1em;}
+.reveal li{margin-bottom:.3em;line-height:1.35;}
+.reveal p{line-height:1.4;}
+.reveal small,.small{font-size:.7em;color:var(--muted);}
+.orange{color:var(--accent2);font-weight:600}.blue{color:var(--accent1);font-weight:600}.green{color:var(--accent6);font-weight:600}
+.center{text-align:center}
+
+/* --- код --- */
+.reveal pre{width:100%;font-size:.52em;box-shadow:0 3px 12px rgba(0,0,0,.18);border-radius:8px;margin:.4em 0;}
+.reveal pre code{padding:14px 18px;max-height:560px;line-height:1.45;border-radius:8px;background:var(--code-bg);}
+.reveal code:not(pre code){font-family:Consolas,'Courier New',monospace;background:#eef2fa;color:#1f3f7a;
+  padding:1px 6px;border-radius:4px;font-size:.88em;}
+.reveal pre.small-code{font-size:.44em}
+
+/* --- раскладки --- */
+.two-col{display:flex;gap:1.4em;align-items:flex-start}.two-col>div{flex:1;min-width:0}
+.three-col{display:flex;gap:1em}.three-col>div{flex:1}
+
+/* --- блоки --- */
+.box{border-radius:8px;padding:14px 20px;margin:.45em 0;font-size:.8em;border-left:6px solid}
+.info{background:#eaf0fb;border-color:var(--accent1)}
+.warn{background:#fff3e8;border-color:var(--accent2)}
+.ok{background:#edf7e8;border-color:var(--accent6)}
+.box b:first-child{display:block;margin-bottom:.2em}
+
+.card{background:#fff;border:1px solid #e3e8f2;border-top:5px solid var(--accent1);border-radius:8px;
+  padding:12px 16px;font-size:.72em;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.card.orange-top{border-top-color:var(--accent2)}.card.green-top{border-top-color:var(--accent6)}
+.card h4{margin:0 0 .3em 0;font-size:1.1em}
+
+/* --- таблицы --- */
+.reveal table.t{border-collapse:collapse;font-size:.6em;width:100%;margin:.4em 0}
+.reveal table.t th{background:var(--accent1);color:#fff;padding:6px 10px;text-align:left;border:none}
+.reveal table.t td{padding:5px 10px;border-bottom:1px solid #e3e8f2}
+.reveal table.t tr:nth-child(even) td{background:var(--bg-soft)}
+.reveal table.t td.hl{color:var(--accent2);font-weight:700}
+
+/* --- титульный / разделы --- */
+.title-slide h1{font-size:1.75em;margin-bottom:.15em}
+.title-slide .subtitle{color:var(--accent2);font-size:1.05em;font-weight:600}
+.title-slide .meta{color:var(--muted);font-size:.65em;margin-top:1.5em}
+.title-bar{height:8px;width:180px;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent6));
+  border-radius:4px;margin:.5em 0 1em}
+.section-slide{background:linear-gradient(135deg,#4472C4 0%,#2f5597 100%)!important}
+.section-slide h2,.section-slide p{color:#fff!important}
+.section-slide .num{font-size:3em;font-weight:800;color:rgba(255,255,255,.35);line-height:1}
+
+/* --- интерактив --- */
+.discussion-slide{background:linear-gradient(135deg,#fff3e8 0%,#fffaf5 100%)!important}
+.discussion-slide h2::before{content:"💬 "}
+.quiz-slide{background:linear-gradient(135deg,#edf7e8 0%,#f7fbf5 100%)!important}
+.quiz-slide h2::before{content:"✅ "}
+.group-slide{background:linear-gradient(135deg,#eaf0fb 0%,#f6f8fd 100%)!important}
+.group-slide h2::before{content:"👥 "}
+.case-slide{background:linear-gradient(135deg,#f3f4f6 0%,#fafafa 100%)!important}
+.case-slide h2::before{content:"🔍 "}
+.timer{display:inline-block;background:var(--accent2);color:#fff;border-radius:20px;padding:2px 14px;font-size:.6em;font-weight:600}
+
+.badge{display:inline-block;border-radius:14px;padding:2px 12px;font-size:.6em;font-weight:700;color:#fff;vertical-align:middle}
+.badge.team-a{background:var(--accent1)}  /* Команда А — финансы и продажи */
+.badge.team-b{background:var(--accent6)}  /* Команда Б — производство и закупки */
+.badge.lvl{background:var(--accent2)}
+
+.quiz{list-style:none;margin:0!important;padding:0}
+.quiz li{background:#fff;border:2px solid #dfe5ef;border-radius:8px;padding:8px 16px;margin:.35em 0;cursor:pointer;
+  font-size:.8em;transition:all .15s}
+.quiz li:hover{border-color:var(--accent1)}
+.quiz li.right{background:#e3f3da;border-color:var(--accent6)}
+.quiz li.right::after{content:"  ✔ верно";color:var(--accent6);font-weight:700}
+.quiz li.wrong{background:#fde9dc;border-color:var(--accent2)}
+.quiz li.wrong::after{content:"  ✘";color:var(--accent2);font-weight:700}
+.explain{display:none;font-size:.7em}
+.explain.show{display:block}
+
+.poll{list-style:none;margin:0!important;padding:0}
+.poll li{display:flex;align-items:center;gap:12px;margin:.35em 0;font-size:.78em;cursor:pointer}
+.poll .bar{flex:1;height:26px;background:#eef2fa;border-radius:6px;position:relative;overflow:hidden}
+.poll .fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent1);opacity:.75;width:0;transition:width .2s}
+.poll .cnt{width:2.2em;text-align:right;font-weight:700;color:var(--accent1)}
+
+/* --- пошаговые схемы (как в модуле 8, префикс wd-) --- */
+.wd-flow{display:flex;align-items:stretch;gap:.4em}
+.wd-panel{flex:1;min-width:0;background:#fff;border:1px solid #e3e8f2;border-radius:8px;padding:6px 9px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.wd-panel.stop{border-color:#f3b88f;background:#fffaf5}
+.wd-panel.result{border:2px solid var(--accent6)}
+.wd-arrow{display:flex;align-items:center;font-size:1.1em;color:var(--accent1);font-weight:800}
+.reveal .wd-h{font-size:.46em;font-weight:700;color:var(--accent1);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .25em}
+.wd-panel.stop .wd-h{color:var(--accent2)}.wd-panel.result .wd-h{color:var(--accent6)}
+.wd-chip{display:inline-block;font-family:Consolas,'Courier New',monospace;font-size:.4em;background:var(--code-bg);
+  color:#d4d4d4;border-radius:5px;padding:2px 7px;margin:0 0 .35em}
+.wd-chip .kw{color:#569cd6;font-weight:700}
+.reveal .wd-cap{font-size:.42em;color:var(--muted);margin:.35em 0 0;line-height:1.3}
+.reveal table.wd-tbl{border-collapse:separate;border-spacing:0 2px;font-size:.4em;width:100%;margin:0}
+.reveal table.wd-tbl th{color:var(--muted);font-weight:600;text-align:left;padding:2px 5px;border:none;
+  border-bottom:1px solid #e3e8f2}
+.reveal table.wd-tbl td{padding:2px 5px;border:none;background:#f7f8fa}
+.reveal table.wd-tbl tr.p1 td{background:#eaf0fb}.reveal table.wd-tbl tr.p1 td:first-child{border-left:5px solid var(--accent1)}
+.reveal table.wd-tbl tr.p2 td{background:#edf7e8}.reveal table.wd-tbl tr.p2 td:first-child{border-left:5px solid var(--accent6)}
+.reveal table.wd-tbl tr.p3 td{background:#f3eefb}.reveal table.wd-tbl tr.p3 td:first-child{border-left:5px solid #8e6cc8}
+.reveal table.wd-tbl tr.empty td{background:#fde3cf;color:var(--accent2);font-weight:700;text-align:center}
+.reveal .wd-legend{font-size:.4em;color:var(--muted);margin-top:.3em}
+.wd-legend span{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-1px;margin:0 4px 0 12px}
+
+.reveal .slide-number{background:var(--accent1);color:#fff;font-size:14px}
+.footer-logo{position:fixed;bottom:12px;left:18px;font-size:13px;color:#9aa4b2;z-index:10}
+</style>
+</head>
+<body>
+<div class="footer-logo">Углублённый SQL · «Питание +»</div>
+<div class="reveal"><div class="slides">
+<!-- ===================== 1. ТИТУЛ ===================== -->
+<section class="title-slide">
+  <div class="small">Курс «Углублённый SQL» · Модуль 9</div>
+  <h1>Представления, табличные функции и CTE</h1>
+  <div class="title-bar"></div>
+  <div class="subtitle">Разбиваем сложный анализ на шаги и сохраняем проверенную логику в базе</div>
+  <div class="meta">PostgreSQL 16 · Yandex Managed Service for PostgreSQL · 2 ак. ч.</div>
+  <aside class="notes">Модуль опирается на подзапросы (М5), LATERAL (М6), оконные функции (М8). Объекты создаются в личных схемах stud_фамилия (М7).</aside>
+</section>
+
+<!-- ===================== 2. ЦЕЛИ И ПЛАН ===================== -->
+<section>
+  <h2>Цели модуля и план занятия</h2>
+  <div class="two-col">
+    <div>
+      <p class="blue">После модуля вы сможете:</p>
+      <ul style="font-size:.78em">
+        <li>писать производные таблицы и цепочки CTE</li>
+        <li>обходить иерархии рекурсивным CTE</li>
+        <li>создавать обычные, обновляемые и материализованные представления</li>
+        <li>создавать табличные функции и вызывать их с LATERAL</li>
+        <li>строить «слой витрин» для команды аналитиков</li>
+      </ul>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Блок</th><th>Мин</th></tr>
+        <tr><td>Производные таблицы и CTE</td><td>15</td></tr>
+        <tr><td>Рекурсивные CTE</td><td>15</td></tr>
+        <tr><td>Представления и материализованные представления</td><td>20</td></tr>
+        <tr><td>Табличные функции</td><td>15</td></tr>
+        <tr><td>Кейс, работа в группах, итоги</td><td>15</td></tr>
+      </table>
+      <div class="box info"><b>Материалы</b><code>examples.sql</code>, <code>practice.md</code>, <code>lab.md</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. ОБСУЖДЕНИЕ ===================== -->
+<section class="discussion-slide">
+  <h2>Запрос на 120 строк</h2>
+  <p>Аналитик команды А каждый понедельник собирает отчёт «выручка и маржа по менеджерам»: 6 соединений, 4 вложенных подзапроса, формула выручки повторена 5 раз. Коллега делает «такой же» отчёт — цифры расходятся на 2 %.</p>
+  <ul>
+    <li>Что именно в этом процессе приводит к ошибкам?</li>
+    <li>Как сделать, чтобы формула «выручки» существовала в одном месте?</li>
+    <li>Кто в компании должен «владеть» такими формулами?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемые ответы: копипаст формул, разные фильтры (отменённые заказы, дата заказа vs дата отгрузки), дубли из-за JOIN один-ко-многим. Решение — представление/функция как единый источник истины, ревью кода, комментарии к объектам, владелец витрины (data owner). Подвести к теме модуля.</aside>
+</section>
+
+<!-- ===================== 4. ОПРОС ===================== -->
+<section class="quiz-slide">
+  <h2>Опрос: что вы уже использовали?</h2>
+  <p>Кликайте по варианту, чтобы добавить голос (Shift+клик — убрать).</p>
+  <ul class="poll">
+    <li><span style="width:14em">Подзапрос во FROM</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">WITH (CTE)</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">WITH RECURSIVE</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">CREATE VIEW</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+    <li><span style="width:14em">Функцию, возвращающую таблицу</span><span class="bar"><span class="fill"></span></span><span class="cnt">0</span></li>
+  </ul>
+  <aside class="notes">По результатам опроса регулировать глубину: если CTE знакомы всем — быстрее перейти к рекурсии и представлениям.</aside>
+</section>
+
+<!-- ===================== 5. РАЗДЕЛ 1 ===================== -->
+<section class="section-slide">
+  <div class="num">01</div>
+  <h2>Производные таблицы и CTE</h2>
+  <p>Запрос как последовательность понятных шагов</p>
+</section>
+
+<!-- ===================== 6. ПРОИЗВОДНАЯ ТАБЛИЦА ===================== -->
+<section>
+  <h2>Производная таблица: подзапрос во FROM</h2>
+  <p style="font-size:.75em">Задача: средняя выручка <b>одного менеджера</b>. <code>AVG(SUM(...))</code> в одном SELECT не написать.</p>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT ROUND(AVG(t.revenue), 0) AS avg_manager_revenue,
+       ROUND(MAX(t.revenue), 0) AS max_manager_revenue,
+       COUNT(*)                 AS managers
+FROM  (SELECT o.employee_id,
+              SUM(oi.quantity * oi.unit_price
+                  * (1 - oi.discount_pct / 100)) AS revenue
+       FROM   pitanie.orders      AS o
+       JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+       WHERE  o.status &lt;&gt; 'Отменён'
+       GROUP  BY o.employee_id) AS t;      -- алиас пишем всегда
+  </code></pre>
+  <table class="t" style="width:70%"><tr><th>avg_manager_revenue</th><th>max_manager_revenue</th><th>managers</th></tr>
+  <tr><td>92 124 473</td><td>207 234 961</td><td>9</td></tr></table>
+  <div class="box warn"><b>Алиас</b>PG 16 разрешает опустить алиас подзапроса, но PG ≤ 15 и T-SQL — нет. Без алиаса не обратиться к <code>t.revenue</code>.</div>
+</section>
+
+<!-- ===================== 7. CTE ===================== -->
+<section>
+  <h2>CTE: WITH имя AS (запрос)</h2>
+  <div class="two-col">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+WITH manager_revenue AS (
+    SELECT o.employee_id,
+           SUM(oi.quantity * oi.unit_price
+               * (1 - oi.discount_pct / 100)) AS revenue
+    FROM   pitanie.orders      AS o
+    JOIN   pitanie.order_items AS oi
+           ON oi.order_id = o.order_id
+    WHERE  o.status &lt;&gt; 'Отменён'
+    GROUP  BY o.employee_id
+)
+SELECT e.full_name,
+       ROUND(mr.revenue / 1e6, 1) AS revenue_mln,
+       ROUND(100 * mr.revenue
+             / SUM(mr.revenue) OVER (), 1) AS share_pct
+FROM   manager_revenue   AS mr
+JOIN   pitanie.employees AS e
+       ON e.employee_id = mr.employee_id
+ORDER  BY mr.revenue DESC;
+  </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th></th><th>Производная таблица</th><th>CTE</th></tr>
+        <tr><td>Читаемость</td><td>«изнутри наружу»</td><td>сверху вниз</td></tr>
+        <tr><td>Повторное использование</td><td>нет — копия кода</td><td>да, по имени</td></tr>
+        <tr><td>Рекурсия</td><td>нет</td><td>WITH RECURSIVE</td></tr>
+        <tr><td>Область видимости</td><td>один FROM</td><td>весь оператор</td></tr>
+      </table>
+      <div class="box ok"><b>Результат</b>Морозова Е. П. — 207,2 млн (25,0 %), Соколов И. А. — 176,9 млн (21,3 %)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8. НЕСКОЛЬКО CTE ===================== -->
+<section>
+  <h2>Цепочка CTE: план / факт 2025</h2>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+WITH fact AS (                                   -- шаг 1: факт по месяцам и категориям
+    SELECT EXTRACT(MONTH FROM o.order_date)::int AS m,
+           pc.parent_category_id                 AS top_cat,
+           SUM(oi.quantity * oi.unit_price * (1 - oi.discount_pct / 100)) AS fact_amount
+    FROM   pitanie.orders             AS o
+    JOIN   pitanie.order_items        AS oi ON oi.order_id    = o.order_id
+    JOIN   pitanie.products           AS p  ON p.product_id   = oi.product_id
+    JOIN   pitanie.product_categories AS pc ON pc.category_id = p.category_id
+    WHERE  o.status &lt;&gt; 'Отменён'
+      AND  o.order_date >= DATE '2025-01-01' AND o.order_date &lt; DATE '2026-01-01'
+    GROUP  BY 1, 2
+),
+plan AS (                                        -- шаг 2: план
+    SELECT plan_month AS m, category_id AS top_cat, plan_amount
+    FROM   pitanie.sales_plan
+    WHERE  plan_year = 2025
+),
+pf AS (                                          -- шаг 3: соединяем по полугодиям
+    SELECT pl.top_cat,
+           CASE WHEN pl.m &lt;= 6 THEN 'H1' ELSE 'H2' END AS half,
+           SUM(pl.plan_amount)             AS plan_amount,
+           SUM(COALESCE(f.fact_amount, 0)) AS fact_amount
+    FROM   plan AS pl
+    LEFT   JOIN fact AS f ON f.m = pl.m AND f.top_cat = pl.top_cat
+    GROUP  BY 1, 2
+)
+SELECT c.category_name, pf.half,
+       ROUND(100 * pf.fact_amount / pf.plan_amount, 1) AS done_pct
+FROM   pf
+JOIN   pitanie.product_categories AS c ON c.category_id = pf.top_cat
+ORDER  BY c.category_id, pf.half;
+  </code></pre>
+  <aside class="notes">Обратить внимание: каждое следующее CTE ссылается на предыдущие; LEFT JOIN от плана, чтобы не потерять месяцы без продаж.</aside>
+</section>
+
+<!-- ===================== 9. КЕЙС ПЛАН/ФАКТ ===================== -->
+<section class="case-slide">
+  <h2>Кейс: план кондитерки во 2-м полугодии</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Категория</th><th>Полугодие</th><th>План, млн</th><th>Факт, млн</th><th>%</th></tr>
+        <tr><td>Молочная продукция</td><td>H1</td><td>117,7</td><td>111,8</td><td>94,9</td></tr>
+        <tr><td>Молочная продукция</td><td>H2</td><td>117,1</td><td>114,9</td><td>98,2</td></tr>
+        <tr><td>Кондитерские изделия</td><td>H1</td><td>75,0</td><td>72,8</td><td>97,1</td></tr>
+        <tr><td>Кондитерские изделия</td><td>H2</td><td>97,4</td><td>77,9</td><td class="hl">80,0</td></tr>
+        <tr><td>Бакалея</td><td>H1</td><td>35,3</td><td>35,0</td><td>99,2</td></tr>
+        <tr><td>Бакалея</td><td>H2</td><td>35,1</td><td>32,7</td><td>93,3</td></tr>
+      </table>
+    </div>
+    <div style="font-size:.78em">
+      <p><span class="badge team-a">Команда А</span> Коммерческий директор: «Кондитерка провалила полугодие, недобор 19,5 млн».</p>
+      <ul>
+        <li>Факт H2 (77,9) почти равен H1 (72,8). Что изменилось — продажи или план?</li>
+        <li>Какой ещё запрос нужен, чтобы это доказать?</li>
+        <li>Какое решение вы предложите руководству?</li>
+      </ul>
+      <span class="timer">⏱ 5 мин</span>
+    </div>
+  </div>
+  <aside class="notes">Точка A7: план H2 по кондитерке завышен (~+25-30%), продажи стабильны. Нужен запрос план H1 vs H2 и факт 2024 vs 2025 по месяцам. Вывод: проблема планирования, а не продаж; пересмотреть методику плана. Это лабораторное задание А3.</aside>
+</section>
+
+<!-- ===================== 10. MATERIALIZED ===================== -->
+<section>
+  <h2>MATERIALIZED / NOT MATERIALIZED</h2>
+  <div class="two-col">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+EXPLAIN (COSTS OFF)
+WITH b AS NOT MATERIALIZED (
+    SELECT * FROM pitanie.production_batches
+)
+SELECT * FROM b WHERE batch_id = 100;
+  </code></pre>
+  <pre><code class="language-text" data-trim>
+Index Scan using production_batches_pkey
+  Index Cond: (batch_id = 100)
+  </code></pre>
+    </div>
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+EXPLAIN (COSTS OFF)
+WITH b AS MATERIALIZED (
+    SELECT * FROM pitanie.production_batches
+)
+SELECT * FROM b WHERE batch_id = 100;
+  </code></pre>
+  <pre><code class="language-text" data-trim>
+CTE Scan on b
+  Filter: (batch_id = 100)
+  CTE b
+    ->  Seq Scan on production_batches
+  </code></pre>
+    </div>
+  </div>
+  <div class="box info"><b>Правило PG 12+</b>CTE без побочных эффектов, использованное один раз, встраивается в запрос (фильтры проталкиваются). <code>MATERIALIZED</code> — «барьер оптимизации»: вычислить один раз и хранить. Полезно, когда CTE дорогое и используется несколько раз.</div>
+</section>
+
+<!-- ===================== 11. КВИЗ 1 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: область видимости CTE</h2>
+  <p>Запрос: <code>WITH a AS (SELECT ...), b AS (SELECT ... FROM a) SELECT ... FROM b;</code><br>Следующим оператором выполняем <code>SELECT * FROM a;</code>. Что произойдёт?</p>
+  <ul class="quiz">
+    <li>Вернутся строки CTE <code>a</code> — оно сохранилось в сессии</li>
+    <li>Вернутся строки, если CTE было MATERIALIZED</li>
+    <li data-correct>Ошибка <code>relation "a" does not exist</code></li>
+    <li>Вернутся строки CTE <code>b</code></li>
+  </ul>
+  <p class="explain">CTE живёт только в пределах одного оператора. Чтобы «сохранить» запрос — представление; чтобы сохранить данные — таблица или материализованное представление; чтобы сохранить данные на время работы — временная таблица.</p>
+</section>
+
+<!-- ===================== 11a. ВРЕМЕННЫЕ ТАБЛИЦЫ ===================== -->
+<section>
+  <h2>Временные таблицы: CREATE TEMP TABLE</h2>
+  <div class="two-col">
+    <div style="flex:1.15">
+  <pre class="small-code" style="margin-top:0"><code class="language-sql" data-trim data-noescape>
+-- 1. тяжёлую часть считаем один раз
+CREATE TEMP TABLE tmp_fact_2025 AS
+SELECT EXTRACT(MONTH FROM o.order_date)::int AS m,
+       pc.parent_category_id                 AS top_cat,
+       SUM(oi.quantity * oi.unit_price
+           * (1 - oi.discount_pct / 100))    AS fact_amount
+FROM   pitanie.orders             AS o
+JOIN   pitanie.order_items        AS oi ON oi.order_id    = o.order_id
+JOIN   pitanie.products           AS p  ON p.product_id   = oi.product_id
+JOIN   pitanie.product_categories AS pc ON pc.category_id = p.category_id
+WHERE  o.status &lt;&gt; 'Отменён'
+  AND  o.order_date >= DATE '2025-01-01'
+  AND  o.order_date &lt;  DATE '2026-01-01'
+GROUP  BY 1, 2;                              -- SELECT 36
+
+-- 2. статистика: autovacuum временные таблицы не видит
+ANALYZE tmp_fact_2025;
+
+-- 3. переиспользуем в любых запросах этой сессии
+SELECT top_cat, SUM(fact_amount)
+FROM   tmp_fact_2025 GROUP BY top_cat;       -- итоги года
+SELECT * FROM tmp_fact_2025
+WHERE  top_cat = 2 ORDER BY m;               -- кондитерка по месяцам
+
+DROP TABLE tmp_fact_2025;  -- или исчезнет сама при отключении
+  </code></pre>
+    </div>
+    <div>
+      <table class="t" style="font-size:.5em;margin-top:0">
+        <tr><th></th><th>CTE</th><th>TEMP TABLE</th></tr>
+        <tr><td>Живёт</td><td>один оператор</td><td>до конца сессии</td></tr>
+        <tr><td>Видна</td><td>этому запросу</td><td>только своей сессии (схема <code>pg_temp_N</code>)</td></tr>
+        <tr><td>Повторное использование</td><td>внутри запроса</td><td class="hl">в любых запросах сессии</td></tr>
+        <tr><td>Индексы</td><td>нет</td><td><code>CREATE INDEX</code> — можно</td></tr>
+        <tr><td>Статистика</td><td>оценка планировщика</td><td>после <code>ANALYZE</code></td></tr>
+      </table>
+      <div class="box info" style="font-size:.52em"><b>Полезно знать</b>
+        <code>ON COMMIT DROP</code> / <code>DELETE ROWS</code> — удалить таблицу или строки в конце транзакции. Не пишется в WAL → быстрее запись. Имя временной таблицы <b>перекрывает</b> постоянную с тем же именем.</div>
+      <div class="box warn" style="font-size:.52em"><b>Пулер соединений</b>Порт 6432 — пулер Odyssey. В режиме <i>session</i> (наш стенд) всё работает; в режиме <i>transaction</i> следующий запрос может уйти в другое соединение → <code>relation "tmp_…" does not exist</code>.</div>
+      <p style="font-size:.56em;margin:.3em 0 0">💬 <b>Вопрос:</b> аналитик пишет 5 отчётов на одном и том же «факте 2025». CTE в каждом, временная таблица или материализованное представление?</p>
+    </div>
+  </div>
+  <aside class="notes">Пример — тот же «факт 2025», что в цепочке CTE: проверено на стенде, 36 строк (12 месяцев × 3 категории); итоги: молочная 226,7 млн, кондитерка 150,7 млн, бакалея 67,7 млн. Ответ на вопрос: разовый анализ в одной сессии — временная таблица (посчитали один раз, добавили индекс); отчёт, который нужен регулярно и другим людям, — материализованное представление (раздел 3); CTE — если запрос один. Связь с модулем 0b: там временные таблицы уже использовались для тренировки DDL/DML, т.к. схема pitanie только для чтения.</aside>
+</section>
+
+<!-- ===================== 12. РАЗДЕЛ 2 ===================== -->
+<section class="section-slide">
+  <div class="num">02</div>
+  <h2>Рекурсивные CTE</h2>
+  <p>Иерархии, пути, календари</p>
+</section>
+
+<!-- ===================== 13. АНАТОМИЯ ===================== -->
+<section>
+  <h2>Как работает WITH RECURSIVE</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code" style="margin-top:0"><code class="language-sql" data-trim data-noescape>
+WITH RECURSIVE имя AS (
+    -- 1. якорь: стартовые строки
+    SELECT ...
+    FROM   таблица
+    WHERE  условие_старта
+    UNION ALL
+    -- 2. рекурсивная часть:
+    --    ссылается на само CTE
+    SELECT ...
+    FROM   таблица AS t
+    JOIN   имя ON t.parent = имя.id
+)
+SELECT * FROM имя;
+  </code></pre>
+    </div>
+    <div style="font-size:.66em">
+      <ol style="margin-top:0">
+        <li>Выполняется якорь → «рабочая таблица» (шаг 0).</li>
+        <li>Рекурсивная часть выполняется <b>только для строк предыдущего шага</b> → шаг 1, 2…</li>
+        <li>Остановка — когда очередной шаг вернул 0 строк.</li>
+        <li>Результат — <code>UNION ALL</code> всех шагов.</li>
+      </ol>
+      <div class="box warn" style="font-size:.85em"><b>Опасность</b>Цикл в данных (A → B → A) = бесконечная рекурсия. Страховка: ограничение глубины <code>WHERE lvl &lt; 10</code> или <code>CYCLE id SET is_cycle USING path</code> (PG 14+).</div>
+    </div>
+  </div>
+  <p class="wd-cap" style="margin:.1em 0 .3em;font-size:.46em"><b>Схема по шагам:</b> подчинённые финансового директора Беловой М. С. — якорь <code>WHERE employee_id = 2</code>, рекурсия <code>JOIN имя ON e.manager_id = имя.employee_id</code></p>
+  <div class="wd-flow">
+    <div class="wd-panel fragment" data-fragment-index="1">
+      <p class="wd-h">Шаг 0 · якорь</p>
+      <span class="wd-chip"><span class="kw">WHERE</span> employee_id = 2</span>
+      <table class="wd-tbl">
+        <tr><th>id</th><th>ФИО</th><th>manager</th></tr>
+        <tr class="p1"><td>2</td><td>Белова М. С.</td><td>1</td></tr>
+      </table>
+      <p class="wd-cap">1 строка → рабочая таблица</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="2">→</div>
+    <div class="wd-panel fragment" data-fragment-index="2">
+      <p class="wd-h">Шаг 1</p>
+      <span class="wd-chip">manager_id <span class="kw">IN</span> (2)</span>
+      <table class="wd-tbl">
+        <tr><th>id</th><th>ФИО</th><th>manager</th></tr>
+        <tr class="p2"><td>20</td><td>Котова Н. М.</td><td>2</td></tr>
+        <tr class="p2"><td>21</td><td>Егоров М. И.</td><td>2</td></tr>
+      </table>
+      <p class="wd-cap">Видит только строки шага 0. Новая рабочая таблица — 2 строки.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="3">→</div>
+    <div class="wd-panel fragment" data-fragment-index="3">
+      <p class="wd-h">Шаг 2</p>
+      <span class="wd-chip">manager_id <span class="kw">IN</span> (20, 21)</span>
+      <table class="wd-tbl">
+        <tr><th>id</th><th>ФИО</th><th>manager</th></tr>
+        <tr class="p3"><td>22</td><td>Тихонова В. А.</td><td>20</td></tr>
+      </table>
+      <p class="wd-cap">Белова уже не участвует: в рабочей таблице только 20 и 21.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="4">→</div>
+    <div class="wd-panel stop fragment" data-fragment-index="4">
+      <p class="wd-h">Шаг 3 · стоп</p>
+      <span class="wd-chip">manager_id <span class="kw">IN</span> (22)</span>
+      <table class="wd-tbl">
+        <tr><th>id</th><th>ФИО</th><th>manager</th></tr>
+        <tr class="empty"><td colspan="3">0 строк</td></tr>
+      </table>
+      <p class="wd-cap">У Тихоновой нет подчинённых → рекурсия завершена.</p>
+    </div>
+    <div class="wd-arrow fragment" data-fragment-index="5">⇒</div>
+    <div class="wd-panel result fragment" data-fragment-index="5" style="flex:1.1">
+      <p class="wd-h">Результат · UNION ALL</p>
+      <table class="wd-tbl">
+        <tr><th>id</th><th>ФИО</th><th>шаг</th></tr>
+        <tr class="p1"><td>2</td><td>Белова М. С.</td><td>0</td></tr>
+        <tr class="p2"><td>20</td><td>Котова Н. М.</td><td>1</td></tr>
+        <tr class="p2"><td>21</td><td>Егоров М. И.</td><td>1</td></tr>
+        <tr class="p3"><td>22</td><td>Тихонова В. А.</td><td>2</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="wd-legend"><span style="background:#eaf0fb;border-left:4px solid var(--accent1)"></span>шаг 0 (якорь)<span style="background:#edf7e8;border-left:4px solid var(--accent6)"></span>шаг 1<span style="background:#f3eefb;border-left:4px solid #8e6cc8"></span>шаг 2<span style="background:#fde3cf"></span>пустой шаг = остановка</p>
+  <aside class="notes">Показывайте схему по кликам. Перед шагом 1 спросите: какие строки найдёт рекурсивная часть? Перед шагом 2: почему Белова снова не попадёт в результат? (рекурсивная часть видит только рабочую таблицу предыдущего шага, а не весь накопленный результат). Перед шагом 3: что произойдёт дальше? Данные реальные: pitanie.employees, поддерево employee_id = 2.</aside>
+</section>
+
+<!-- ===================== 13a. ОБСУЖДЕНИЕ: БЕЗ RECURSIVE ===================== -->
+<section class="discussion-slide">
+  <h2>Почему этот запрос не работает?</h2>
+  <div class="two-col">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+WITH org AS (                       -- нет RECURSIVE
+    SELECT employee_id, manager_id, 1 AS lvl
+    FROM   pitanie.employees
+    WHERE  manager_id IS NULL
+    UNION ALL
+    SELECT e.employee_id, e.manager_id, o.lvl + 1
+    FROM   pitanie.employees AS e
+    JOIN   org AS o                 -- ссылка на себя
+           ON e.manager_id = o.employee_id
+)
+SELECT * FROM org;
+  </code></pre>
+  <pre class="fragment"><code class="language-text" data-trim>
+ERROR:  relation "org" does not exist
+  </code></pre>
+    </div>
+    <div style="font-size:.85em">
+      <p>Структура верная: якорь + <code>UNION ALL</code> + рекурсивная часть.<br>Что не так? <span class="timer">2 мин</span></p>
+      <div class="box warn fragment"><b>Ответ</b>Без <code>RECURSIVE</code> CTE не видит само себя — имя <code>org</code> внутри его тела ещё не существует. В PostgreSQL ключевое слово <b>обязательно</b>.</div>
+      <div class="box info fragment"><b>Правила</b>
+        <ul style="margin:0">
+          <li><code>RECURSIVE</code> пишется <b>один раз</b> после <code>WITH</code> и действует на весь блок</li>
+          <li>В блоке <code>WITH RECURSIVE</code> могут быть и обычные CTE</li>
+          <li>С <code>RECURSIVE</code> CTE могут ссылаться друг на друга независимо от порядка объявления</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Показать запрос, дать 1–2 минуты подумать. Типичные версии слушателей: «не та таблица», «нужен UNION, а не UNION ALL», «нет условия остановки». Правильный ответ — отсутствует RECURSIVE. Можно выполнить запрос вживую и показать ошибку. Затем перейти к сравнению СУБД: кто работал с SQL Server/Oracle, мог привыкнуть писать без RECURSIVE.</aside>
+</section>
+
+<!-- ===================== 13b. RECURSIVE В РАЗНЫХ СУБД ===================== -->
+<section>
+  <h2>RECURSIVE в разных СУБД</h2>
+  <table class="t" style="font-size:.66em">
+    <tr><th>СУБД</th><th>Ключевое слово RECURSIVE</th><th>Синтаксис</th></tr>
+    <tr><td><b>PostgreSQL</b> (Yandex Managed)</td><td class="hl">обязательно</td><td><code>WITH RECURSIVE t AS (…)</code></td></tr>
+    <tr><td>MySQL 8.0+, MariaDB 10.2+</td><td class="hl">обязательно</td><td><code>WITH RECURSIVE t AS (…)</code></td></tr>
+    <tr><td>Стандарт SQL:1999</td><td class="hl">обязательно</td><td><code>WITH RECURSIVE t AS (…)</code></td></tr>
+    <tr><td>SQLite</td><td>необязательно</td><td><code>WITH [RECURSIVE] t AS (…)</code></td></tr>
+    <tr><td>MS SQL Server</td><td>не используется — синтаксическая ошибка</td><td><code>WITH t AS (…)</code></td></tr>
+    <tr><td>Oracle 11gR2+</td><td>не используется</td><td><code>WITH t (col1, col2) AS (…)</code></td></tr>
+  </table>
+  <div class="two-col" style="margin-top:.3em">
+    <div class="box info"><b>SQL Server, Oracle</b>Рекурсия распознаётся автоматически по ссылке CTE на само себя. В Oracle для рекурсивного CTE обязателен список столбцов; есть и старый синтаксис <code>CONNECT BY</code>.</div>
+    <div class="box ok"><b>Практический вывод</b>Переносите запрос между СУБД — проверьте <code>RECURSIVE</code> первым делом. Логика «якорь + UNION ALL + рекурсивная часть» везде одинакова.</div>
+  </div>
+  <aside class="notes">Спросить: кто работал с другими СУБД? Ограничение глубины тоже различается: в SQL Server по умолчанию MAXRECURSION 100 (OPTION (MAXRECURSION n)), в MySQL — cte_max_recursion_depth = 1000, в PostgreSQL встроенного лимита нет — защищаемся условием на глубину или CYCLE.</aside>
+</section>
+
+<!-- ===================== 14. ОРГСТРУКТУРА ===================== -->
+<section>
+  <h2>Оргструктура «Питание +»</h2>
+  <div class="two-col">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+WITH RECURSIVE org AS (
+    SELECT employee_id, full_name, manager_id,
+           1                AS lvl,
+           full_name::text  AS path
+    FROM   pitanie.employees
+    WHERE  manager_id IS NULL
+    UNION ALL
+    SELECT e.employee_id, e.full_name, e.manager_id,
+           org.lvl + 1,
+           org.path || ' → '
+                    || split_part(e.full_name, ' ', 1)
+    FROM   pitanie.employees AS e
+    JOIN   org ON e.manager_id = org.employee_id
+)
+SELECT repeat('    ', lvl - 1) || full_name AS tree,
+       lvl
+FROM   org
+ORDER  BY path;
+  </code></pre>
+    </div>
+    <div>
+  <pre><code class="language-text" data-trim>
+Орлов Виктор Петрович
+    Белова Марина Сергеевна
+        Егоров Максим Ильич
+        Котова Наталья Михайловна
+            Тихонова Вера Андреевна
+    Громов Алексей Иванович
+        Ершова Татьяна Юрьевна
+            Волков Денис Сергеевич
+            Зайцева Анна Викторовна
+            ...
+    Кузнецов Олег Викторович
+    ...
+  </code></pre>
+      <div class="box ok"><b>Итог</b>35 сотрудников, 4 уровня: 1 + 4 + 10 + 20</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 15. КОМАНДА РУКОВОДИТЕЛЯ ===================== -->
+<section>
+  <h2>Поддерево + данные: команда руководителя продаж</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+WITH RECURSIVE team AS (
+    SELECT employee_id, full_name, 0 AS depth
+    FROM   pitanie.employees
+    WHERE  employee_id = 9          -- Ершова Т. Ю.
+    UNION ALL
+    SELECT e.employee_id, e.full_name, t.depth + 1
+    FROM   pitanie.employees AS e
+    JOIN   team AS t ON e.manager_id = t.employee_id
+),
+rev AS (
+    SELECT o.employee_id,
+           SUM(oi.quantity * oi.unit_price
+               * (1 - oi.discount_pct / 100)) AS revenue,
+           SUM(oi.quantity * oi.unit_price
+               * oi.discount_pct / 100)       AS discount_rub
+    FROM   pitanie.orders      AS o
+    JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+    WHERE  o.status &lt;&gt; 'Отменён'
+    GROUP  BY o.employee_id
+)
+SELECT t.depth, t.full_name,
+       ROUND(r.revenue / 1e6, 1)      AS revenue_mln,
+       ROUND(r.discount_rub / 1e6, 1) AS discount_mln
+FROM   team AS t
+LEFT   JOIN rev AS r ON r.employee_id = t.employee_id
+ORDER  BY t.depth, revenue_mln DESC;
+  </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th>Сотрудник</th><th>Выручка, млн</th><th>Скидки, млн</th></tr>
+        <tr><td>Морозова Е. П.</td><td>207,2</td><td>10,3</td></tr>
+        <tr><td>Соколов И. А.</td><td>176,9</td><td class="hl">38,8</td></tr>
+        <tr><td>Новикова О. И.</td><td>108,3</td><td>3,4</td></tr>
+        <tr><td>Павлов С. Д.</td><td>103,4</td><td>7,1</td></tr>
+        <tr><td>Федоров П. О.</td><td>75,1</td><td>4,3</td></tr>
+        <tr><td>…ещё 4</td><td></td><td></td></tr>
+      </table>
+      <div class="box warn"><b>Вопрос</b>Почему у второго по выручке менеджера скидок почти в 4 раза больше, чем у первого?</div>
+    </div>
+  </div>
+  <aside class="notes">Подводка к A1 (Соколов). Не раскрывать полностью — это задание лабораторной А4/А6.</aside>
+</section>
+
+<!-- ===================== 16. ПУТЬ И КАЛЕНДАРЬ ===================== -->
+<section>
+  <h2>Путь в иерархии и генерация календаря</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+WITH RECURSIVE cat AS (
+    SELECT category_id, category_name::text AS path
+    FROM   pitanie.product_categories
+    WHERE  parent_category_id IS NULL
+    UNION ALL
+    SELECT c.category_id,
+           cat.path || ' / ' || c.category_name
+    FROM   pitanie.product_categories AS c
+    JOIN   cat ON c.parent_category_id = cat.category_id
+)
+SELECT * FROM cat ORDER BY path;
+  </code></pre>
+  <pre><code class="language-text" data-trim>
+1  | Молочная продукция
+12 | Молочная продукция / Кисломолочные продукты
+13 | Молочная продукция / Сыры и масло
+  </code></pre>
+    </div>
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+WITH RECURSIVE months AS (
+    SELECT DATE '2025-01-01' AS m
+    UNION ALL
+    SELECT (m + INTERVAL '1 month')::date
+    FROM   months
+    WHERE  m &lt; DATE '2025-12-01'
+)
+SELECT to_char(months.m, 'YYYY-MM') AS month,
+       COUNT(d.downtime_id)         AS events
+FROM   months
+LEFT   JOIN pitanie.equipment_downtime AS d
+       ON  d.line_id = 2
+       AND d.start_time >= months.m
+       AND d.start_time &lt;  months.m + INTERVAL '1 month'
+GROUP  BY months.m
+ORDER  BY months.m;
+  </code></pre>
+      <div class="box info"><b>Зачем календарь</b>В отчёте должны быть <b>все</b> месяцы, даже без событий. В PostgreSQL короче: <code>generate_series()</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 17. ОБСУЖДЕНИЕ ИЕРАРХИИ ===================== -->
+<section class="discussion-slide">
+  <h2>Где ещё в «Питание +» прячутся иерархии?</h2>
+  <ul>
+    <li>Какие сущности компании образуют дерево или граф? (подумайте о производстве, закупках, логистике)</li>
+    <li>Что будет, если в справочнике сотрудников ошибочно сделать двух людей начальниками друг друга?</li>
+    <li>Как бы вы хранили иерархию, если её нужно часто читать и редко менять?</li>
+  </ul>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">Ожидаемо: рецептуры/полуфабрикаты (BOM), классификатор продукции, оргструктура, территориальная структура регион–округ, маршруты доставки. Цикл → бесконечная рекурсия (защита: глубина, CYCLE, CHECK/триггер). Альтернативы хранения: adjacency list (как у нас), materialized path (ltree), nested sets, closure table.</aside>
+</section>
+
+<!-- ===================== 18. DATA-MODIFYING CTE ===================== -->
+<section>
+  <h2>Data-modifying CTE (кратко)</h2>
+  <div class="two-col">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- только в личной схеме!
+WITH moved AS (
+    DELETE FROM stud_ivanov.m09_downtime_open
+    WHERE  end_time IS NULL
+    RETURNING *
+)
+INSERT INTO stud_ivanov.m09_downtime_log
+SELECT * FROM moved;
+-- INSERT 0 4
+  </code></pre>
+    </div>
+    <div style="font-size:.78em">
+      <ul>
+        <li>В WITH можно писать <code>INSERT / UPDATE / DELETE … RETURNING</code></li>
+        <li>Все части выполняются <b>одним оператором</b> и видят один снимок данных</li>
+        <li>Типичные задачи: перенос в архив, «вставить и вернуть id», журналирование изменений</li>
+        <li>Подробнее о модификации — модуль 7, о транзакциях — модуль 11</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 19. КВИЗ 2 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: рекурсия</h2>
+  <p>В рекурсивной части написали <code>JOIN org ON e.employee_id = org.manager_id</code>, якорь — генеральный директор. Что вернёт запрос?</p>
+  <ul class="quiz">
+    <li>Всех 35 сотрудников</li>
+    <li>Бесконечную рекурсию</li>
+    <li data-correct>Только генерального директора</li>
+    <li>Ошибку синтаксиса</li>
+  </ul>
+  <p class="explain">Условие идёт «вверх» — к начальнику текущей строки. У генерального директора manager_id IS NULL, поэтому второй шаг пуст и рекурсия останавливается. Так (от сотрудника вверх) ищут цепочку руководителей.</p>
+</section>
+
+<!-- ===================== 20. РАЗДЕЛ 3 ===================== -->
+<section class="section-slide">
+  <div class="num">03</div>
+  <h2>Представления</h2>
+  <p>Сохранённый запрос как «виртуальная таблица»</p>
+</section>
+
+<!-- ===================== 21. CREATE VIEW ===================== -->
+<section>
+  <h2>CREATE VIEW: единая формула выручки</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE VIEW stud_ivanov.v_order_lines AS
+SELECT oi.order_item_id,
+       o.order_id,
+       o.order_date,
+       o.customer_id,
+       o.employee_id,
+       o.channel,
+       oi.product_id,
+       oi.quantity,
+       oi.unit_price,
+       oi.discount_pct,
+       ROUND(oi.quantity * oi.unit_price
+             * (1 - oi.discount_pct / 100), 2) AS net_amount
+FROM   pitanie.orders      AS o
+JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+WHERE  o.status &lt;&gt; 'Отменён';
+
+COMMENT ON VIEW stud_ivanov.v_order_lines IS
+  'Строки продаж без отменённых; net_amount — после скидки';
+  </code></pre>
+    </div>
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+SELECT channel,
+       COUNT(*)                        AS lines,
+       ROUND(SUM(net_amount) / 1e6, 1) AS revenue_mln
+FROM   stud_ivanov.v_order_lines
+GROUP  BY channel
+ORDER  BY revenue_mln DESC;
+  </code></pre>
+      <table class="t">
+        <tr><th>channel</th><th>lines</th><th>revenue_mln</th></tr>
+        <tr><td>Дистрибуция</td><td>8979</td><td>410,5</td></tr>
+        <tr><td>Прямые продажи</td><td>7133</td><td>383,3</td></tr>
+        <tr><td>Маркетплейс</td><td>641</td><td>19,6</td></tr>
+        <tr><td>Тендер</td><td>170</td><td>15,6</td></tr>
+      </table>
+      <div class="box info"><b>Важно</b>Представление не хранит данные: при каждом обращении его запрос подставляется в ваш.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 22. OR REPLACE и зависимости ===================== -->
+<section>
+  <h2>CREATE OR REPLACE и зависимости</h2>
+  <div class="two-col">
+    <div style="font-size:.8em">
+      <table class="t">
+        <tr><th>Изменение</th><th>OR REPLACE</th></tr>
+        <tr><td>Новый столбец в конце</td><td class="green">можно</td></tr>
+        <tr><td>Изменить выражение/фильтр</td><td class="green">можно</td></tr>
+        <tr><td>Удалить / переименовать столбец</td><td class="orange">нельзя</td></tr>
+        <tr><td>Сменить тип столбца</td><td class="orange">нельзя</td></tr>
+      </table>
+  <pre><code class="language-text" data-trim>
+ERROR: cannot drop columns from view
+  </code></pre>
+    </div>
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+DROP TABLE stud_ivanov.m09_customers;
+-- ОЖИДАЕМАЯ ОШИБКА:
+-- cannot drop table m09_customers because
+-- other objects depend on it
+-- DETAIL: view v_federal_chains depends ...
+
+SELECT view_name, table_schema, table_name
+FROM   information_schema.view_table_usage
+WHERE  view_schema = 'stud_ivanov';
+
+SELECT pg_get_viewdef('stud_ivanov.v_order_lines'::regclass, true);
+  </code></pre>
+      <div class="box warn"><b>DROP ... CASCADE</b>удалит и все зависимые представления — проверяйте зависимости заранее.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 23. ОБНОВЛЯЕМЫЕ + CHECK OPTION ===================== -->
+<section>
+  <h2>Обновляемые представления и WITH CHECK OPTION</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE VIEW stud_ivanov.v_federal_chains AS
+SELECT customer_id, customer_name,
+       customer_type, credit_limit
+FROM   stud_ivanov.m09_customers
+WHERE  customer_type = 'Федеральная сеть'
+WITH CHECK OPTION;
+
+UPDATE stud_ivanov.v_federal_chains
+SET    credit_limit = credit_limit * 1.10
+WHERE  customer_id = 7;            -- UPDATE 1
+
+UPDATE stud_ivanov.v_federal_chains
+SET    customer_type = 'Розница'
+WHERE  customer_id = 7;
+-- ОЖИДАЕМАЯ ОШИБКА: new row violates
+-- check option for view "v_federal_chains"
+  </code></pre>
+    </div>
+    <div style="font-size:.76em">
+      <p class="blue">Автоматически обновляемо, если:</p>
+      <ul>
+        <li>ровно одна таблица (или обновляемое представление) во FROM</li>
+        <li>нет GROUP BY, HAVING, DISTINCT, агрегатов, оконных функций, LIMIT, UNION</li>
+      </ul>
+      <p>Иначе — <code>INSTEAD OF</code>-триггер или правило.</p>
+      <div class="box info"><b>CHECK OPTION</b><code>LOCAL</code> — проверять условие только этого представления; <code>CASCADED</code> (по умолчанию) — и всех нижележащих.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 24. БЕЗОПАСНОСТЬ ===================== -->
+<section>
+  <h2>Представления и безопасность</h2>
+  <div class="two-col">
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE VIEW stud_ivanov.v_employees_public AS
+SELECT employee_id,
+       full_name,
+       position,
+       department,
+       manager_id,
+       hire_date             -- без salary, email, phone
+FROM   pitanie.employees;
+
+-- права только на представление:
+-- GRANT SELECT ON stud_ivanov.v_employees_public
+--       TO analyst_role;
+  </code></pre>
+    </div>
+    <div style="font-size:.78em">
+      <ul>
+        <li><b>Сокрытие столбцов</b> — зарплаты, персональные данные</li>
+        <li><b>Сокрытие строк</b> — фильтр «только мой регион»</li>
+        <li>По умолчанию представление выполняется с правами <b>владельца</b>; <code>WITH (security_invoker = true)</code> (PG 15+) — с правами вызывающего</li>
+        <li><code>security_barrier</code> — защита от «подглядывания» через функции в WHERE</li>
+      </ul>
+      <div class="box warn"><b>152-ФЗ</b>Телефоны и e-mail сотрудников — персональные данные. Аналитику они не нужны.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 25. МАТЕРИАЛИЗОВАННЫЕ ===================== -->
+<section>
+  <h2>Материализованные представления</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE MATERIALIZED VIEW stud_ivanov.mv_monthly_revenue AS
+SELECT date_trunc('month', o.order_date)::date AS month,
+       o.channel,
+       SUM(oi.quantity * oi.unit_price
+           * (1 - oi.discount_pct / 100))::numeric(14,2) AS revenue,
+       COUNT(DISTINCT o.order_id) AS orders
+FROM   pitanie.orders      AS o
+JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+WHERE  o.status &lt;&gt; 'Отменён'
+GROUP  BY 1, 2
+WITH DATA;                              -- 91 строка
+
+CREATE UNIQUE INDEX
+    ON stud_ivanov.mv_monthly_revenue (month, channel);
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY
+        stud_ivanov.mv_monthly_revenue;
+  </code></pre>
+    </div>
+    <div>
+      <table class="t">
+        <tr><th></th><th>VIEW</th><th>MATERIALIZED VIEW</th></tr>
+        <tr><td>Хранит данные</td><td>нет</td><td>да</td></tr>
+        <tr><td>Актуальность</td><td>всегда</td><td>на момент REFRESH</td></tr>
+        <tr><td>Скорость чтения</td><td>как запрос</td><td>как таблица</td></tr>
+        <tr><td>Индексы</td><td>нет</td><td>да</td></tr>
+        <tr><td>INSERT/UPDATE</td><td>если обновляемое</td><td>нет</td></tr>
+      </table>
+      <div class="box info"><b>CONCURRENTLY</b>не блокирует чтение во время обновления, но требует уникальный индекс.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 26. ОБСУЖДЕНИЕ VIEW vs MV ===================== -->
+<section class="discussion-slide">
+  <h2>Обычное или материализованное?</h2>
+  <table class="t">
+    <tr><th>Ситуация</th><th>Ваш выбор?</th></tr>
+    <tr><td>Дашборд правления «выручка по месяцам», обновляется утром, запрос к сырым данным — 40 с</td><td></td></tr>
+    <tr><td>Кредитный контроль: «можно ли отгрузить клиенту?» — проверка долга перед каждой отгрузкой</td><td></td></tr>
+    <tr><td>Справочник «сотрудники без зарплат» для всех аналитиков</td><td></td></tr>
+    <tr><td>Перерасход сырья по линиям за 2 года для ежемесячного совещания</td><td></td></tr>
+  </table>
+  <span class="timer">⏱ 4 мин</span>
+  <aside class="notes">1 — MV + REFRESH по расписанию (pg_cron / внешний планировщик). 2 — только обычное представление/функция: нужны актуальные данные, иначе отгрузим должнику (связь с кейсом Вектор). 3 — обычное VIEW (безопасность, данных мало). 4 — MV, обновлять раз в месяц/ночь. Ключевой критерий: цена устаревших данных против цены вычисления.</aside>
+</section>
+
+<!-- ===================== 27. РАЗДЕЛ 4 ===================== -->
+<section class="section-slide">
+  <div class="num">04</div>
+  <h2>Табличные функции</h2>
+  <p>«Представление с параметрами»</p>
+</section>
+
+<!-- ===================== 28. RETURNS TABLE ===================== -->
+<section>
+  <h2>CREATE FUNCTION … RETURNS TABLE</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE FUNCTION stud_ivanov.fn_customer_orders(
+    p_customer_id integer,
+    p_from        date DEFAULT DATE '2024-01-01',
+    p_to          date DEFAULT DATE '2025-12-31'
+)
+RETURNS TABLE (
+    order_id     integer,
+    order_number varchar,
+    order_date   date,
+    status       varchar,
+    net_amount   numeric
+)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT o.order_id, o.order_number, o.order_date, o.status,
+           ROUND(SUM(oi.quantity * oi.unit_price
+                     * (1 - oi.discount_pct / 100)), 2)
+    FROM   pitanie.orders      AS o
+    JOIN   pitanie.order_items AS oi ON oi.order_id = o.order_id
+    WHERE  o.customer_id = p_customer_id
+      AND  o.order_date BETWEEN p_from AND p_to
+    GROUP  BY o.order_id, o.order_number, o.order_date, o.status
+    ORDER  BY o.order_date
+$$;
+  </code></pre>
+    </div>
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+-- вызов во FROM, как таблица
+SELECT *
+FROM   stud_ivanov.fn_customer_orders(
+           1, DATE '2025-12-01', DATE '2025-12-31');
+-- 7 строк
+
+-- именованные параметры
+SELECT COUNT(*), SUM(net_amount)
+FROM   stud_ivanov.fn_customer_orders(
+           p_customer_id => 1,
+           p_from        => DATE '2025-01-01');
+-- 46 | 8 424 049.27
+  </code></pre>
+      <div class="box info"><b>Параметры</b>Префикс <code>p_</code> избавляет от конфликта имён параметров и столбцов (<code>order_id</code> есть и там, и там).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 29. SETOF + LATERAL ===================== -->
+<section>
+  <h2>RETURNS SETOF и вызов с LATERAL</h2>
+  <div class="two-col">
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE FUNCTION stud_ivanov.fn_line_batches(
+    p_line_id integer, p_day date)
+RETURNS SETOF pitanie.production_batches
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT *
+    FROM   pitanie.production_batches
+    WHERE  line_id = p_line_id
+      AND  production_date = p_day
+$$;
+
+SELECT batch_number, shift, produced_qty, defect_qty
+FROM   stud_ivanov.fn_line_batches(3, DATE '2025-06-10');
+-- П250610-3Д | День | 1407 |  20
+-- П250610-3Н | Ночь | 1314 | 118
+  </code></pre>
+    </div>
+    <div>
+  <pre class="small-code"><code class="language-sql" data-trim data-noescape>
+-- для каждого маркетплейса — 2 последних заказа
+SELECT c.customer_name,
+       f.order_number,
+       f.order_date,
+       f.net_amount
+FROM   pitanie.customers AS c
+CROSS  JOIN LATERAL (
+       SELECT *
+       FROM   stud_ivanov.fn_customer_orders(c.customer_id)
+       ORDER  BY order_date DESC
+       LIMIT  2
+) AS f
+WHERE  c.customer_type = 'Маркетплейс';
+-- 6 строк: 3 клиента × 2 заказа
+  </code></pre>
+      <div class="box ok"><b>LATERAL</b>= CROSS APPLY из T-SQL: функция вызывается для каждой строки слева.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 30. VOLATILITY ===================== -->
+<section>
+  <h2>Категории изменчивости и встраивание</h2>
+  <div class="two-col">
+    <div>
+      <table class="t">
+        <tr><th>Категория</th><th>Смысл</th><th>Пример</th></tr>
+        <tr><td>IMMUTABLE</td><td>результат зависит только от аргументов</td><td>расчёт НДС от суммы</td></tr>
+        <tr><td><b>STABLE</b></td><td>не меняет БД, в пределах запроса результат постоянен</td><td>чтение таблиц — <b>наши функции</b></td></tr>
+        <tr><td>VOLATILE</td><td>(по умолчанию) может меняться при каждом вызове</td><td><code>random()</code>, INSERT</td></tr>
+      </table>
+    </div>
+    <div>
+  <pre><code class="language-sql" data-trim data-noescape>
+EXPLAIN (COSTS OFF)
+SELECT *
+FROM stud_ivanov.fn_line_batches(3, DATE '2025-06-10');
+  </code></pre>
+  <pre><code class="language-text" data-trim>
+Index Scan using ix_batches_date on production_batches
+  Index Cond: (production_date = '2025-06-10')
+  Filter: (line_id = 3)
+  </code></pre>
+      <div class="box info"><b>Inlining</b>SQL-функция из одного SELECT, STABLE/IMMUTABLE, без SECURITY DEFINER встраивается в запрос — как inline TVF в T-SQL. В плане нет «Function Scan».</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 30a. SQL vs PL/pgSQL ===================== -->
+<section>
+  <h2>Одна функция на двух языках: SQL и PL/pgSQL</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size:.5em;margin:0 0 .2em"><b class="blue">LANGUAGE sql</b> — тело = один запрос</p>
+  <pre class="small-code" style="margin-top:0"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE FUNCTION stud_ivanov.fn_line_defects_sql(
+    p_line_id integer, p_day date)
+RETURNS TABLE (batch_number varchar, shift varchar,
+               produced_qty integer, defect_qty integer,
+               defect_pct numeric)
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT b.batch_number, b.shift, b.produced_qty, b.defect_qty,
+           ROUND(100.0 * b.defect_qty / b.produced_qty, 2)
+    FROM   pitanie.production_batches AS b
+    WHERE  b.line_id = p_line_id
+      AND  b.production_date = p_day
+    ORDER  BY b.shift
+$$;
+  </code></pre>
+  <pre class="small-code"><code class="language-text" data-trim>
+EXPLAIN → Index Scan using ix_batches_date …   -- встроена в запрос
+  </code></pre>
+    </div>
+    <div>
+      <p style="font-size:.5em;margin:0 0 .2em"><b class="orange">LANGUAGE plpgsql</b> — блок кода: переменные, IF, циклы</p>
+  <pre class="small-code" style="margin-top:0"><code class="language-sql" data-trim data-noescape>
+CREATE OR REPLACE FUNCTION stud_ivanov.fn_line_defects_pl(
+    p_line_id integer, p_day date)
+RETURNS TABLE (batch_number varchar, shift varchar,
+               produced_qty integer, defect_qty integer,
+               defect_pct numeric)
+LANGUAGE plpgsql
+STABLE
+AS $$
+BEGIN
+    IF p_day > CURRENT_DATE THEN                -- проверка параметра
+        RAISE EXCEPTION 'Дата % ещё не наступила', p_day;
+    END IF;
+
+    RETURN QUERY                                -- вернуть строки запроса
+    SELECT b.batch_number, b.shift, b.produced_qty, b.defect_qty,
+           ROUND(100.0 * b.defect_qty / b.produced_qty, 2)
+    FROM   pitanie.production_batches AS b
+    WHERE  b.line_id = p_line_id
+      AND  b.production_date = p_day
+    ORDER  BY b.shift;
+END;
+$$;
+  </code></pre>
+  <pre class="small-code"><code class="language-text" data-trim>
+EXPLAIN → Function Scan on fn_line_defects_pl   -- «чёрный ящик»
+  </code></pre>
+    </div>
+  </div>
+  <div class="two-col" style="margin-top:.1em">
+    <div class="box info" style="font-size:.48em;margin:0"><b>Результат одинаковый</b><code>SELECT * FROM …(3, DATE '2025-06-10')</code> → П250610-3Д: 1407 / 20 шт. (1,42 %), П250610-3Н: 1314 / 118 шт. (<span class="orange">8,98 %</span>). SQL — когда хватает одного запроса; PL/pgSQL — когда нужны проверки, ветвления, несколько шагов (подробно — модуль 10).</div>
+    <div class="box warn" style="font-size:.48em;margin:0"><b>Ловушка PL/pgSQL</b>Столбцы из <code>RETURNS TABLE</code> — это переменные функции. Без алиаса <code>SELECT shift …</code> → <code>column reference "shift" is ambiguous</code>. Всегда пишите <code>b.shift</code>.</div>
+  </div>
+  <aside class="notes">Обе функции проверены на стенде (создавались в pg_temp). Вопрос группе: какую версию выбрать для витрины, которую BI вызывает с фильтрами? (SQL — встраивается, фильтры и индексы работают; PL/pgSQL выполняется целиком и возвращает весь набор). Вопрос 2: зачем тогда PL/pgSQL? (валидация параметров, сообщения об ошибках, многошаговая логика, временные таблицы внутри). Связь со слайдом T-SQL: SQL-функция ≈ inline TVF, PL/pgSQL ≈ multi-statement TVF.</aside>
+</section>
+
+<!-- ===================== 31. T-SQL vs PG ===================== -->
+<section>
+  <h2>T-SQL ↔ PostgreSQL</h2>
+  <table class="t">
+    <tr><th>Задача</th><th>T-SQL</th><th>PostgreSQL</th></tr>
+    <tr><td>Inline TVF</td><td><code>RETURNS TABLE AS RETURN (SELECT …)</code></td><td><code>RETURNS TABLE(…) LANGUAGE sql STABLE AS $$ SELECT … $$</code></td></tr>
+    <tr><td>Multi-statement TVF</td><td><code>RETURNS @t TABLE (…) … INSERT @t</code></td><td><code>LANGUAGE plpgsql</code> + <code>RETURN QUERY / RETURN NEXT</code> (модуль 10)</td></tr>
+    <tr><td>Применить функцию к строкам</td><td><code>CROSS APPLY f(t.id)</code></td><td><code>CROSS JOIN LATERAL f(t.id)</code></td></tr>
+    <tr><td>То же с сохранением строк</td><td><code>OUTER APPLY</code></td><td><code>LEFT JOIN LATERAL … ON TRUE</code></td></tr>
+    <tr><td>Индексированное представление</td><td><code>WITH SCHEMABINDING</code> + индекс</td><td><code>MATERIALIZED VIEW</code> + <code>REFRESH</code></td></tr>
+    <tr><td>Рекурсивный CTE</td><td><code>WITH cte AS (…)</code></td><td><code>WITH RECURSIVE cte AS (…)</code></td></tr>
+    <tr><td>Ограничение рекурсии</td><td><code>OPTION (MAXRECURSION 100)</code></td><td>условие глубины / <code>CYCLE</code></td></tr>
+    <tr><td>Текст представления</td><td><code>sp_helptext 'v'</code></td><td><code>pg_get_viewdef('v'::regclass)</code></td></tr>
+  </table>
+</section>
+
+<!-- ===================== 31a. СРАВНЕНИЕ СПОСОБОВ ===================== -->
+<section>
+  <h2>Как организовать запрос: сравнение способов</h2>
+  <table class="t" style="font-size:.5em;margin-top:0">
+    <tr><th style="width:15%"></th><th>Вложенный запрос</th><th>CTE</th><th>Временная таблица</th><th>Представление</th><th>Табличная функция</th></tr>
+    <tr><td><b>Синтаксис</b></td><td><code>FROM (SELECT …) AS t</code></td><td><code>WITH t AS (…)</code></td><td><code>CREATE TEMP TABLE</code></td><td><code>CREATE VIEW</code></td><td><code>CREATE FUNCTION … RETURNS TABLE</code></td></tr>
+    <tr><td><b>Живёт</b></td><td>один оператор</td><td>один оператор</td><td>до конца сессии</td><td class="hl">постоянно (объект БД)</td><td class="hl">постоянно (объект БД)</td></tr>
+    <tr><td><b>Кому видно</b></td><td>этому запросу</td><td>этому запросу</td><td>своей сессии</td><td>всем, у кого есть права</td><td>всем, у кого есть права</td></tr>
+    <tr><td><b>Хранит данные</b></td><td>нет</td><td>нет*</td><td class="hl">да, снимок</td><td>нет — текст запроса;<br><code>MATERIALIZED VIEW</code> — <span class="orange">да, снимок</span> (обновляется <code>REFRESH</code>)</td><td>нет — код</td></tr>
+    <tr><td><b>Параметры</b></td><td>нет</td><td>нет</td><td>нет</td><td>нет</td><td class="hl">да</td></tr>
+    <tr><td><b>Повторное использование</b></td><td>нет — копипаст</td><td>несколько раз в одном запросе</td><td>в запросах сессии</td><td>в любых запросах, BI</td><td>в любых запросах, BI, LATERAL</td></tr>
+    <tr><td><b>Индексы / статистика</b></td><td>таблиц-источников</td><td>таблиц-источников</td><td>свои (после <code>ANALYZE</code>)</td><td>таблиц-источников</td><td>таблиц-источников**</td></tr>
+    <tr><td><b>Права (DDL)</b></td><td>не нужны</td><td>не нужны</td><td>TEMP (обычно есть)</td><td>CREATE в схеме</td><td>CREATE в схеме</td></tr>
+    <tr><td><b>Типичный сценарий</b></td><td>короткий одноразовый шаг</td><td>читаемая многошаговая логика, рекурсия</td><td>промежуточный результат для серии запросов</td><td>единая формула для всех: «источник истины»</td><td>«представление с параметром»: на дату, по клиенту</td></tr>
+  </table>
+  <p class="small" style="margin:.2em 0 0;font-size:.42em">* <code>MATERIALIZED</code> CTE хранит результат только на время выполнения запроса. ** SQL-функция может встраиваться в запрос; PL/pgSQL — «чёрный ящик» для планировщика.</p>
+  <div class="two-col" style="margin-top:.2em">
+    <div class="box ok" style="font-size:.52em;margin:0"><b>Правило выбора</b>Нужно один раз → подзапрос / CTE. Нужно в течение сеанса анализа → временная таблица. Нужно всем и всегда → представление. Нужно всем, но с параметром → функция.</div>
+    <div class="box warn" style="font-size:.52em;margin:0"><b>💬 Обсуждение</b>Ваш запрос из кейса «план кондитерки» — какой способ вы выберете, если отчёт нужен: а) один раз для презентации; б) ежемесячно финансовому директору; в) по любой категории и году?</div>
+  </div>
+  <aside class="notes">Ожидаемые ответы: а) CTE (или временная таблица, если будете крутить данные в нескольких запросах); б) представление (или MV, если тяжёлое и нужен снимок на дату); в) табличная функция fn_plan_fact(p_category, p_year). Подчеркнуть: способы не конкурируют, а комбинируются — функция внутри может использовать CTE, представление может строиться на другом представлении.</aside>
+</section>
+
+<!-- ===================== 32. КВИЗ 3 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: что выбрать?</h2>
+  <p>Нужен отчёт «долг каждого клиента <b>на произвольную дату</b>», который будут вызывать из BI и из других запросов. Лучший инструмент:</p>
+  <ul class="quiz">
+    <li>Обычное представление</li>
+    <li>Материализованное представление</li>
+    <li data-correct>Табличная функция с параметром <code>p_date</code></li>
+    <li>CTE в каждом отчёте</li>
+  </ul>
+  <p class="explain">Представление не принимает параметров (дату пришлось бы зашивать). Функция <code>fn_customer_debt(p_date)</code> — «представление с параметром»: её можно вызывать во FROM и через LATERAL для ряда дат.</p>
+</section>
+
+<!-- ===================== 33. КВИЗ 4 ===================== -->
+<section class="quiz-slide">
+  <h2>Квиз: обновляемость</h2>
+  <p>Какое из представлений PostgreSQL сможет обновить <b>автоматически</b> (без триггеров)?</p>
+  <ul class="quiz">
+    <li><code>SELECT o.*, c.customer_name FROM orders o JOIN customers c …</code></li>
+    <li><code>SELECT customer_id, SUM(amount) FROM invoices GROUP BY customer_id</code></li>
+    <li data-correct><code>SELECT batch_id, defect_qty FROM batches WHERE line_id = 3</code></li>
+    <li><code>SELECT DISTINCT channel FROM orders</code></li>
+  </ul>
+  <p class="explain">Одна таблица, без агрегатов, DISTINCT и соединений — простое обновляемое представление. Добавьте WITH CHECK OPTION, чтобы нельзя было «увести» партию на другую линию.</p>
+</section>
+
+<!-- ===================== 34. КЕЙС ВЕКТОР ===================== -->
+<section class="case-slide">
+  <h2>Кейс: «долг растёт, а мы отгружаем»</h2>
+  <div class="two-col">
+    <div style="font-size:.78em">
+      <p><span class="badge team-a">Команда А</span> Специалист по дебиторке Тихонова В. А.: «Я каждый месяц вручную сверяю счета и оплаты в Excel. Про одного клиента у меня ощущение, что он перестал платить, но отдел продаж говорит, что всё в порядке».</p>
+      <ul>
+        <li>Какие объекты БД вы бы создали, чтобы Тихонова видела проблему сама и сразу?</li>
+        <li>Как сделать проверку «можно ли отгружать» до отгрузки?</li>
+        <li>Чем опасен JOIN invoices × payments при подсчёте долга?</li>
+      </ul>
+      <span class="timer">⏱ 6 мин</span>
+    </div>
+    <div>
+      <div class="card"><h4>Подсказка по данным</h4>
+        <code>invoices</code> (сумма, срок оплаты) · <code>payments</code> (частичные, несколько на счёт) · <code>customers.credit_limit</code> · <code>orders.shipped_date</code></div>
+      <div class="card orange-top" style="margin-top:.5em"><h4>Вопрос на подумать</h4>Кто закреплённый менеджер клиента — и что мы уже знаем об этом менеджере?</div>
+    </div>
+  </div>
+  <aside class="notes">A2: ТД «Вектор» (id 1) — долг 6,91 млн при лимите 3 млн на 31.12.2025, превышение с июня 2025, после превышения отгружено 22 заказа на 4,11 млн. Менеджер клиента — Соколов (id 10), что связывает A1 и A2. Решение: v_receivables + fn_customer_debt(p_date) + проверка лимита перед отгрузкой (позже — процедура/триггер, модуль 12). JOIN invoices×payments до агрегации размножает сумму счёта по числу оплат.</aside>
+</section>
+
+<!-- ===================== 35. ГРУППЫ ===================== -->
+<section class="group-slide">
+  <h2>Работа в группах: спроектируйте «слой витрин»</h2>
+  <div class="two-col">
+    <div class="card"><h4><span class="badge team-a">Команда А</span> Финансы и продажи</h4>
+      <ol>
+        <li>Перечислите 3–4 представления/функции, которые нужны финансовому директору каждую неделю.</li>
+        <li>Для каждого: обычное, материализованное или функция? Какие параметры?</li>
+        <li>Напишите заголовок <code>CREATE FUNCTION fn_customer_debt(...) RETURNS TABLE (...)</code> — только сигнатуру.</li>
+      </ol>
+    </div>
+    <div class="card green-top"><h4><span class="badge team-b">Команда Б</span> Производство и закупки</h4>
+      <ol>
+        <li>Перечислите 3–4 витрины для ежедневной планёрки директора по производству.</li>
+        <li>Какая из них «тяжёлая» и должна быть материализованной? Как часто REFRESH?</li>
+        <li>Напишите сигнатуру <code>fn_line_report(p_line, p_from, p_to)</code> — какие столбцы она вернёт?</li>
+      </ol>
+    </div>
+  </div>
+  <span class="timer">⏱ 10 мин</span>
+  <aside class="notes">Результаты групп — затравка к лабораторной. Ожидаемо А: v_sales_lines, v_receivables, fn_customer_debt(p_date), fn_manager_discount_violations(p_from,p_to,p_limit). Б: v_batch_quality, v_supplier_price_benchmark, mv_material_overuse (тяжёлая, REFRESH ночью), fn_line_report, fn_supplier_overpay.</aside>
+</section>
+
+<!-- ===================== 36. ОБСУЖДЕНИЕ GOVERNANCE ===================== -->
+<section class="discussion-slide">
+  <h2>Кто отвечает за витрину?</h2>
+  <p>Через полгода в базе 60 представлений, написанных разными аналитиками. Одно из них — <code>v_revenue_final_2</code> — использует бухгалтерия, хотя оно считает выручку без возвратов.</p>
+  <ul>
+    <li>Какие правила вы бы ввели для создания представлений и функций?</li>
+    <li>Как узнать, кто и что использует, перед изменением представления?</li>
+  </ul>
+  <span class="timer">⏱ 3 мин</span>
+  <aside class="notes">Соглашения об именовании (v_, mv_, fn_), COMMENT ON, отдельная схема витрин с владельцем, ревью кода и git, тесты контрольных цифр, просмотр зависимостей (pg_depend, information_schema.view_table_usage), версионирование (v_sales_lines_v2), документация в каталоге данных.</aside>
+</section>
+
+<!-- ===================== 37. ИТОГИ ===================== -->
+<section>
+  <h2>Итоги: что запомнить</h2>
+  <div class="three-col">
+    <div class="card"><h4>CTE</h4>
+      <ul>
+        <li>Шаги запроса сверху вниз</li>
+        <li>Живёт один оператор</li>
+        <li>RECURSIVE: якорь + UNION ALL + рекурсивная часть</li>
+        <li>MATERIALIZED — барьер оптимизации</li>
+      </ul></div>
+    <div class="card orange-top"><h4>Представления</h4>
+      <ul>
+        <li>Единая формула — один источник истины</li>
+        <li>Простые — обновляемые; WITH CHECK OPTION</li>
+        <li>Скрывают столбцы/строки</li>
+        <li>MV хранит данные, нужен REFRESH</li>
+      </ul></div>
+    <div class="card green-top"><h4>Табличные функции</h4>
+      <ul>
+        <li>Представление с параметрами</li>
+        <li>LANGUAGE sql + STABLE → встраивание</li>
+        <li>Вызов во FROM и через LATERAL</li>
+        <li>Изменили RETURNS — DROP + CREATE</li>
+      </ul></div>
+  </div>
+  <div class="box ok"><b>Для сквозного кейса</b>Ваши витрины <code>v_sales_lines</code>, <code>v_receivables</code>, <code>v_batch_quality</code>, <code>mv_material_overuse</code> — фундамент для модулей 10–12.</div>
+</section>
+
+<!-- ===================== 38. МОСТ ===================== -->
+<section>
+  <h2>Дальше: модуль 10 — программные элементы</h2>
+  <div class="two-col">
+    <div style="font-size:.8em">
+      <p>Функции этого модуля — <b>один SELECT</b>. А если нужно:</p>
+      <ul>
+        <li>проверить параметры и выдать понятную ошибку?</li>
+        <li>пройти циклом по менеджерам и классифицировать каждого?</li>
+        <li>построить запрос по таблице, имя которой передано параметром?</li>
+        <li>перехватить деление на ноль и записать его в журнал?</li>
+      </ul>
+      <p class="orange">→ PL/pgSQL: переменные, IF/CASE, циклы, EXCEPTION.</p>
+    </div>
+    <div>
+      <div class="box info"><b>Домашнее задание</b>Завершить лабораторную (варианты по командам), задания со звёздочкой — по желанию. Объекты не удалять!</div>
+      <div class="box warn"><b>Проверьте себя</b>Почему функцию, читающую таблицы, нельзя объявлять IMMUTABLE?</div>
+    </div>
+  </div>
+  <aside class="notes">Ответ: IMMUTABLE-результат может быть закэширован/вычислен на этапе планирования и использован в индексах — при изменении данных получим неверные результаты.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({hash:true,slideNumber:'c/t',transition:'slide',width:1280,height:760,margin:0.04,
+  plugins:[RevealHighlight,RevealNotes]});
+// Квизы: клик по варианту подсвечивает верный/неверный и показывает пояснение
+document.querySelectorAll('ul.quiz').forEach(function(q){
+  q.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(){
+      li.classList.add(li.hasAttribute('data-correct')?'right':'wrong');
+      if(li.hasAttribute('data-correct')){
+        var ex=q.parentElement.querySelector('.explain'); if(ex) ex.classList.add('show');
+      }
+    });
+  });
+});
+// Опросы: клик — +1 голос, Shift+клик — −1
+document.querySelectorAll('ul.poll').forEach(function(p){
+  function redraw(){var items=p.querySelectorAll('li'),max=1;
+    items.forEach(function(i){max=Math.max(max,+i.querySelector('.cnt').textContent)});
+    items.forEach(function(i){i.querySelector('.fill').style.width=(100*i.querySelector('.cnt').textContent/max)+'%'});}
+  p.querySelectorAll('li').forEach(function(li){
+    li.addEventListener('click',function(e){var c=li.querySelector('.cnt');
+      c.textContent=Math.max(0,+c.textContent+(e.shiftKey?-1:1));redraw();});
+  });
+});
+</script>
+</body>
+</html>
